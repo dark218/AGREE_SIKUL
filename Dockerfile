@@ -1,6 +1,9 @@
+# syntax=docker/dockerfile:1.4
 # ===========================================
 # AGREE SIKUL - Multi-stage Dockerfile
 # ===========================================
+# La directive `syntax` ci-dessus est REQUISE pour que les COPY <<EOF
+# (heredoc) fonctionnent. Sans elle, Docker plante avec "unknown instruction".
 
 # Stage 1: Composer dependencies (pour récupérer Ziggy notamment)
 FROM composer:latest AS composer-builder
