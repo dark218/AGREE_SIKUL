@@ -1,0 +1,188 @@
+# ===========================================
+# DOKPLOY CONFIGURATION - AGREE SIKUL
+# ===========================================
+# Documentation : https://docs.dokploy.com
+
+version: "1.0"
+
+# ===========================================
+# APPLICATION PRINCIPALE
+# ===========================================
+name: agree-sikul
+description: "AGREE SIKUL - Plateforme de gestion scolaire"
+
+# ===========================================
+# BUILD CONFIGURATION
+# ===========================================
+build:
+  dockerfile: Dockerfile
+  context: .
+  target: production
+  args:
+    APP_ENV: production
+
+# ===========================================
+# ENVIRONNEMENT
+# ===========================================
+env:
+  # Application
+  APP_NAME: "AGREE SIKUL"
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_URL: "https://${DOKPLOY_DOMAIN}"
+  APP_TIMEZONE: UTC
+  APP_LOCALE: fr
+
+  # Tunnel (cf. AppServiceProvider) — en prod Dokploy on garde "prod"
+  APP_TUNNEL: prod
+
+  # Database (à override dans Dokploy UI ou ici si DB externe)
+  DB_CONNECTION: mysql
+  DB_HOST: 64.227.83.83
+  DB_PORT: "3306"
+  DB_DATABASE: agree_sikul
+
+  # Cache/Session/Queue
+  CACHE_STORE: database
+  SESSION_DRIVER: database
+  SESSION_DOMAIN: "null"
+  SESSION_SAME_SITE: lax
+  SESSION_SECURE_COOKIE: "true"
+  QUEUE_CONNECTION: sync
+
+  # Docker entrypoint
+  WAIT_FOR_DB: "true"
+  RUN_MIGRATIONS: "true"
+  # RUN_SEED: "true"   # à activer UNIQUEMENT pour le 1er déploiement
+
+# ===========================================
+# SECRETS (à configurer dans Dokploy UI)
+# ===========================================
+secrets:
+  - APP_KEY
+  - DB_USERNAME
+  - DB_PASSWORD
+  - JWT_SECRET
+  - PUSHER_APP_ID
+  - PUSHER_APP_KEY
+  - PUSHER_APP_SECRET
+  - FIREBASE_API_KEY
+  - FIREBASE_AUTH_DOMAIN
+  - FIREBASE_PROJECT_ID
+  - FIREBASE_MESSAGING_SENDER_ID
+  - FIREBASE_APP_ID
+  - FIREBASE_VAPID_KEY
+  - SMS_API_AUTHORIZATION
+  - SMSPRO_API_AUTHORIZATION
+  - WIREPICK_PASSWORD
+  - PISPI_CLIENT_ID
+  - PISPI_SECRET
+  - PISPI_API_KEY
+  - PISPI_WEBHOOK_SECRET
+
+# ===========================================
+# SERVICES COMPOSES
+# ===========================================
+compose:
+  file: docker-compose.yml
+  services:
+    - app
+
+# ===========================================
+# HEALTHCHECK
+# ===========================================
+healthcheck:
+  enabled: true
+  path: /health
+  interval: 30s
+  timeout: 10s
+  retries: 3
+
+# ===========================================
+# DOMAINE & SSL
+# ===========================================
+domains:
+  - domain: "${DOKPLOY_DOMAIN}"
+    ssl: true
+    forceHttps: true
+
+# ===========================================
+# PORTS
+# ===========================================
+ports:
+  - containerPort: 80
+    protocol: tcp
+
+# ===========================================
+# RESOURCES
+# ===========================================
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: "0.5"
+    memory: 512Mi
+
+# ===========================================
+# VOLUMES PERSISTANTS
+# ===========================================
+volumes:
+  - name: storage-data
+    mountPath: /var/www/html/storage/app/public
+    size: 5Gi
+
+# ===========================================
+# REPLICAS (scaling auto)
+# ===========================================
+replicas:
+  min: 1
+  max: 3
+  targetCPUUtilization: 80
+
+# ===========================================
+# DEPLOYMENT (rolling sans downtime)
+# ===========================================
+deployment:
+  strategy: RollingUpdate
+  maxSurge: 1
+  maxUnavailable: 0
+
+# ===========================================
+# HOOKS
+# ===========================================
+hooks:
+  preDeploy:
+    - name: "Build assets"
+      command: "npm ci && npm run build"
+    - name: "Install composer"
+      command: "composer install --no-dev --optimize-autoloader"
+
+  postDeploy:
+    - name: "Run migrations"
+      command: "php artisan migrate --force"
+    - name: "Clear caches"
+      command: "php artisan optimize:clear"
+    - name: "Cache config"
+      command: "php artisan config:cache"
+    - name: "Cache routes"
+      command: "php artisan route:cache"
+    - name: "Cache views"
+      command: "php artisan view:cache"
+    - name: "Storage link"
+      command: "php artisan storage:link"
+
+# ===========================================
+# LOGGING
+# ===========================================
+logging:
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# ===========================================
+# NETWORK
+# ===========================================
+network:
+  mode: bridge

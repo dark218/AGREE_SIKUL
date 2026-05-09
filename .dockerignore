@@ -1,0 +1,52 @@
+# Dépendances installées dans le container
+/node_modules
+/vendor
+
+# Assets buildés (re-générés dans le stage frontend)
+/public/build
+/public/hot
+
+# Fichiers locaux / IDE
+.git
+.gitignore
+.idea
+.vscode
+*.log
+*.pid
+
+# Tests / docs lourdes
+/tests
+/storybook-static
+*.md
+!README.md
+
+# Données de dev
+*.sqlite
+*.sqlite-journal
+.phpunit.result.cache
+.phpunit.cache
+
+# Logs Laravel
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+
+# Env locaux (on copie .env.production explicitement dans le Dockerfile)
+.env
+.env.local
+.env.docker
+.env.testing
+.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fichiers binaires propres à dev
+composer-setup.php
+*.zip
+*.rar
+*.tar
+*.tar.gz

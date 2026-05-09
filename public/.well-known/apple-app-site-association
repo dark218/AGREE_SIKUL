@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "<appId>.send.smil.pay",
+        "paths": [ "/"]
+      }
+    ]
+  }
+}

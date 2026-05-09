@@ -1,0 +1,11 @@
+{
+    "name": "SuiviAnalyse",
+    "alias": "suivi-analyse",
+    "description": "Module de suivi et analyse consolidé",
+    "keywords": ["suivi", "analyse", "rapports"],
+    "priority": 0,
+    "providers": [
+        "Modules\\SuiviAnalyse\\Providers\\SuiviAnalyseServiceProvider"
+    ],
+    "files": []
+}

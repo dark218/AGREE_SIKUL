@@ -1,0 +1,15 @@
+{
+  "name": "modules/academique",
+  "description": "Academique Module for Agree Sikul",
+  "authors": [
+    {
+      "name": "Agree Sikul Development",
+      "email": "dev@agreesikul.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Modules\Academique\\": ""
+    }
+  }
+}

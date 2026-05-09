@@ -1,0 +1,11 @@
+{
+    "name": "Parametrage",
+    "alias": "parametrage",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Parametrage\\Providers\\ParametrageServiceProvider"
+    ],
+    "files": []
+}

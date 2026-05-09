@@ -1,0 +1,12 @@
+{
+  "name": "Academique",
+  "alias": "academique",
+  "description": "Gestion academique module - Apprenants, Enseignants, Matieres, Cours, Evaluations, etc.",
+  "keywords": [],
+  "priority": 3,
+  "providers": [
+    "Modules\\Academique\\Providers\\AcademiqueServiceProvider"
+  ],
+  "files": [],
+  "requires": []
+}

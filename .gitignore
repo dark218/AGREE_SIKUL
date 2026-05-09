@@ -1,0 +1,61 @@
+/.phpunit.cache
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.env.dev
+.env.testing
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+.DS_Store
+*.log
+*.cache
+.phpunit.result.cache
+
+# Fix scripts (temporary)
+fix*.js
+fix*.mjs
+fix*.pl
+cleanup*.js
+cleanup*.mjs
+rebuild*.js
+generate*.js
+generate*.mjs
+convert*.js
+update*.js
+verify*.js
+analyze*.py
+ABSOLUTE_FINAL_FIX.mjs
+FINAL_*.mjs
+INTELLIGENT_FIX.pl
+LAST_FIX.pl
+final*.mjs
+master*.mjs
+revert*.mjs
+ultimate*.mjs
+comprehensive*.pl
+
+# Analysis/Documentation (temporary - optional to remove)
+# ANALYSIS_*.md
+# ANALYSIS_*.txt
+# README_ANALYSIS*.md
+# README_ANALYSIS*.txt
+# QUICK_SUMMARY.txt
+# EXECUTIVE_SUMMARY.txt
+
+# Temporary files
+temp_*.txt
+*.txt (if they are temporary outputs)
+build_output.txt
+nul

@@ -1,0 +1,71 @@
+<?php
+
+namespace Modules\Finances\Entities;
+
+use App\Models\BaseModel;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Parametrage\Entities\AnneeScolaire;
+use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\Ecole;
+use Modules\Parametrage\Entities\Campus;
+
+class Ecolage extends BaseModel
+{
+    use HasFactory, SoftDeletes;
+
+    protected $table = 'ecolages';
+
+    protected $fillable = [
+        'annee_scolaire_id',
+        'niveau_id',
+        'ecole_id',
+        'campus_id',
+        'frais_dossier',
+        'frais_inscription',
+        'frais_scolarite',
+        'etat',
+        'creation_username',
+        'modification_username',
+    ];
+
+    protected $casts = [
+        'frais_dossier' => 'decimal:2',
+        'frais_inscription' => 'decimal:2',
+        'frais_scolarite' => 'decimal:2',
+    ];
+
+    // Relations
+    public function anneeScolaire(): BelongsTo
+    {
+        return $this->belongsTo(AnneeScolaire::class, 'annee_scolaire_id');
+    }
+
+    public function niveau(): BelongsTo
+    {
+        return $this->belongsTo(Niveau::class, 'niveau_id');
+    }
+
+    public function ecole(): BelongsTo
+    {
+        return $this->belongsTo(Ecole::class, 'ecole_id');
+    }
+
+    public function campus(): BelongsTo
+    {
+        return $this->belongsTo(Campus::class, 'campus_id');
+    }
+
+    // Scopes
+    public function scopeActif($query)
+    {
+        return $query->where('etat', 'actif');
+    }
+
+    // Méthodes métier
+    public function isActif(): bool
+    {
+        return $this->etat === 'actif';
+    }
+}

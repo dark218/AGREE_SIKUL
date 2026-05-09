@@ -1,0 +1,11 @@
+{
+    "name": "Communication",
+    "alias": "communication",
+    "description": "Gestion de la messagerie, annonces et notifications",
+    "keywords": ["message", "annonce", "notification", "communication"],
+    "priority": 10,
+    "providers": [
+        "Modules\\Communication\\Providers\\CommunicationServiceProvider"
+    ],
+    "files": []
+}

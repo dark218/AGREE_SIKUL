@@ -1,0 +1,11 @@
+{
+    "name": "RessourcesLogistique",
+    "alias": "ressources-logistique",
+    "description": "Module de gestion des ressources et logistique consolidé",
+    "keywords": ["ressources", "logistique", "inventaire", "documents", "bibliotheque"],
+    "priority": 0,
+    "providers": [
+        "Modules\\RessourcesLogistique\\Providers\\RessourcesLogistiqueServiceProvider"
+    ],
+    "files": []
+}

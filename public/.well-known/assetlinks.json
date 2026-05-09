@@ -1,0 +1,12 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "send.smil.pay",
+            "sha256_cert_fingerprints": [
+                "4C:D6:2F:16:13:E1:14:02:51:8E:24:FD:DD:B5:D3:6B:17:F3:74:38:B6:53:4A:CC:15:79:8E:A1:08:1F:F0:C8"
+            ]
+        }
+    }
+]

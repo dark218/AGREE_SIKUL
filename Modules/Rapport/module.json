@@ -1,0 +1,12 @@
+{
+  "name": "Rapport",
+  "alias": "rapport",
+  "description": "Module de gestion des rapports - Statistiques Ecole, Statistiques Classes",
+  "keywords": [],
+  "priority": 50,
+  "providers": [
+    "Modules\\Rapport\\Providers\\RapportServiceProvider"
+  ],
+  "files": [],
+  "requires": []
+}

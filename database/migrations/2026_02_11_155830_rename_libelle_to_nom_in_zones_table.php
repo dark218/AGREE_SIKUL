@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        if (Schema::hasTable('zones')) if (Schema::hasTable('zones')) Schema::table('zones', function (Blueprint $table) {
+            $table->renameColumn('libelle', 'nom');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        if (Schema::hasTable('zones')) if (Schema::hasTable('zones')) Schema::table('zones', function (Blueprint $table) {
+            $table->renameColumn('nom', 'libelle');
+        });
+    }
+};

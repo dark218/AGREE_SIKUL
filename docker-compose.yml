@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: agreesikul:latest
+    # container_name: agreesikul_app
+    restart: unless-stopped
+    ports:
+      - "8091:80"
+    # env_file:
+    #   - .env.docker
+    networks:
+      - app-network
+    volumes:
+      - storage-data:/var/www/html/storage/app/public
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  storage-data:
+    driver: local

@@ -1,0 +1,11 @@
+{
+    "name": "Finances",
+    "alias": "finances",
+    "description": "Gestion des frais scolaires et finances",
+    "keywords": ["frais", "finance", "paiement", "echeancier"],
+    "priority": 11,
+    "providers": [
+        "Modules\\Finances\\Providers\\FinancesServiceProvider"
+    ],
+    "files": []
+}

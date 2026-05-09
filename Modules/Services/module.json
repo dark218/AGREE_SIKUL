@@ -1,0 +1,11 @@
+{
+    "name": "Services",
+    "alias": "services",
+    "description": "Gestion des services annexes (cantine, transport, infirmerie)",
+    "keywords": ["service", "cantine", "transport", "infirmerie"],
+    "priority": 13,
+    "providers": [
+        "Modules\\Services\\Providers\\ServicesServiceProvider"
+    ],
+    "files": []
+}
