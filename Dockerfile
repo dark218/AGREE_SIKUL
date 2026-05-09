@@ -76,12 +76,16 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" && \
 
 WORKDIR /var/www/html
 
-# Code de l'application
+# Code de l'application (le .env n'est PAS copié — il est généré par l'entrypoint
+# depuis les variables d'environnement du container, que Dokploy injecte via son UI)
 COPY --chown=www-data:www-data . .
-COPY --chown=www-data:www-data .env.production /var/www/html/.env
 
 # Retirer le flag dev de Vite (sinon Laravel cherche le serveur Vite local)
 RUN rm -f public/hot
+
+# Si .env.production existe (build local hors gitignore), on le copie comme fallback
+# Sinon l'entrypoint le générera depuis ENV au démarrage
+RUN if [ -f .env.production ]; then cp .env.production .env; fi
 
 # Récupérer les assets buildés depuis le stage frontend
 COPY --from=frontend-builder --chown=www-data:www-data /app/public/build ./public/build

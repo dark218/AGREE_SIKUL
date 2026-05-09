@@ -5,16 +5,22 @@ services:
       dockerfile: Dockerfile
       target: production
     image: agreesikul:latest
-    # container_name: agreesikul_app
     restart: unless-stopped
-    ports:
-      - "8091:80"
-    # env_file:
-    #   - .env.docker
+
+    # Dokploy/Traefik route via le domaine — pas besoin de mapper un port host.
+    # Pour test local sans Dokploy, dé-commente la section `ports` ci-dessous.
+    expose:
+      - "80"
+    # ports:
+    #   - "8091:80"
+
     networks:
-      - app-network
+      - dokploy-network
+      - agreesikul-network
+
     volumes:
       - storage-data:/var/www/html/storage/app/public
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
@@ -22,8 +28,19 @@ services:
       retries: 3
       start_period: 40s
 
+    labels:
+      - "traefik.enable=true"
+      # Les labels précis de routing sont injectés par Dokploy via l'UI "Domains".
+      # Si tu veux les hardcoder ici, dé-commente :
+      # - "traefik.http.routers.agreesikul.rule=Host(`${DOKPLOY_DOMAIN}`)"
+      # - "traefik.http.services.agreesikul.loadbalancer.server.port=80"
+
 networks:
-  app-network:
+  # Réseau Dokploy partagé avec Traefik (créé par Dokploy à l'installation)
+  dokploy-network:
+    external: true
+  # Réseau interne propre à AgreeSikul (évite les collisions si plusieurs apps)
+  agreesikul-network:
     driver: bridge
 
 volumes:
