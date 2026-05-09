@@ -26,7 +26,7 @@ class DepartementController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Departement::withoutTrashed()->with(['region']);
+            $query = Departement::withoutTrashed()->with(['region', 'pays']);
 
             if ($request->filled('code')) {
                 $query->where('code', 'like', '%' . $request->code . '%');
