@@ -13,11 +13,11 @@ class BanqueController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:banque-list', ['only' => ['index', 'show']]);
-        $this->middleware('permission.check:banque-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:banque-edit', ['only' => ['edit', 'update']]);
-        $this->middleware('permission.check:banque-delete', ['only' => ['destroy']]);
-        $this->middleware('permission.check:banque-activate', ['only' => ['activate']]);
+        $this->middleware('permission.check:parametrage-banque-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:parametrage-banque-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission.check:parametrage-banque-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:parametrage-banque-delete', ['only' => ['destroy']]);
+        $this->middleware('permission.check:parametrage-banque-activate', ['only' => ['activate']]);
     }
 
     /**

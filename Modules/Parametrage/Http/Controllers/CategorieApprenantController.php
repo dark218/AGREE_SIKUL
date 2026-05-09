@@ -86,7 +86,6 @@ class CategorieApprenantController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:categorie_apprenants,code',
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -157,7 +156,6 @@ class CategorieApprenantController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:categorie_apprenants,code,' . $categorieApprenant->id,
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 

@@ -134,11 +134,10 @@ class DepartementController extends Controller
     {
         try {
             $regions = Region::select('id', 'libelle')->get();
-
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Departements/Edit', [
-                'departement' => $departement,
+                'item' => $departement,
                 'regions' => $regions,
                 'pays' => $pays,
             ]);

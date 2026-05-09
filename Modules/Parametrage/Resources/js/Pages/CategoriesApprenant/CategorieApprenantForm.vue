@@ -2,9 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import { usePage } from '@inertiajs/vue3';
 const { t } = useI18n();
-const page = usePage();
 const props = defineProps({
     form: {
         type: Object,
@@ -21,7 +19,6 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
-const ecoles = computed(() => page.props.ecoles || []);
 </script>
 <template>
     <div class="row g-3 custom-input">
@@ -63,32 +60,10 @@ const ecoles = computed(() => page.props.ecoles || []);
                 </span>
             </div>
         </div>
-        <!-- École -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>
-                    {{ t('fields.school') }}
-                    <span v-if="!isReadOnly" class="text-danger"> *</span>
-                </label>
-                <SearchableSelect
-                    v-model="form.ecole_id"
-                    :options="ecoles"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.ecole_id" class="text-danger">
-                    <strong>{{ form.errors.ecole_id }}</strong>
-                </span>
-            </div>
-        </div>
         <!-- État -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>
-                    {{ t('fields.status') }}
-                </label>
+                <label>{{ t('fields.status') }}</label>
                 <SearchableSelect
                     v-model="form.etat"
                     :options="statusOptions"

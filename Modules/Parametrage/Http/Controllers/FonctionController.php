@@ -15,11 +15,11 @@ class FonctionController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission.check:fonction-list', ['only' => ['index']]);
-        $this->middleware('permission.check:fonction-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:fonction-edit', ['only' => ['edit', 'update']]);
-        $this->middleware('permission.check:fonction-delete', ['only' => ['destroy']]);
-        $this->middleware('permission.check:fonction-activate', ['only' => ['activate']]);
+        $this->middleware('permission.check:parametrage-fonction-list', ['only' => ['index']]);
+        $this->middleware('permission.check:parametrage-fonction-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission.check:parametrage-fonction-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:parametrage-fonction-delete', ['only' => ['destroy']]);
+        $this->middleware('permission.check:parametrage-fonction-activate', ['only' => ['activate']]);
     }
 
     public function index(Request $request)
