@@ -8,10 +8,6 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
     mode: {
         type: String,
         default: 'create',
@@ -26,58 +22,25 @@ const statusOptions = [
 </script>
 <template>
     <div class="row g-3 custom-input">
-        <!-- Code -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
-                <span v-if="form.errors?.code" class="text-danger">
-                    <strong>{{ form.errors.code }}</strong>
-                </span>
+                <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly" />
+                <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <!-- Libelle -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
-                <span v-if="form.errors?.libelle" class="text-danger">
-                    <strong>{{ form.errors.libelle }}</strong>
-                </span>
+                <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly" />
+                <span v-if="form.errors?.libelle" class="text-danger"><strong>{{ form.errors.libelle }}</strong></span>
             </div>
         </div>
-        <!-- Année scolaire -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.academic_year') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="props.anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- État -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.status') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.etat"
-                    :options="statusOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.etat" class="text-danger">
-                    <strong>{{ form.errors.etat }}</strong>
-                </span>
+                <label>{{ t('fields.status') }}</label>
+                <SearchableSelect v-model="form.etat" :options="statusOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                <span v-if="form.errors?.etat" class="text-danger"><strong>{{ form.errors.etat }}</strong></span>
             </div>
         </div>
     </div>

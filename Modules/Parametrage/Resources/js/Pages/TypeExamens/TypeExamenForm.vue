@@ -7,26 +7,6 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
     mode: {
         type: String,
         default: 'create',
@@ -70,91 +50,6 @@ const statusOptions = [
                 >
                 <span v-if="form.errors?.libelle" class="text-danger">
                     <strong>{{ form.errors.libelle }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Niveau Id -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.niveau') || 'Niveau' }}</label>
-                <SearchableSelect
-                    v-model="form.niveau_id"
-                    :options="niveaux"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.niveau_id" class="text-danger">
-                    <strong>{{ form.errors.niveau_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Cycle Id -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
-                <SearchableSelect
-                    v-model="form.cycle_id"
-                    :options="cycles"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.cycle_id" class="text-danger">
-                    <strong>{{ form.errors.cycle_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Pays Id -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') || 'Pays' }}</label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger">
-                    <strong>{{ form.errors.pays_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Année Scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année Scolaire' }}</label>
-                <SearchableSelect
-                    v-model.number="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Section -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }}</label>
-                <SearchableSelect
-                    v-model.number="form.section_id"
-                    :options="sections"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.section_id" class="text-danger">
-                    <strong>{{ form.errors.section_id }}</strong>
                 </span>
             </div>
         </div>
