@@ -17,6 +17,7 @@ class Departement extends BaseModel
         'code',
         'libelle',
         'region_id',
+        'pays_id',
         'etat',
         'created_by',
         'updated_by',
@@ -33,6 +34,11 @@ class Departement extends BaseModel
     public function region(): BelongsTo
     {
         return $this->belongsTo(Region::class, 'region_id');
+    }
+
+    public function pays(): BelongsTo
+    {
+        return $this->belongsTo(Pays::class, 'pays_id');
     }
 
     public function communes(): HasMany
