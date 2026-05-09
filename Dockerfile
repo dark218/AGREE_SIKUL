@@ -184,13 +184,18 @@ set -e
 cd /var/www/html
 
 # Si pas de .env (cas Dokploy avec .env.production gitignored), on en génère un
-# minimal à partir des variables d'env injectées dans le container
+# minimal à partir des variables d'env injectées dans le container.
+# IMPORTANT : on garantit qu'une ligne APP_KEY= existe (vide ou pas) pour que
+# `php artisan key:generate` puisse la modifier au besoin.
 if [ ! -f .env ]; then
     echo "[entrypoint] No .env found — generating from container ENV..."
     : > .env
-    # Liste des vars qu'on persiste dans .env (Laravel lit aussi getenv mais
-    # `php artisan config:cache` se base sur le fichier .env)
-    for var in APP_NAME APP_ENV APP_KEY APP_DEBUG APP_URL APP_TIMEZONE APP_LOCALE APP_TUNNEL \
+
+    # APP_KEY toujours présent (même vide) pour que key:generate puisse la setter
+    printf 'APP_KEY="%s"\n' "${APP_KEY:-}" >> .env
+
+    # Liste des autres vars
+    for var in APP_NAME APP_ENV APP_DEBUG APP_URL APP_TIMEZONE APP_LOCALE APP_TUNNEL \
                APP_URL_LOCAL APP_URL_NGROK \
                LOG_CHANNEL LOG_LEVEL \
                DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD \
@@ -215,10 +220,15 @@ if [ ! -f .env ]; then
     done
 fi
 
-# Génère APP_KEY si absente (premier démarrage sans secret configuré)
-if ! grep -q '^APP_KEY=base64:' .env 2>/dev/null && [ -z "$APP_KEY" ]; then
+# S'assure qu'une ligne APP_KEY= existe dans .env (pour les .env pré-existants)
+if ! grep -q '^APP_KEY=' .env 2>/dev/null; then
+    printf 'APP_KEY=""\n' >> .env
+fi
+
+# Génère APP_KEY si vide (premier démarrage sans secret configuré)
+if ! grep -qE '^APP_KEY=("?base64:|"?[A-Za-z0-9])' .env 2>/dev/null; then
     echo "[entrypoint] Generating APP_KEY..."
-    php artisan key:generate --force
+    php artisan key:generate --force --no-interaction
 fi
 
 # Attente DB
