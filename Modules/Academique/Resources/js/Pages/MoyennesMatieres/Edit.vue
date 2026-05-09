@@ -6,7 +6,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import MoyenneMatiereForm from './MoyenneMatiereForm.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 
 defineOptions({ layout: DashboardLayout });
 

@@ -8,7 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();

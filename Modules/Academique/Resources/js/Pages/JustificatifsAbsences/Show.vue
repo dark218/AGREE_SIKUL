@@ -6,7 +6,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import JustificatifAbsenceForm from './JustificatifAbsenceForm.vue';
 import { useForm } from '@inertiajs/vue3';
 defineOptions({ layout: DashboardLayout });

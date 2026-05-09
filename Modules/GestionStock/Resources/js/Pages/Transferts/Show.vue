@@ -14,7 +14,7 @@ export default {
 import { ref, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 const { t } = useI18n();
 const page = usePage();

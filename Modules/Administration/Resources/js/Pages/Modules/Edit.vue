@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 const { t } = useI18n();
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showUpdateLoader, hideLoader } = useLoader();
 defineOptions({

@@ -7,7 +7,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import TuteurForm from './TuteurForm.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showDeleteLoader, hideLoader } = useLoader();

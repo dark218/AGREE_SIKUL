@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { useToast } from 'vue-toastification';
 import PosLayout from '@/Layouts/PosLayout.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { useLocale } from '@/Composables/useLocale';
 import { usePermissions } from '@/Composables/usePermissions';
 const toast = useToast();

@@ -7,7 +7,7 @@ import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import NotificationManager from '@/Components/NotificationManager.vue';
 import NotificationModal from '@/Components/Common/NotificationModal.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { useLocale } from '@/Composables/useLocale';
 import { useTimeAgo } from '@/Composables/useTimeAgo';
 

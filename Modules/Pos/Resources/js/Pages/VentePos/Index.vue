@@ -5,7 +5,7 @@ import PosLayout from '@/Layouts/PosLayout.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import { useLocale } from '@/Composables/useLocale';
 import { usePermissions } from '@/Composables/usePermissions';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 // Utiliser PosLayout comme layout
 defineOptions({ layout: PosLayout });
 const { t } = useLocale();

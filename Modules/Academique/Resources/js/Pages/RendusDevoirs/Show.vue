@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import RenduDevoirForm from './RenduDevoirForm.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';

@@ -7,7 +7,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ExamenEnLigneForm from './ExamenEnLigneForm.vue';
 import QuestionManager from './QuestionManager.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 
 defineOptions({ layout: DashboardLayout });
 

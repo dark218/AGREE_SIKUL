@@ -16,7 +16,13 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': '/resources/js',
+            // ATTENTION : les alias plus spécifiques doivent être déclarés AVANT le générique.
+            // Sur Linux (Docker/Dokploy) le FS est case-sensitive : `composables` (lowercase)
+            // n'existe pas dans le repo, c'est `Composables` (cap). On redirige les deux pour
+            // éviter d'avoir à patcher 200+ imports.
+            '@/composables': path.resolve(__dirname, 'resources/js/Composables'),
+            '@/Composables': path.resolve(__dirname, 'resources/js/Composables'),
+            '@': path.resolve(__dirname, 'resources/js'),
             '@modules': path.resolve(__dirname, 'Modules'),
         }
     },

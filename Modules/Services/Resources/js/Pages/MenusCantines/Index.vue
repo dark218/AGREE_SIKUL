@@ -8,7 +8,7 @@ import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 
 defineOptions({ layout: DashboardLayout });
 

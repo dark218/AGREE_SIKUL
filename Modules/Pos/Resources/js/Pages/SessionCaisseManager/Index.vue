@@ -4,7 +4,7 @@ import { Link, router } from '@inertiajs/vue3';
 import PosLayout from '@/Layouts/PosLayout.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 import { useLocale } from '@/Composables/useLocale';
 // Utiliser PosLayout comme layout

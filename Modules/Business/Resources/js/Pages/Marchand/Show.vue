@@ -8,7 +8,7 @@ import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import RejectModal from '@/Components/Common/RejectModal.vue';
 import MarchandForm from './MarchandForm.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();

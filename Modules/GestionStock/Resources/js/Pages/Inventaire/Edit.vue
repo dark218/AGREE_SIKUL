@@ -19,7 +19,7 @@ import { Head, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 const { t } = useI18n();
 const page = usePage();
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showUpdateLoader, hideLoader } = useLoader();

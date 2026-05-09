@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import PosLayout from '@/Layouts/PosLayout.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { useLocale } from '@/Composables/useLocale';
 // Utiliser PosLayout comme layout
 defineOptions({ layout: PosLayout });

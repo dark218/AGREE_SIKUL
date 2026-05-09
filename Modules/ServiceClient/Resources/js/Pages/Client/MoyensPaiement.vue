@@ -7,7 +7,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
-import { useLoader } from '@/composables/useLoader';
+import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 import { debounce } from 'lodash';
 defineOptions({ layout: DashboardLayout });
