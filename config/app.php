@@ -56,14 +56,16 @@ return [
 
     /*
     | APP_TUNNEL contrôle l'URL publique de l'app :
-    |   - 'local' (défaut) → utilise APP_URL_LOCAL (ex : http://localhost:8000)
     |   - 'ngrok'          → utilise APP_URL_NGROK (ex : https://xxx.ngrok-free.app)
-    |   - 'prod'           → utilise APP_URL (valeur historique)
+    |   - 'local'          → utilise APP_URL_LOCAL (ex : http://localhost:8000)
+    |   - autre/non défini → utilise APP_URL (comportement Laravel standard)
+    | Le défaut intentionnel est `prod` pour qu'un `.env` sans APP_TUNNEL retombe
+    | sur APP_URL (et pas sur localhost:8000 qui casse les déploiements).
     | Pour basculer : change APP_TUNNEL dans .env puis `php artisan config:clear`.
     */
-    'url' => match (env('APP_TUNNEL', 'local')) {
-        'ngrok' => env('APP_URL_NGROK') ?: env('APP_URL', 'http://localhost:8000'),
-        'local' => env('APP_URL_LOCAL', 'http://localhost:8000'),
+    'url' => match (env('APP_TUNNEL', 'prod')) {
+        'ngrok' => env('APP_URL_NGROK') ?: env('APP_URL', 'http://localhost'),
+        'local' => env('APP_URL_LOCAL') ?: env('APP_URL', 'http://localhost'),
         default => env('APP_URL', 'http://localhost'),
     },
 

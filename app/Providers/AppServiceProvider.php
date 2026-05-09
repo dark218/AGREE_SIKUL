@@ -21,20 +21,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $tunnel = env('APP_TUNNEL', 'local');
+        $tunnel = env('APP_TUNNEL', 'prod');
+        $appUrl = config('app.url');
 
-        // En production OU quand on passe via ngrok, on force le schéma HTTPS
-        // pour que les URL générées (assets Vite, routes nommées, redirections)
-        // ne soient pas en http:// et cassent derrière le tunnel.
-        if (app()->environment('production') || $tunnel === 'ngrok') {
+        // On force HTTPS UNIQUEMENT si l'URL effective est en https://.
+        // Avant, on forçait dès APP_ENV=production, ce qui cassait les déploiements
+        // sur des URLs HTTP (ex: nip.io en HTTP via Dokploy sans SSL).
+        if (str_starts_with((string) $appUrl, 'https://') || $tunnel === 'ngrok') {
             URL::forceScheme('https');
-            URL::forceRootUrl(config('app.url'));
+            URL::forceRootUrl($appUrl);
 
-            // Cookies sécurisés obligatoires derrière HTTPS
+            // Cookies sécurisés uniquement si HTTPS actif (sinon erreur 419)
             config([
                 'session.secure'    => true,
                 'session.same_site' => 'lax',
-                'session.domain'    => null, // null = auto-détection, évite les conflits de sous-domaine
+                'session.domain'    => null,
             ]);
         }
 

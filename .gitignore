@@ -7,9 +7,12 @@
 /vendor
 .env
 .env.backup
-.env.production
+# .env.production est commité pour Dokploy (le Dockerfile le copie au build)
+# Si tu veux le re-cacher, ajoute-le ici. Les secrets sensibles peuvent aussi
+# être surchargés via Dokploy UI → Environment.
 .env.dev
 .env.testing
+.env.production.optimized
 Homestead.json
 Homestead.yaml
 auth.json

@@ -191,8 +191,13 @@ if [ ! -f .env ]; then
     echo "[entrypoint] No .env found — generating from container ENV..."
     : > .env
 
-    # APP_KEY toujours présent (même vide) pour que key:generate puisse la setter
-    printf 'APP_KEY="%s"\n' "${APP_KEY:-}" >> .env
+    # APP_KEY toujours présent (sans guillemets pour que key:generate ne laisse
+    # pas de "" résiduels dans la valeur générée)
+    if [ -n "$APP_KEY" ]; then
+        printf 'APP_KEY=%s\n' "$APP_KEY" >> .env
+    else
+        printf 'APP_KEY=\n' >> .env
+    fi
 
     # Liste des autres vars
     for var in APP_NAME APP_ENV APP_DEBUG APP_URL APP_TIMEZONE APP_LOCALE APP_TUNNEL \
@@ -220,9 +225,10 @@ if [ ! -f .env ]; then
     done
 fi
 
-# S'assure qu'une ligne APP_KEY= existe dans .env (pour les .env pré-existants)
+# S'assure qu'une ligne APP_KEY= existe dans .env (pour les .env pré-existants).
+# Pas de "" — sinon key:generate produira `APP_KEY=base64:xxx""` malformé.
 if ! grep -q '^APP_KEY=' .env 2>/dev/null; then
-    printf 'APP_KEY=""\n' >> .env
+    printf 'APP_KEY=\n' >> .env
 fi
 
 # Génère APP_KEY si vide (premier démarrage sans secret configuré)
