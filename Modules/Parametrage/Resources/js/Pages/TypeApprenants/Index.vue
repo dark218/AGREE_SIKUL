@@ -187,10 +187,6 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('fields.niveau') || 'Niveau' }}</th>
-                                        <th>{{ t('fields.section') || 'Section' }}</th>
-                                        <th>{{ t('fields.cycle') || 'Cycle' }}</th>
-                                        <th>{{ t('fields.country') || 'Pays' }}</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -200,10 +196,6 @@ watch(
                                         <tr v-for="typeApprenant in props.typeApprenants?.data" :key="typeApprenant.id">
                                             <td>{{ typeApprenant.code || '' }}</td>
                                             <td>{{ typeApprenant.libelle || '' }}</td>
-                                            <td>{{ typeApprenant.niveau?.libelle || '-' }}</td>
-                                            <td>{{ typeApprenant.section?.libelle || '-' }}</td>
-                                            <td>{{ typeApprenant.cycle?.libelle || '-' }}</td>
-                                            <td>{{ typeApprenant.pays?.libelle || '-' }}</td>
                                             <td><span class="badge" :class="typeApprenant.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + typeApprenant.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -217,7 +209,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="8" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="4" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -234,22 +226,6 @@ watch(
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.label') || 'Libellé' }}</span>
                                             <span class="mobile-card-value">{{ typeApprenant.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.niveau') || 'Niveau' }}</span>
-                                            <span class="mobile-card-value">{{ typeApprenant.niveau?.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.section') || 'Section' }}</span>
-                                            <span class="mobile-card-value">{{ typeApprenant.section?.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.cycle') || 'Cycle' }}</span>
-                                            <span class="mobile-card-value">{{ typeApprenant.cycle?.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.country') || 'Pays' }}</span>
-                                            <span class="mobile-card-value">{{ typeApprenant.pays?.libelle || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>

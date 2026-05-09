@@ -74,7 +74,7 @@ class TypeCoursController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:type_cours,code',
                 'libelle' => 'required|string|max:255',
-                'cycle_id' => 'required|exists:cycles_enseignement,id',
+                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -137,7 +137,7 @@ class TypeCoursController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:type_cours,code,' . $typeCours->id,
                 'libelle' => 'required|string|max:255',
-                'cycle_id' => 'required|exists:cycles_enseignement,id',
+                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 

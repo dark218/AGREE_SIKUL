@@ -76,7 +76,7 @@ class TypeEtablissementController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:type_etablissement,code',
                 'libelle' => 'required|string|max:255',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
+                'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -139,7 +139,7 @@ class TypeEtablissementController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:type_etablissement,code,' . $typeEtablissement->id,
                 'libelle' => 'required|string|max:255',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
+                'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 

@@ -194,11 +194,6 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('fields.section') || 'Section' }}</th>
-                                        <th>{{ t('fields.niveau') || 'Niveau' }}</th>
-                                        <th>{{ t('fields.cycle') || 'Cycle' }}</th>
-                                        <th>{{ t('fields.poids') || 'Poids' }}</th>
-                                        <th>{{ t('fields.pays') || 'Pays' }}</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -208,11 +203,6 @@ watch(
                                         <tr v-for="item in natureExamens?.data" :key="item.id">
                                             <td>{{ item.code || '' }}</td>
                                             <td>{{ item.libelle || '' }}</td>
-                                            <td>{{ item.section?.libelle || '-' }}</td>
-                                            <td>{{ item.niveau?.libelle || '-' }}</td>
-                                            <td>{{ item.cycle?.libelle || '-' }}</td>
-                                            <td>{{ item.poids || '' }}</td>
-                                            <td>{{ item.pays?.libelle || '-' }}</td>
                                             <td><span class="badge" :class="item.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + item.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">

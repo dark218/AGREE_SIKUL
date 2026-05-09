@@ -77,20 +77,14 @@ class MatiereUniteController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:matieres_unites,code',
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_id' => 'nullable|exists:niveaux_etudes,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'note_max' => 'nullable|numeric|min:0|max:100',
+                'matiere_id' => 'nullable|exists:matieres,id',
                 'coefficient' => 'nullable|numeric|min:0|max:10',
-                'type_matiere' => 'nullable|in:theorique,pratique,tp,td,projet',
+                'note_max' => 'nullable|numeric|min:0|max:100',
                 'volume_horaire' => 'nullable|integer|min:0',
-                'est_obligatoire' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
             $validated['etat'] = $validated['etat'] ?? 'actif';
-            $validated['est_obligatoire'] = $validated['est_obligatoire'] ?? false;
             $validated['created_by'] = auth()->id();
 
             MatiereUnite::create($validated);
@@ -159,20 +153,14 @@ class MatiereUniteController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:matieres_unites,code,' . $matiereUnite->id,
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_id' => 'nullable|exists:niveaux_etudes,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'note_max' => 'nullable|numeric|min:0|max:100',
+                'matiere_id' => 'nullable|exists:matieres,id',
                 'coefficient' => 'nullable|numeric|min:0|max:10',
-                'type_matiere' => 'nullable|in:theorique,pratique,tp,td,projet',
+                'note_max' => 'nullable|numeric|min:0|max:100',
                 'volume_horaire' => 'nullable|integer|min:0',
-                'est_obligatoire' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
             $validated['etat'] = $validated['etat'] ?? $matiereUnite->etat;
-            $validated['est_obligatoire'] = $validated['est_obligatoire'] ?? $matiereUnite->est_obligatoire;
             $validated['updated_by'] = auth()->id();
             $matiereUnite->update($validated);
 

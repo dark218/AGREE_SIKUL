@@ -187,8 +187,6 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('fields.school') || 'Établissement' }}</th>
-                                        <th>{{ t('fields.level') || 'Niveau' }}</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -198,8 +196,6 @@ watch(
                                         <tr v-for="section in sections?.data" :key="section.id">
                                             <td>{{ section.code || '' }}</td>
                                             <td>{{ section.libelle || '' }}</td>
-                                            <td>{{ section.ecole?.nom || '-' }}</td>
-                                            <td>{{ section.niveau_etude?.libelle || section.niveauEtude?.libelle || '-' }}</td>
                                             <td><span class="badge" :class="section.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + section.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -232,7 +228,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="6" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="4" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -249,14 +245,6 @@ watch(
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.label') || 'Libellé' }}</span>
                                             <span class="mobile-card-value">{{ section.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.school') || 'Établissement' }}</span>
-                                            <span class="mobile-card-value">{{ section.ecole?.nom || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.level') || 'Niveau' }}</span>
-                                            <span class="mobile-card-value">{{ section.niveau_etude?.libelle || section.niveauEtude?.libelle || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>
