@@ -176,37 +176,77 @@ stdout_logfile_maxbytes=0
 stopwaitsecs=3600
 EOF
 
-# Entrypoint : attente DB + caches Laravel + migrations optionnelles
+# Entrypoint : génération .env + attente DB + caches Laravel + migrations optionnelles
 COPY <<'EOF' /usr/local/bin/docker-entrypoint.sh
 #!/bin/sh
 set -e
 
+cd /var/www/html
+
+# Si pas de .env (cas Dokploy avec .env.production gitignored), on en génère un
+# minimal à partir des variables d'env injectées dans le container
+if [ ! -f .env ]; then
+    echo "[entrypoint] No .env found — generating from container ENV..."
+    : > .env
+    # Liste des vars qu'on persiste dans .env (Laravel lit aussi getenv mais
+    # `php artisan config:cache` se base sur le fichier .env)
+    for var in APP_NAME APP_ENV APP_KEY APP_DEBUG APP_URL APP_TIMEZONE APP_LOCALE APP_TUNNEL \
+               APP_URL_LOCAL APP_URL_NGROK \
+               LOG_CHANNEL LOG_LEVEL \
+               DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD \
+               BROADCAST_CONNECTION BROADCAST_DRIVER \
+               CACHE_STORE CACHE_PREFIX CACHE_DRIVER \
+               FILESYSTEM_DISK QUEUE_CONNECTION \
+               SESSION_DRIVER SESSION_LIFETIME SESSION_DOMAIN SESSION_SECURE_COOKIE SESSION_SAME_SITE SESSION_COOKIE \
+               REDIS_HOST REDIS_PASSWORD REDIS_PORT REDIS_CLIENT \
+               MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_ENCRYPTION MAIL_FROM_ADDRESS MAIL_FROM_NAME \
+               JWT_SECRET JWT_TTL JWT_REFRESH_TTL JWT_ALGO \
+               PUSHER_APP_ID PUSHER_APP_KEY PUSHER_APP_SECRET PUSHER_APP_CLUSTER PUSHER_HOST PUSHER_PORT PUSHER_SCHEME \
+               FIREBASE_SERVER_KEY FIREBASE_CREDENTIALS FIREBASE_API_KEY FIREBASE_AUTH_DOMAIN FIREBASE_PROJECT_ID FIREBASE_MESSAGING_SENDER_ID FIREBASE_APP_ID FIREBASE_VAPID_KEY \
+               SMS_API_AUTHORIZATION SMSPRO_API_AUTHORIZATION SMS_SENDER_NAME SMSPRO_SENDER_NAME SMS_API_URL SMSPRO_API_URL \
+               WIREPICK_API_URL WIREPICK_CLIENT WIREPICK_PASSWORD WIREPICK_SENDER_ID COUNTRY_SENDER_NUMBER \
+               PISPI_BASE_URL PISPI_CLIENT_ID PISPI_SECRET PISPI_API_KEY PISPI_WEBHOOK_SECRET \
+               TRUSTED_PROXIES; do
+        eval "val=\$$var"
+        if [ -n "$val" ]; then
+            # Quote pour gérer espaces / chars spéciaux
+            printf '%s="%s"\n' "$var" "$val" >> .env
+        fi
+    done
+fi
+
+# Génère APP_KEY si absente (premier démarrage sans secret configuré)
+if ! grep -q '^APP_KEY=base64:' .env 2>/dev/null && [ -z "$APP_KEY" ]; then
+    echo "[entrypoint] Generating APP_KEY..."
+    php artisan key:generate --force
+fi
+
+# Attente DB
 if [ -n "$DB_HOST" ]; then
-    echo "Waiting for database $DB_HOST:${DB_PORT:-3306}..."
+    echo "[entrypoint] Waiting for database $DB_HOST:${DB_PORT:-3306}..."
     while ! nc -z $DB_HOST ${DB_PORT:-3306} 2>/dev/null; do
         sleep 1
     done
-    echo "Database is ready!"
+    echo "[entrypoint] Database is ready!"
 fi
 
-# Caches Laravel (config/route/view)
+# Caches Laravel
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Migrations (active via env RUN_MIGRATIONS=true)
+# Migrations (RUN_MIGRATIONS=true)
 if [ "$RUN_MIGRATIONS" = "true" ]; then
-    echo "Running migrations..."
+    echo "[entrypoint] Running migrations..."
     php artisan migrate --force
 fi
 
-# Seed (active via env RUN_SEED=true)
+# Seed (RUN_SEED=true) — à activer UNIQUEMENT au 1er déploiement
 if [ "$RUN_SEED" = "true" ]; then
-    echo "Running seeders..."
+    echo "[entrypoint] Running seeders..."
     php artisan db:seed --force
 fi
 
-# Storage symlink (idempotent)
 php artisan storage:link || true
 
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
