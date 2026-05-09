@@ -73,7 +73,7 @@ class CategorieEnseignantController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:categorie_enseignants,code',
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'niveau_qualification' => 'nullable|string|max:100',
                 'charge_horaire_min' => 'nullable|integer|min:0',
                 'charge_horaire_max' => 'nullable|integer|min:0',
@@ -147,7 +147,7 @@ class CategorieEnseignantController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:categorie_enseignants,code,' . $categorieEnseignant->id,
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'niveau_qualification' => 'nullable|string|max:100',
                 'charge_horaire_min' => 'nullable|integer|min:0',
                 'charge_horaire_max' => 'nullable|integer|min:0',

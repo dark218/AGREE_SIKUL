@@ -66,12 +66,17 @@ export function usePermissions() {
     };
 
     /**
+     * super_admin bypasse toutes les vérifications de permissions
+     * (cohérent avec Gate::before dans AuthServiceProvider côté backend)
+     */
+    const isSuperAdminCheck = () => hasRole('super_admin') || hasRole('Super Admin');
+
+    /**
      * Vérifier si l'utilisateur a une permission spécifique
      */
     const hasPermission = (permission) => {
         if (!user.value) return false;
-        // Super Admin a toutes les permissions
-        //if (hasRole('Super Admin')) return true;
+        if (isSuperAdminCheck()) return true;
         return userPermissions.value.includes(permission);
     };
 
@@ -80,8 +85,7 @@ export function usePermissions() {
      */
     const hasAnyPermission = (permissions) => {
         if (!user.value || !Array.isArray(permissions)) return false;
-        // Super Admin a toutes les permissions
-        if (hasRole('Super Admin')) return true;
+        if (isSuperAdminCheck()) return true;
         return permissions.some(permission => userPermissions.value.includes(permission));
     };
 
@@ -90,8 +94,7 @@ export function usePermissions() {
      */
     const hasAllPermissions = (permissions) => {
         if (!user.value || !Array.isArray(permissions)) return false;
-        // Super Admin a toutes les permissions
-        if (hasRole('Super Admin')) return true;
+        if (isSuperAdminCheck()) return true;
         return permissions.every(permission => userPermissions.value.includes(permission));
     };
 

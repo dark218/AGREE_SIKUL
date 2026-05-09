@@ -85,19 +85,10 @@ class TypeApprenantController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:type_apprenants,code',
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_id' => 'nullable|exists:niveaux_etudes,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'pays_id' => 'nullable|exists:pays,id',
-                'age_min' => 'nullable|integer|min:0|max:100',
-                'age_max' => 'nullable|integer|min:0|max:100',
-                'necessite_tuteur' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
             $validated['etat'] = $validated['etat'] ?? 'actif';
-            $validated['necessite_tuteur'] = $validated['necessite_tuteur'] ?? false;
             $validated['created_by'] = auth()->id();
             TypeApprenant::create($validated);
 
@@ -167,19 +158,10 @@ class TypeApprenantController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:type_apprenants,code,' . $typeApprenant->id,
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_id' => 'nullable|exists:niveaux_etudes,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'pays_id' => 'nullable|exists:pays,id',
-                'age_min' => 'nullable|integer|min:0|max:100',
-                'age_max' => 'nullable|integer|min:0|max:100',
-                'necessite_tuteur' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
             $validated['etat'] = $validated['etat'] ?? $typeApprenant->etat;
-            $validated['necessite_tuteur'] = $validated['necessite_tuteur'] ?? $typeApprenant->necessite_tuteur;
             $validated['updated_by'] = auth()->id();
             $typeApprenant->update($validated);
 

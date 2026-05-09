@@ -55,72 +55,30 @@ class SectionController extends Controller
 
     public function create()
     {
-        try {
-            $ecoles = Ecole::actif()->orderBy('nom')->get(['id', 'nom']);
-
-            $niveaux = NiveauEtude::actif()->orderBy('libelle')->get(['id', 'libelle'])->map(function($niveau) {
-                return [
-                    'id' => $niveau->id,
-                    'libelle' => $niveau->libelle,
-                ];
-            });
-
-            $anneesScolaires = AnneeScolaire::where('etat', 'actif')->orderBy('libelle')->get(['id', 'libelle'])->map(function($annee) {
-                return [
-                    'id' => $annee->id,
-                    'libelle' => $annee->libelle,
-                ];
-            });
-
-            return Inertia::render('Parametrage::Sections/Create', [
-                'ecoles' => $ecoles,
-                'niveaux' => $niveaux,
-                'anneesScolaires' => $anneesScolaires,
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('SectionController@error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors du chargement du formulaire');
-        }
+        return Inertia::render('Parametrage::Sections/Create');
     }
 
     public function store(Request $request)
     {
         try {
-            \Log::info('🔵 [SECTION] store() - REQUEST DATA', ['all_data' => $request->all()]);
-
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:sections,code',
                 'libelle' => 'required|string|max:255',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_etude_id' => 'required|exists:niveaux_etudes,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
-
-            \Log::info('✅ [SECTION] store() - VALIDATION PASSED', ['validated_data' => $validated]);
 
             $validated['created_by'] = auth()->id();
             $validated['etat'] = $validated['etat'] ?? 'actif';
 
-            \Log::info('📝 [SECTION] store() - BEFORE CREATE', ['final_data' => $validated]);
-
             Section::create($validated);
-
-            \Log::info('✅ [SECTION] store() - CREATED SUCCESSFULLY');
 
             return redirect()
                 ->route('parametrage.sections.index')
                 ->with('success', 'Créé avec succès');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('❌ [SECTION] store() - VALIDATION ERROR', ['errors' => $e->errors()]);
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            \Log::error('❌ [SECTION] store() - EXCEPTION', [
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'file' => $e->getFile() . ':' . $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            \Log::error('SectionController@store: ' . $e->getMessage());
             return back()->with('error', 'Erreur lors de la création: ' . $e->getMessage());
         }
     }
@@ -158,33 +116,9 @@ class SectionController extends Controller
 
     public function edit(Section $section)
     {
-        try {
-            $ecoles = Ecole::actif()->orderBy('nom')->get(['id', 'nom']);
-
-            $niveaux = NiveauEtude::actif()->orderBy('libelle')->get(['id', 'libelle'])->map(function($niveau) {
-                return [
-                    'id' => $niveau->id,
-                    'libelle' => $niveau->libelle,
-                ];
-            });
-
-            $anneesScolaires = AnneeScolaire::where('etat', 'actif')->orderBy('libelle')->get(['id', 'libelle'])->map(function($annee) {
-                return [
-                    'id' => $annee->id,
-                    'libelle' => $annee->libelle,
-                ];
-            });
-
-            return Inertia::render('Parametrage::Sections/Edit', [
-                'section' => $section,
-                'ecoles' => $ecoles,
-                'niveaux' => $niveaux,
-                'anneesScolaires' => $anneesScolaires,
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('SectionController@error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors du chargement du formulaire');
-        }
+        return Inertia::render('Parametrage::Sections/Edit', [
+            'section' => $section,
+        ]);
     }
 
     public function update(Request $request, Section $section)
@@ -193,9 +127,6 @@ class SectionController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:sections,code,' . $section->id,
                 'libelle' => 'required|string|max:255',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_etude_id' => 'required|exists:niveaux_etudes,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -207,7 +138,7 @@ class SectionController extends Controller
                 ->route('parametrage.sections.index')
                 ->with('success', 'Modifié avec succès');
         } catch (\Exception $e) {
-            \Log::error('SectionController@error: ' . $e->getMessage());
+            \Log::error('SectionController@update: ' . $e->getMessage());
             return back()->with('error', 'Erreur lors de la modification');
         }
     }
