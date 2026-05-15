@@ -4,14 +4,11 @@ import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 const { t } = useI18n();
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    matieres: {
-        type: Array,
-        default: () => [],
-    },
+    form: { type: Object, required: true },
+    matieres: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    niveaux: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
@@ -52,6 +49,27 @@ const statusOptions = [
                 <label>{{ t('fields.coefficient') || 'Coefficient' }}</label>
                 <input type="number" step="0.01" min="0" max="10" v-model="form.coefficient" class="form-control" :disabled="isReadOnly" />
                 <span v-if="form.errors?.coefficient" class="text-danger"><strong>{{ form.errors.coefficient }}</strong></span>
+            </div>
+        </div>
+        <div class="col-sm-6" v-if="niveaux && niveaux.length > 0">
+            <div class="mb-3">
+                <label>{{ t('fields.niveau') || 'Niveau' }} <small class="text-muted">(optionnel — varie selon contexte)</small></label>
+                <SearchableSelect v-model="form.niveau_id" :options="niveaux" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                <span v-if="form.errors?.niveau_id" class="text-danger"><strong>{{ form.errors.niveau_id }}</strong></span>
+            </div>
+        </div>
+        <div class="col-sm-6" v-if="sections && sections.length > 0">
+            <div class="mb-3">
+                <label>{{ t('fields.section') || 'Section' }} <small class="text-muted">(optionnel)</small></label>
+                <SearchableSelect v-model="form.section_id" :options="sections" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
+            </div>
+        </div>
+        <div class="col-sm-6" v-if="cycles && cycles.length > 0">
+            <div class="mb-3">
+                <label>{{ t('fields.cycle') || 'Cycle' }} <small class="text-muted">(optionnel)</small></label>
+                <SearchableSelect v-model="form.cycle_id" :options="cycles" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
         <div class="col-sm-6">

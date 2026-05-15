@@ -6,20 +6,16 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import DevisesPaysForm from './DevisesPaysForm.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
-defineProps({
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-    devises: {
-        type: Array,
-        default: () => [],
-    },
+const props = defineProps({
+    pays: { type: Array, default: () => [] },
+    devises: { type: Array, default: () => [] },
 });
 const form = useForm({
     code: '',
-    libelle: '',
-    libelle_en: '',
+    pays_id: null,
+    devise_id: null,
+    taux_change: 1,
+    etat: 'actif',
 });
 const submit = () => {
     form.post(route('parametrage.devises_pays.store'));
@@ -33,7 +29,7 @@ const submit = () => {
                 <h4 class="title">{{ t('actions.create') }}</h4>
             </div>
             <form @submit.prevent="submit" class="custom-form">
-                <DevisesPaysForm :form="form" mode="create" />
+                <DevisesPaysForm :form="form" :pays="props.pays" :devises="props.devises" mode="create" />
                 <div class="mt-4">
                     <button type="submit" class="btn btn-primary">{{ t('actions.save') }}</button>
                     <Link :href="route('parametrage.devises_pays.index')" class="btn btn-secondary ms-2">

@@ -25,10 +25,16 @@ class Campus extends BaseModel
         'ville',
         'code_postal',
         'boite_postale',
+        // Legacy strings
         'quartier',
         'commune',
         'departement',
         'region',
+        // Nouvelles FK
+        'quartier_id',
+        'commune_id',
+        'departement_id',
+        'region_id',
         'pays_id',
         'longitude',
         'latitude',
@@ -36,6 +42,7 @@ class Campus extends BaseModel
         'email',
         'responsable_id',
         'statut',
+        'statut_disponibilite',
     ];
 
     protected $casts = [
@@ -59,13 +66,37 @@ class Campus extends BaseModel
         return $this->belongsTo(User::class, 'responsable_id');
     }
 
+    public function pays(): BelongsTo
+    {
+        return $this->belongsTo(Pays::class, 'pays_id');
+    }
+
+    public function quartierRef(): BelongsTo
+    {
+        return $this->belongsTo(Quartier::class, 'quartier_id');
+    }
+
+    public function communeRef(): BelongsTo
+    {
+        return $this->belongsTo(Commune::class, 'commune_id');
+    }
+
+    public function departementRef(): BelongsTo
+    {
+        return $this->belongsTo(Departement::class, 'departement_id');
+    }
+
+    public function regionRef(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
+
     // Scopes
     public function scopeActif($query)
     {
         return $query->where('statut', 'actif');
     }
 
-    // Méthodes métier
     public function isActif(): bool
     {
         return $this->statut === 'actif';

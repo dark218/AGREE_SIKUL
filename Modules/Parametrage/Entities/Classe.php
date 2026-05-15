@@ -23,11 +23,15 @@ class Classe extends BaseModel
         'cycle_id',
         'enseignant_titulaire_id',
         'annee_scolaire_id',
-        'nom',
-        'code_salle',
+        'code',                 // nouveau
+        'nom',                  // legacy
+        'libelle',              // nouveau standard
         'libelle_affichage',
+        'code_salle',           // legacy
+        'salle',                // legacy
+        'batiment',             // nouveau
         'capacite_max',
-        'salle',
+        'capacite_actuelle',    // nouveau
         'statut',
         'etat',
         'creation_username',
@@ -38,7 +42,6 @@ class Classe extends BaseModel
         'deletion_hostname',
     ];
 
-    // Relations
     public function ecole(): BelongsTo
     {
         return $this->belongsTo(Ecole::class, 'ecole_id');
@@ -79,41 +82,13 @@ class Classe extends BaseModel
         return $this->hasMany('Modules\Academique\Entities\Apprenant', 'classe_id');
     }
 
-    // Les inscriptions seront définies dans GestionApprenants
-    // COMMENTED: Module GestionApprenants not yet available - will be enabled later
-    // public function inscriptions()
-    // {
-    //     return $this->hasMany('Modules\GestionApprenants\Entities\Inscription', 'classe_id');
-    // }
-
-    // Scopes
     public function scopeActif($query)
     {
         return $query->where('statut', 'actif');
     }
 
-    // Méthodes métier
     public function isActif(): bool
     {
         return $this->statut === 'actif';
     }
-
-    // COMMENTED: Depends on inscriptions() relation
-    // public function getNombreInscrits(): int
-    // {
-    //     return $this->inscriptions()
-    //         ->where('statut', 'validee')
-    //         ->count();
-    // }
-
-    // public function getCapaciteDisponible(): int
-    // {
-    //     return max(0, ($this->capacite_max ?? 0) - $this->getNombreInscrits());
-    // }
-
-    // public function isPleineCapacite(): bool
-    // {
-    //     return $this->capacite_max !== null &&
-    //            $this->getNombreInscrits() >= $this->capacite_max;
-    // }
 }

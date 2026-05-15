@@ -21,22 +21,28 @@ defineProps({
         type: Array,
         default: () => [],
     },
+    cycles: {
+        type: Array,
+        default: () => [],
+    },
 });
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 const form = useForm({
-    annee_scolaire_id: null,
-    type_periode: '',
     code: '',
     libelle: '',
-    numero_ordre: null,
-    ecole_id: null,
+    cycle_id: null,
+    annee_scolaire_id: null,
     date_debut: '',
     date_fin: '',
+    duree: null,
+    type_periode: null,
+    numero_ordre: null,
+    ecole_id: null,
     est_periode_evaluation: false,
     etat: 'actif',
-    });
+});
 const submitForm = () => {
     showStoreLoader();
     form.post(route('parametrage.periodes_colaires.store'), {
@@ -72,7 +78,7 @@ const submitForm = () => {
                                     :form="form"
                                     mode="create"
                                     :annees_scolaires="page.props.annees_scolaires"
-                                    :ecoles="page.props.ecoles"
+                                    :cycles="page.props.cycles"
                                 />
                                 <!-- Boutons -->
                                 <div class="row mt-3">

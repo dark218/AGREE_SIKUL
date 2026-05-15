@@ -12,12 +12,15 @@ use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Campus;
+use Modules\Parametrage\Http\Controllers\Concerns\ProvidesParametrageLookups;
+use Modules\Parametrage\Http\Requests\StoreClasseRequest;
+use Modules\Parametrage\Http\Requests\UpdateClasseRequest;
 use App\Models\User;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class ClasseController extends Controller
 {
-    use ValidatesRequests;
+    use ValidatesRequests, ProvidesParametrageLookups;
 
     public function __construct()
     {
@@ -70,61 +73,11 @@ class ClasseController extends Controller
     public function create()
     {
         try {
-            \Log::info('ClasseController@create - START');
-
-            // Récupérer les écoles actives
-            $ecoles = Ecole::where('statut', 'actif')
-                ->orderBy('nom')
-                ->get(['id', 'nom', 'code']);
-
-            // Récupérer les niveaux
-            $niveaux = Niveau::orderBy('ordre')
-                ->get(['id', 'libelle', 'code']);
-
-            // Récupérer les sections
-            $sections = Section::orderBy('libelle')
-                ->get(['id', 'libelle']);
-
-            // Récupérer les cycles
-            $cycles = CycleEnseignement::orderBy('libelle')
-                ->get(['id', 'libelle']);
-
-            // Récupérer les enseignants
-            $enseignants = User::orderBy('nom')
-                ->get(['id', 'nom', 'prenoms']);
-
-            // Récupérer les années scolaires actives
-            $anneesScolaires = AnneeScolaire::where('etat', 'actif')
-                ->orderBy('libelle', 'desc')
-                ->get(['id', 'libelle']);
-
-            // Récupérer les campus
-            $campuses = Campus::orderBy('nom')
-                ->get(['id', 'nom as libelle']);
-
-            \Log::info('ClasseController@create - Data loaded', [
-                'niveaux_count' => $niveaux->count(),
-                'sections_count' => $sections->count(),
-                'cycles_count' => $cycles->count(),
-                'enseignants_count' => $enseignants->count(),
-                'anneesScolaires_count' => $anneesScolaires->count(),
-            ]);
-            \Log::info('ClasseController@create - Rendering view');
-            return Inertia::render('Parametrage::Classes/Create', [
-                'ecoles' => $ecoles,
-                'niveaux' => $niveaux,
-                'sections' => $sections,
-                'cycles' => $cycles,
-                'enseignants' => $enseignants,
-                'anneesScolaires' => $anneesScolaires,
-                'campuses' => $campuses,
-            ]);
+            return Inertia::render('Parametrage::Classes/Create', $this->classeLookups());
         } catch (\Exception $e) {
             \Log::error('ClasseController@create - EXCEPTION', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
             return back()->with('error', 'Erreur lors du chargement du formulaire: ' . $e->getMessage());
         }
@@ -133,68 +86,29 @@ class ClasseController extends Controller
     /**
      * Créer une nouvelle classe
      */
-    public function store(Request $request)
+    public function store(StoreClasseRequest $request)
     {
         try {
-            \Log::info('🔵 [CLASSE] store() - REQUEST DATA', [
-                'all_data' => $request->all(),
-                'user_id' => auth()->id(),
-                'user_nom' => auth()->user()?->nom,
-            ]);
-
-            $validated = $request->validate([
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_id' => 'required|exists:niveaux,id',
-                'campus_id' => 'nullable|exists:campuses,id',
-                'nom' => 'required|string|max:255',
-                'code_salle' => 'nullable|string|max:100',
-                'libelle_affichage' => 'nullable|string|max:255',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'enseignant_titulaire_id' => 'nullable|exists:users,id',
-                'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
-                'capacite_max' => 'nullable|integer|min:1',
-                'salle' => 'nullable|string|max:100',
-                'statut' => 'nullable|in:actif,non_actif,suspendu',
-                'etat' => 'nullable|string|max:50',
-            ]);
-
-            \Log::info('✅ [CLASSE] store() - VALIDATION PASSED', [
-                'validated_data' => $validated,
-            ]);
-
+            $validated = $request->validated();
             $validated['statut'] = $validated['statut'] ?? 'actif';
+            // Mapper libelle vers nom legacy si nom absent (pour compat ancienne data)
+            if (empty($validated['nom']) && !empty($validated['libelle'])) {
+                $validated['nom'] = $validated['libelle'];
+            }
             $validated['creation_username'] = auth()->user()->nom;
             $validated['creation_hostname'] = gethostname();
 
-            \Log::info('📝 [CLASSE] store() - BEFORE CREATE', [
-                'final_data' => $validated,
-            ]);
-
-            $classe = Classe::create($validated);
-
-            \Log::info('✅ [CLASSE] store() - CREATED SUCCESSFULLY', [
-                'classe_id' => $classe->id,
-                'classe_nom' => $classe->nom,
-            ]);
+            Classe::create($validated);
 
             return redirect()
                 ->route('parametrage.classes.index')
                 ->with('success', 'Classe créée avec succès');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('❌ [CLASSE] store() - VALIDATION ERROR', [
-                'errors' => $e->errors(),
-                'failed_rules' => $e->failures(),
-            ]);
-            return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            \Log::error('❌ [CLASSE] store() - EXCEPTION', [
+            \Log::error('ClasseController@store - EXCEPTION', [
                 'message' => $e->getMessage(),
-                'code' => $e->getCode(),
                 'file' => $e->getFile() . ':' . $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
-            return back()->with('error', 'Erreur lors de la création de la classe: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la création de la classe: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -252,41 +166,15 @@ class ClasseController extends Controller
     {
         try {
             $classe->load('ecole', 'niveau', 'section', 'cycle', 'enseignantTitulaire', 'anneeScolaire', 'campus');
-
-            $ecoles = Ecole::where('statut', 'actif')
-                ->orderBy('nom')
-                ->get(['id', 'nom', 'code']);
-
-            $niveaux = Niveau::orderBy('ordre')
-                ->get(['id', 'libelle', 'code']);
-
-            $sections = Section::orderBy('libelle')
-                ->get(['id', 'libelle']);
-
-            $cycles = CycleEnseignement::orderBy('libelle')
-                ->get(['id', 'libelle']);
-
-            $enseignants = User::orderBy('nom')
-                ->get(['id', 'nom', 'prenoms']);
-
-            $anneesScolaires = AnneeScolaire::orderBy('libelle', 'desc')
-                ->get(['id', 'libelle']);
-
-            $campuses = Campus::orderBy('nom')
-                ->get(['id', 'nom as libelle']);
-
-            return Inertia::render('Parametrage::Classes/Edit', [
-                'classe' => $classe,
-                'ecoles' => $ecoles,
-                'niveaux' => $niveaux,
-                'sections' => $sections,
-                'cycles' => $cycles,
-                'enseignants' => $enseignants,
-                'anneesScolaires' => $anneesScolaires,
-                'campuses' => $campuses,
-            ]);
+            return Inertia::render('Parametrage::Classes/Edit', array_merge(
+                $this->classeLookups(),
+                ['classe' => $classe]
+            ));
         } catch (\Exception $e) {
-            \Log::error('ClasseController@edit: ' . $e->getMessage());
+            \Log::error('ClasseController@edit - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
             return back()->with('error', 'Erreur lors du chargement du formulaire');
         }
     }
@@ -294,28 +182,15 @@ class ClasseController extends Controller
     /**
      * Mettre à jour une classe
      */
-    public function update(Request $request, Classe $classe)
+    public function update(UpdateClasseRequest $request, Classe $classe)
     {
         try {
-            $validated = $request->validate([
-                'ecole_id' => 'required|exists:ecoles,id',
-                'niveau_id' => 'required|exists:niveaux,id',
-                'campus_id' => 'nullable|exists:campuses,id',
-                'nom' => 'required|string|max:255',
-                'code_salle' => 'nullable|string|max:100',
-                'libelle_affichage' => 'nullable|string|max:255',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'enseignant_titulaire_id' => 'nullable|exists:users,id',
-                'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
-                'capacite_max' => 'nullable|integer|min:1',
-                'salle' => 'nullable|string|max:100',
-                'statut' => 'nullable|in:actif,non_actif,suspendu',
-                'etat' => 'nullable|string|max:50',
-            ]);
-
+            $validated = $request->validated();
             $validated['modification_username'] = auth()->user()->nom;
             $validated['modification_hostname'] = gethostname();
+            if (empty($validated['nom']) && !empty($validated['libelle'])) {
+                $validated['nom'] = $validated['libelle'];
+            }
 
             $classe->update($validated);
 
@@ -323,8 +198,11 @@ class ClasseController extends Controller
                 ->route('parametrage.classes.index')
                 ->with('success', 'Classe modifiée avec succès');
         } catch (\Exception $e) {
-            \Log::error('ClasseController@update: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors de la modification');
+            \Log::error('ClasseController@update - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return back()->with('error', 'Erreur lors de la modification: ' . $e->getMessage())->withInput();
         }
     }
 

@@ -18,23 +18,29 @@ class Ecole extends BaseModel
 
     protected $fillable = [
         'campus_id',
+        'institution_id',
         'code',
         'nom',
         'sigle',
-        'devise',
+        'devise',          // legacy
+        'devise_slogan',   // nouveau : slogan libre
+        'devise_comptabilite_id',
         'type_etablissement_id',
+        'type_enseignement',   // legacy (string)
+        'type_enseignement_id', // nouveau (FK)
         'type_cours_id',
-        'institution_id',
+        'section_id',
         'localisation',
         'date_creation',
         'numero_agrement',
         'ministere_tutelle',
         'logo',
-        'type_enseignement',
+        'logo_id',
         'directeur_id',
         'capacite_totale',
+        'capacite_maximale',
         'statut',
-        // Adresse et localisation
+        // Adresse et localisation (legacy strings)
         'adresse_siege',
         'code_postal',
         'boite_postale',
@@ -44,14 +50,17 @@ class Ecole extends BaseModel
         'departement',
         'region',
         'pays_id',
-        // Contacts - Téléphones
+        // Nouvelles FK localisation
+        'quartier_id',
+        'commune_id',
+        'departement_id',
+        'region_id',
+        // Contacts
         'telephone_principal',
         'telephone_2',
         'telephone_3',
-        // Contacts - WhatsApp
         'whatsapp_1',
         'whatsapp_2',
-        // Contacts - Autres
         'fax',
         'email_principal',
         'email_1',
@@ -63,6 +72,10 @@ class Ecole extends BaseModel
         'description',
         'vision',
         'mission',
+    ];
+
+    protected $casts = [
+        'date_creation' => 'date',
     ];
 
     // Relations
@@ -79,6 +92,16 @@ class Ecole extends BaseModel
     public function typeCours(): BelongsTo
     {
         return $this->belongsTo(TypeCours::class, 'type_cours_id');
+    }
+
+    public function typeEnseignement(): BelongsTo
+    {
+        return $this->belongsTo(TypeEnseignement::class, 'type_enseignement_id');
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class, 'section_id');
     }
 
     public function institution(): BelongsTo
@@ -106,13 +129,46 @@ class Ecole extends BaseModel
         return $this->hasMany(EcoleDirigent::class, 'ecole_id')->ordered();
     }
 
-    // Scopes
+    public function pays(): BelongsTo
+    {
+        return $this->belongsTo(Pays::class, 'pays_id');
+    }
+
+    public function quartierRef(): BelongsTo
+    {
+        return $this->belongsTo(Quartier::class, 'quartier_id');
+    }
+
+    public function communeRef(): BelongsTo
+    {
+        return $this->belongsTo(Commune::class, 'commune_id');
+    }
+
+    public function departementRef(): BelongsTo
+    {
+        return $this->belongsTo(Departement::class, 'departement_id');
+    }
+
+    public function regionRef(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
+
+    public function deviseComptabilite(): BelongsTo
+    {
+        return $this->belongsTo(Devises::class, 'devise_comptabilite_id');
+    }
+
+    public function logoFile(): BelongsTo
+    {
+        return $this->belongsTo(Fichier::class, 'logo_id');
+    }
+
     public function scopeActif($query)
     {
         return $query->where('statut', 'actif');
     }
 
-    // Méthodes métier
     public function isActif(): bool
     {
         return $this->statut === 'actif';

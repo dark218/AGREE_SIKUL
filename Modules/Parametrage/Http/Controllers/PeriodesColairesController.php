@@ -69,9 +69,14 @@ class PeriodesColairesController extends Controller
                 ->get(['id', 'nom', 'code'])
                 ->toArray();
 
+            $cycles = \Modules\Parametrage\Entities\CycleEnseignement::orderBy('libelle')
+                ->get(['id', 'libelle'])
+                ->toArray();
+
             return Inertia::render('Parametrage::PeriodesColaires/Create', [
                 'annees_scolaires' => $annees_scolaires,
                 'ecoles' => $ecoles,
+                'cycles' => $cycles,
             ]);
         } catch (\Exception $e) {
             // Logging handled by exception handler
@@ -83,14 +88,16 @@ class PeriodesColairesController extends Controller
     {
         try {
             $validated = $request->validate([
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'type_periode' => 'required|in:trimestre,semestre,quadrimestre,annuel',
                 'code' => 'required|string|max:100|unique:periodes_colaires,code',
                 'libelle' => 'required|string|max:255',
-                'numero_ordre' => 'nullable|integer|min:1',
-                'ecole_id' => 'nullable|exists:ecoles,id',
+                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
+                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
                 'date_debut' => 'required|date|date_format:Y-m-d',
                 'date_fin' => 'required|date|date_format:Y-m-d|after:date_debut',
+                'duree' => 'nullable|integer|min:0',
+                'type_periode' => 'nullable|in:trimestre,semestre,quadrimestre,annuel',
+                'numero_ordre' => 'nullable|integer|min:1',
+                'ecole_id' => 'nullable|exists:ecoles,id',
                 'est_periode_evaluation' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
@@ -98,6 +105,12 @@ class PeriodesColairesController extends Controller
             $validated['etat'] = $validated['etat'] ?? 'actif';
             $validated['est_periode_evaluation'] = $validated['est_periode_evaluation'] ?? false;
             $validated['created_by'] = auth()->id();
+
+            // Auto-calcul de la durée en jours si non fournie
+            if (empty($validated['duree']) && !empty($validated['date_debut']) && !empty($validated['date_fin'])) {
+                $validated['duree'] = \Carbon\Carbon::parse($validated['date_debut'])
+                    ->diffInDays(\Carbon\Carbon::parse($validated['date_fin']));
+            }
 
             PeriodeColaire::create($validated);
 
@@ -156,10 +169,15 @@ class PeriodesColairesController extends Controller
             $data['date_debut'] = $periodeColaire->date_debut?->format('Y-m-d');
             $data['date_fin'] = $periodeColaire->date_fin?->format('Y-m-d');
 
+            $cycles = \Modules\Parametrage\Entities\CycleEnseignement::orderBy('libelle')
+                ->get(['id', 'libelle'])
+                ->toArray();
+
             return Inertia::render('Parametrage::PeriodesColaires/Edit', [
                 'item' => $data,
                 'annees_scolaires' => $annees_scolaires,
                 'ecoles' => $ecoles,
+                'cycles' => $cycles,
             ]);
         } catch (\Exception $e) {
             // Logging handled by exception handler
@@ -171,10 +189,12 @@ class PeriodesColairesController extends Controller
     {
         try {
             $validated = $request->validate([
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'type_periode' => 'required|in:trimestre,semestre,quadrimestre,annuel',
                 'code' => 'required|string|max:100|unique:periodes_colaires,code,' . $periodeColaire->id,
                 'libelle' => 'required|string|max:255',
+                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
+                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
+                'duree' => 'nullable|integer|min:0',
+                'type_periode' => 'nullable|in:trimestre,semestre,quadrimestre,annuel',
                 'numero_ordre' => 'nullable|integer|min:1',
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'date_debut' => 'required|date|date_format:Y-m-d',
@@ -186,6 +206,12 @@ class PeriodesColairesController extends Controller
             $validated['etat'] = $validated['etat'] ?? $periodeColaire->etat;
             $validated['est_periode_evaluation'] = $validated['est_periode_evaluation'] ?? false;
             $validated['updated_by'] = auth()->id();
+
+            // Auto-recalcul durée si dates changent
+            if (empty($validated['duree']) && !empty($validated['date_debut']) && !empty($validated['date_fin'])) {
+                $validated['duree'] = \Carbon\Carbon::parse($validated['date_debut'])
+                    ->diffInDays(\Carbon\Carbon::parse($validated['date_fin']));
+            }
 
             $periodeColaire->update($validated);
 

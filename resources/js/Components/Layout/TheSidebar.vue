@@ -196,7 +196,7 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'ecoles', libelle: 'Écoles', libelle_en: 'Schools', icone: 'fas fa-school' },
             { menu_url: 'institution', libelle: 'Institutions', libelle_en: 'Institutions', icone: 'fas fa-landmark' },
             { menu_url: 'types_etablissements', libelle: 'Types Établissements', libelle_en: 'Institution Types', icone: 'fas fa-home' },
-            { menu_url: 'types_etablissement_spe', libelle: 'Types Établissement Spé', libelle_en: 'Special Institution Types', icone: 'fas fa-certificate' },
+            { menu_url: 'types_etablissement_spe', libelle: 'Spécialité Établissement', libelle_en: 'Institution Specialty', icone: 'fas fa-certificate' },
 
             // Organizational Structure
             { menu_url: 'unite_organisationnelles', libelle: 'Unités Organisationnelles', libelle_en: 'Organizational Units', icone: 'fas fa-object-group' },

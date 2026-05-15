@@ -12,12 +12,15 @@ use Modules\Parametrage\Entities\Commune;
 use Modules\Parametrage\Entities\Departement;
 use Modules\Parametrage\Entities\Quartier;
 use Modules\Parametrage\Entities\Region;
+use Modules\Parametrage\Http\Controllers\Concerns\ProvidesParametrageLookups;
+use Modules\Parametrage\Http\Requests\StoreCampusRequest;
+use Modules\Parametrage\Http\Requests\UpdateCampusRequest;
 use App\Models\User;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class CampusController extends Controller
 {
-    use ValidatesRequests;
+    use ValidatesRequests, ProvidesParametrageLookups;
 
     public function __construct()
     {
@@ -67,59 +70,11 @@ class CampusController extends Controller
     public function create()
     {
         try {
-            \Log::info('CampusController@create - START');
-
-            // Récupérer les institutions actives
-            \Log::info('CampusController@create - Fetching institutions');
-            $institutions = Institution::where('statut', 'actif')
-                ->orderBy('nom')
-                ->get(['id', 'nom', 'code'])
-                ->toArray();
-            \Log::info('CampusController@create - Institutions count: ' . count($institutions), ['institutions' => $institutions]);
-
-            // Récupérer les responsables
-            \Log::info('CampusController@create - Fetching responsables');
-            $responsables = User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['administrateur', 'directeur', 'super_admin']);
-            })->orderBy('nom')
-                ->get(['id', 'nom', 'email'])
-                ->toArray();
-            \Log::info('CampusController@create - Responsables count: ' . count($responsables), ['responsables' => $responsables]);
-
-            // Récupérer les pays
-            \Log::info('CampusController@create - Fetching pays');
-            $paysList = Pays::actif()->get(['id', 'libelle', 'code'])->toArray();
-            \Log::info('CampusController@create - Pays count: ' . count($paysList), ['paysList' => $paysList]);
-
-            // Récupérer les communes, departements, quartiers, regions
-            \Log::info('CampusController@create - Fetching geographical data');
-            $communes = Commune::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            $departements = Departement::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            $quartiers = Quartier::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            $regions = Region::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            \Log::info('CampusController@create - Geographical data counts', [
-                'communes' => count($communes),
-                'departements' => count($departements),
-                'quartiers' => count($quartiers),
-                'regions' => count($regions)
-            ]);
-
-            \Log::info('CampusController@create - Rendering view');
-            return Inertia::render('Parametrage::Campuses/Create', [
-                'institutions' => $institutions,
-                'responsables' => $responsables,
-                'paysList' => $paysList,
-                'communes' => $communes,
-                'departements' => $departements,
-                'quartiers' => $quartiers,
-                'regions' => $regions,
-            ]);
+            return Inertia::render('Parametrage::Campuses/Create', $this->campusLookups());
         } catch (\Exception $e) {
             \Log::error('CampusController@create - EXCEPTION', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
             return back()->with('error', 'Erreur lors du chargement du formulaire: ' . $e->getMessage());
         }
@@ -128,60 +83,25 @@ class CampusController extends Controller
     /**
      * Créer un nouveau campus
      */
-    public function store(Request $request)
+    public function store(StoreCampusRequest $request)
     {
         try {
-            \Log::info('===== CampusController@store - START =====');
-            \Log::info('📨 Request all data:', $request->all());
-
-            $validated = $request->validate([
-                'institution_id' => 'required|exists:institutions,id',
-                'code' => 'required|string|max:100|unique:campuses,code',
-                'nom' => 'required|string|max:255',
-                'adresse' => 'nullable|string',
-                'ville' => 'required|string|max:100',
-                'code_postal' => 'nullable|string|max:20',
-                'boite_postale' => 'nullable|string|max:100',
-                'quartier' => 'nullable|string|max:100',
-                'commune' => 'nullable|string|max:100',
-                'departement' => 'nullable|string|max:100',
-                'region' => 'nullable|string|max:100',
-                'pays_id' => 'nullable|exists:pays,id',
-                'longitude' => 'nullable|numeric|between:-180,180',
-                'latitude' => 'nullable|numeric|between:-90,90',
-                'telephone' => 'nullable|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'responsable_id' => 'nullable|exists:users,id',
-                'statut' => 'nullable|in:actif,non_actif',
-            ]);
-
-            \Log::info('✅ Validation passed!');
-            \Log::info('📦 Validated data:', $validated);
-
+            $validated = $request->validated();
             $validated['statut'] = $validated['statut'] ?? 'actif';
             $validated['creation_username'] = auth()->user()->nom;
             $validated['creation_hostname'] = gethostname();
 
-            \Log::info('📝 Data before create:', $validated);
-
-            $campus = Campus::create($validated);
-
-            \Log::info('🎉 Campus created successfully!', ['id' => $campus->id, 'nom' => $campus->nom]);
+            Campus::create($validated);
 
             return redirect()
                 ->route('parametrage.campuses.index')
-                ->with('success', 'Parametrage créé avec succès');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('❌ Validation error:', $e->errors());
-            return back()->withErrors($e->errors())->withInput();
+                ->with('success', 'Campus créé avec succès');
         } catch (\Exception $e) {
-            \Log::error('❌ CampusController@store - EXCEPTION:', [
+            \Log::error('CampusController@store - EXCEPTION', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
-            return back()->with('error', 'Erreur lors de la création du campus: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la création du campus: ' . $e->getMessage())->withInput();
         }
     }
 
@@ -240,39 +160,15 @@ class CampusController extends Controller
     {
         try {
             $campus->load('institution', 'responsable');
-
-            $institutions = Institution::actif()
-                ->orderBy('nom')
-                ->get(['id', 'nom', 'code'])
-                ->toArray();
-
-            $responsables = User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['administrateur', 'directeur', 'super_admin']);
-            })->orderBy('nom')
-                ->get(['id', 'nom', 'email'])
-                ->toArray();
-
-            // Récupérer les pays
-            $paysList = Pays::actif()->get(['id', 'libelle', 'code'])->toArray();
-
-            // Récupérer les communes, departements, quartiers, regions
-            $communes = Commune::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            $departements = Departement::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            $quartiers = Quartier::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-            $regions = Region::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray();
-
-            return Inertia::render('Parametrage::Campuses/Edit', [
-                'campus' => $campus,
-                'institutions' => $institutions,
-                'responsables' => $responsables,
-                'paysList' => $paysList,
-                'communes' => $communes,
-                'departements' => $departements,
-                'quartiers' => $quartiers,
-                'regions' => $regions,
-            ]);
+            return Inertia::render('Parametrage::Campuses/Edit', array_merge(
+                $this->campusLookups(),
+                ['campus' => $campus]
+            ));
         } catch (\Exception $e) {
-            \Log::error('CampusController@error: ' . $e->getMessage());
+            \Log::error('CampusController@edit - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
             return back()->with('error', 'Erreur lors du chargement du formulaire');
         }
     }
@@ -280,30 +176,10 @@ class CampusController extends Controller
     /**
      * Mettre à jour un campus
      */
-    public function update(Request $request, Campus $campus)
+    public function update(UpdateCampusRequest $request, Campus $campus)
     {
         try {
-            $validated = $request->validate([
-                'institution_id' => 'required|exists:institutions,id',
-                'code' => 'required|string|max:100|unique:campuses,code,' . $campus->id,
-                'nom' => 'required|string|max:255',
-                'adresse' => 'nullable|string',
-                'ville' => 'required|string|max:100',
-                'code_postal' => 'nullable|string|max:20',
-                'boite_postale' => 'nullable|string|max:100',
-                'quartier' => 'nullable|string|max:100',
-                'commune' => 'nullable|string|max:100',
-                'departement' => 'nullable|string|max:100',
-                'region' => 'nullable|string|max:100',
-                'pays_id' => 'nullable|exists:pays,id',
-                'longitude' => 'nullable|numeric|between:-180,180',
-                'latitude' => 'nullable|numeric|between:-90,90',
-                'telephone' => 'nullable|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'responsable_id' => 'nullable|exists:users,id',
-                'statut' => 'nullable|in:actif,non_actif',
-            ]);
-
+            $validated = $request->validated();
             $validated['modification_username'] = auth()->user()->nom;
             $validated['modification_hostname'] = gethostname();
 
@@ -311,10 +187,13 @@ class CampusController extends Controller
 
             return redirect()
                 ->route('parametrage.campuses.index')
-                ->with('success', 'Parametrage modifié avec succès');
+                ->with('success', 'Campus modifié avec succès');
         } catch (\Exception $e) {
-            \Log::error('CampusController@error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors de la modification');
+            \Log::error('CampusController@update - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return back()->with('error', 'Erreur lors de la modification: ' . $e->getMessage())->withInput();
         }
     }
 

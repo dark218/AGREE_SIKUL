@@ -1,3 +1,19 @@
+<!--
+  ClasseForm.vue — refonte selon spec Orchidée
+
+  BLOC 1 — Informations de base :
+    L1: Code | Libellé
+    L2: Libellé à afficher | Bâtiment
+
+  BLOC 2 — Structure académique :
+    L1: École | Campus (auto-fill depuis école)
+    L2: Section | Niveau (filtré par école)
+    L3: Cycle | Année scolaire
+
+  BLOC 3 — Enseignant et capacité :
+    L1: Enseignant titulaire | Capacité maximale
+    L2: Capacité actuelle | Statut
+-->
 <script setup>
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -6,42 +22,18 @@ import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 const { t } = useI18n();
 
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    enseignants: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
+    form: { type: Object, required: true },
+    ecoles: { type: Array, default: () => [] },
+    niveaux: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    enseignants: { type: Array, default: () => [] },
+    anneesScolaires: { type: Array, default: () => [] },
+    campuses: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
 });
 
@@ -49,300 +41,270 @@ const isReadOnly = props.mode === 'show';
 const ecoleSelected = computed(() => !!props.form.ecole_id);
 
 const autoLabel = (list, id) => {
-    if (!id || !list?.length) return '\u2014';
-    const found = list.find(item => String(item.id) === String(id));
-    return found?.libelle || found?.nom || found?.label || '\u2014';
+    if (!id || !list?.length) return '—';
+    const found = list.find((item) => String(item.id) === String(id));
+    return found?.libelle || found?.nom || '—';
 };
 
 const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
 
 const statusOptions = [
-    { id: 'actif', libelle: t('common.active') || 'Actif' },
-    { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },
-    { id: 'suspendu', libelle: t('common.suspended') || 'Suspendu' },
+    { id: 'actif', libelle: 'Actif' },
+    { id: 'non_actif', libelle: 'Inactif' },
+    { id: 'suspendu', libelle: 'Suspendu' },
 ];
 
-// ── CASCADE: École → Campus (auto-fill) + Niveaux (filtrage) ──
-
-// Quand l'école change → auto-fill campus depuis l'école sélectionnée
+// Cascade École → Campus (auto-fill du campus depuis l'école)
 watch(() => props.form.ecole_id, (newEcoleId) => {
     if (!newEcoleId || isReadOnly) return;
-    const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
+    const ecole = props.ecoles.find((e) => String(e.id) === String(newEcoleId));
     if (ecole?.campus_id) {
         props.form.campus_id = ecole.campus_id;
     }
 });
 
-// Filtrer les niveaux par école sélectionnée
+// Filtrage des niveaux par école sélectionnée
 const filteredNiveaux = computed(() => {
     if (!props.form.ecole_id) return props.niveaux;
-    return props.niveaux.filter(n =>
-        !n.ecole_id || String(n.ecole_id) === String(props.form.ecole_id)
-    );
+    return props.niveaux.filter((n) => !n.ecole_id || String(n.ecole_id) === String(props.form.ecole_id));
 });
 
-// Quand le niveau sélectionné n'est plus dans la liste filtrée → reset
+// Si le niveau sélectionné disparaît de la liste filtrée → reset
 watch(filteredNiveaux, (newList) => {
-    if (props.form.niveau_id && !newList.find(n => String(n.id) === String(props.form.niveau_id))) {
+    if (props.form.niveau_id && !newList.find((n) => String(n.id) === String(props.form.niveau_id))) {
         props.form.niveau_id = null;
     }
 });
+
+const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() : '';
 </script>
 
 <template>
     <div class="row g-3 custom-input">
-        <!-- SECTION 1: BASIC INFORMATION -->
+
+        <!-- ============================================== -->
+        <!-- BLOC 1 : INFORMATIONS DE BASE -->
+        <!-- ============================================== -->
         <div class="col-12">
-            <h5 class="section-title">{{ t('fields.basic_info') || 'Informations de base' }}</h5>
+            <h6 class="section-header"><i class="fa fa-bookmark"></i> Informations de base</h6>
         </div>
 
-        <!-- Nom -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom') || 'Nom' }} <span class="text-danger">*</span></label>
-                <input
-                    v-model="form.nom"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.nom') || 'Nom de la classe'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom" class="text-danger">
-                    <strong>{{ form.errors.nom }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Code</label>
+            <input
+                v-model="form.code"
+                type="text"
+                class="form-control"
+                placeholder="Code de la classe"
+                :disabled="isReadOnly"
+                maxlength="100"
+            />
+            <span v-if="form.errors?.code" class="text-danger small">{{ form.errors.code }}</span>
         </div>
-
-        <!-- Code Salle -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.code_salle') || 'Code salle' }}</label>
-                <input
-                    v-model="form.code_salle"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.code_salle') || 'Code salle'"
-                    :disabled="isReadOnly"
-                    maxlength="100"
-                />
-                <span v-if="form.errors?.code_salle" class="text-danger">
-                    <strong>{{ form.errors.code_salle }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Libellé <span class="text-danger">*</span></label>
+            <input
+                v-model="form.libelle"
+                type="text"
+                class="form-control"
+                placeholder="Libellé de la classe"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.libelle" class="text-danger small">{{ form.errors.libelle }}</span>
         </div>
 
-        <!-- Libellé à afficher -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.libelle_affichage') || 'Libellé à afficher' }}</label>
-                <input
-                    v-model="form.libelle_affichage"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.libelle_affichage') || 'Libellé à afficher'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.libelle_affichage" class="text-danger">
-                    <strong>{{ form.errors.libelle_affichage }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Libellé à afficher</label>
+            <input
+                v-model="form.libelle_affichage"
+                type="text"
+                class="form-control"
+                placeholder="Libellé à afficher"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.libelle_affichage" class="text-danger small">{{ form.errors.libelle_affichage }}</span>
         </div>
-
-        <!-- Salle -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.room') || 'Salle' }}</label>
-                <input
-                    v-model="form.salle"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.room') || 'Numéro/Nom de salle'"
-                    :disabled="isReadOnly"
-                    maxlength="100"
-                />
-                <span v-if="form.errors?.salle" class="text-danger">
-                    <strong>{{ form.errors.salle }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Bâtiment</label>
+            <input
+                v-model="form.batiment"
+                type="text"
+                class="form-control"
+                placeholder="Bâtiment / salle"
+                :disabled="isReadOnly"
+                maxlength="100"
+            />
+            <span v-if="form.errors?.batiment" class="text-danger small">{{ form.errors.batiment }}</span>
         </div>
 
-        <!-- SECTION 2: ACADEMIC STRUCTURE (CASCADE) -->
+        <!-- ============================================== -->
+        <!-- BLOC 2 : STRUCTURE ACADÉMIQUE -->
+        <!-- ============================================== -->
         <div class="col-12">
-            <h5 class="section-title">{{ t('fields.academic_structure') || 'Structure académique' }}</h5>
+            <h6 class="section-header">
+                <i class="fa fa-sitemap"></i> Structure académique
+            </h6>
             <p class="text-muted small mb-2">
                 <i class="bx bx-info-circle"></i>
-                Sélectionnez l'école en premier — le campus et les niveaux seront filtrés automatiquement.
+                Sélectionnez d'abord l'école — le campus et les niveaux seront chargés automatiquement.
             </p>
         </div>
 
-        <!-- 1. École (point d'entrée) -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.school') || 'École' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.ecole_id"
-                    :options="ecoles"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.ecole_id" class="text-danger">
-                    <strong>{{ form.errors.ecole_id }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">École <span class="text-danger">*</span></label>
+            <SearchableSelect
+                v-model="form.ecole_id"
+                :options="ecoles"
+                optionValue="id"
+                optionLabel="nom"
+                placeholder="-- Sélectionner une école --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.ecole_id" class="text-danger small">{{ form.errors.ecole_id }}</span>
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">
+                Campus
+                <span v-if="ecoleSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+            </label>
+            <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b;" />
         </div>
 
-        <!-- 2. Campus (auto-rempli depuis l'école, disabled) -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }}
-                    <span v-if="ecoleSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
-                </label>
-                <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
+            <label class="form-label fw-medium">Section</label>
+            <SearchableSelect
+                v-model="form.section_id"
+                :options="sections"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Niveau <span class="text-danger">*</span></label>
+            <SearchableSelect
+                v-model="form.niveau_id"
+                :options="filteredNiveaux"
+                optionValue="id"
+                optionLabel="libelle"
+                :placeholder="ecoleSelected ? '-- Sélectionner --' : 'Sélectionnez d\'abord une école'"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.niveau_id" class="text-danger small">{{ form.errors.niveau_id }}</span>
         </div>
 
-        <!-- 3. Niveau (filtré par école) -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.niveau') || 'Niveau' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.niveau_id"
-                    :options="filteredNiveaux"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="ecoleSelected ? (t('actions.select') || '-- Sélectionner --') : 'Sélectionnez d\'abord une école'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.niveau_id" class="text-danger">
-                    <strong>{{ form.errors.niveau_id }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Cycle</label>
+            <SearchableSelect
+                v-model="form.cycle_id"
+                :options="cycles"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.cycle_id" class="text-danger small">{{ form.errors.cycle_id }}</span>
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Année scolaire</label>
+            <SearchableSelect
+                v-model="form.annee_scolaire_id"
+                :options="anneesScolaires"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.annee_scolaire_id" class="text-danger small">{{ form.errors.annee_scolaire_id }}</span>
         </div>
 
-        <!-- 4. Section -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }}</label>
-                <SearchableSelect
-                    v-model="form.section_id"
-                    :options="sections"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.section_id" class="text-danger">
-                    <strong>{{ form.errors.section_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- 5. Cycle -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
-                <SearchableSelect
-                    v-model="form.cycle_id"
-                    :options="cycles"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.cycle_id" class="text-danger">
-                    <strong>{{ form.errors.cycle_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- 6. Année Scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année scolaire courante' }}</label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 3: INSTRUCTOR & CAPACITY -->
+        <!-- ============================================== -->
+        <!-- BLOC 3 : ENSEIGNANT ET CAPACITÉ -->
+        <!-- ============================================== -->
         <div class="col-12">
-            <h5 class="section-title">{{ t('fields.instructor_capacity') || 'Enseignant et capacité' }}</h5>
+            <h6 class="section-header">
+                <i class="fa fa-user-tie"></i> Enseignant et capacité
+            </h6>
         </div>
 
-        <!-- Enseignant Titulaire -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.enseignant_titulaire') || 'Enseignant titulaire' }}</label>
-                <SearchableSelect
-                    v-model="form.enseignant_titulaire_id"
-                    :options="enseignants"
-                    optionValue="id"
-                    :optionLabel="(opt) => `${opt.nom} ${opt.prenoms || ''}`"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.enseignant_titulaire_id" class="text-danger">
-                    <strong>{{ form.errors.enseignant_titulaire_id }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Enseignant titulaire</label>
+            <SearchableSelect
+                v-model="form.enseignant_titulaire_id"
+                :options="enseignants"
+                optionValue="id"
+                :optionLabel="enseignantLabel"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.enseignant_titulaire_id" class="text-danger small">{{ form.errors.enseignant_titulaire_id }}</span>
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Capacité maximale</label>
+            <input
+                v-model.number="form.capacite_max"
+                type="number"
+                class="form-control"
+                placeholder="Nombre maxi"
+                :disabled="isReadOnly"
+                min="1"
+            />
+            <span v-if="form.errors?.capacite_max" class="text-danger small">{{ form.errors.capacite_max }}</span>
         </div>
 
-        <!-- Capacité -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.capacity') || 'Capacité maximale' }}</label>
-                <input
-                    v-model.number="form.capacite_max"
-                    type="number"
-                    class="form-control"
-                    :placeholder="t('fields.capacity') || 'Nombre d\'apprenants max'"
-                    :disabled="isReadOnly"
-                    min="1"
-                />
-                <span v-if="form.errors?.capacite_max" class="text-danger">
-                    <strong>{{ form.errors.capacite_max }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Capacité actuelle</label>
+            <input
+                v-model.number="form.capacite_actuelle"
+                type="number"
+                class="form-control"
+                placeholder="Effectif actuel"
+                :disabled="isReadOnly"
+                min="0"
+            />
+            <span v-if="form.errors?.capacite_actuelle" class="text-danger small">{{ form.errors.capacite_actuelle }}</span>
         </div>
-
-        <!-- SECTION 4: STATUS -->
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.statut') || 'Statut' }}</label>
-                <SearchableSelect
-                    v-model="form.statut"
-                    :options="statusOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.statut" class="text-danger">
-                    <strong>{{ form.errors.statut }}</strong>
-                </span>
-            </div>
+            <label class="form-label fw-medium">Statut</label>
+            <SearchableSelect
+                v-model="form.statut"
+                :options="statusOptions"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.statut" class="text-danger small">{{ form.errors.statut }}</span>
         </div>
     </div>
 </template>
 
 <style scoped>
-.section-title {
+.custom-input .section-header {
+    margin-top: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #0056b3;
+    color: #0056b3;
     font-weight: 600;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 0.5rem;
+    font-size: 1rem;
+}
+.custom-input .col-12 h6 { margin: 0; }
+.custom-input .form-control,
+.custom-input select {
+    border: 1px solid #dee2e6;
+    padding: 0.5rem 0.75rem;
+}
+.custom-input .form-control:focus,
+.custom-input select:focus {
+    border-color: #0056b3;
+    box-shadow: 0 0 0 0.2rem rgba(0, 86, 179, 0.25);
+}
+.custom-input .form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
 }
 </style>

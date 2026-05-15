@@ -27,6 +27,13 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+const typeZoneOptions = [
+    { id: 'URBAIN', libelle: 'Urbain' },
+    { id: 'RURAL', libelle: 'Rural' },
+    { id: 'SEMI_URBAIN', libelle: 'Semi-urbain' },
+    { id: 'PERIPHERIQUE', libelle: 'Périphérique' },
+    { id: 'INDUSTRIEL', libelle: 'Industriel' },
+];
 </script>
 <template>
     <div class="row g-3 custom-input">
@@ -50,21 +57,30 @@ const statusOptions = [
                 </span>
             </div>
         </div>
-        <!-- Type Zone -->
+        <!-- Type Zone (liste fixe) -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.type_zone') || 'Type de Zone' }} <span class="text-danger">*</span></label>
-                <input type="text" v-model="form.type_zone" class="form-control" :placeholder="t('fields.type_zone') || 'Type de Zone'" :disabled="isReadOnly">
+                <label>{{ t('fields.type_zone') || 'Type de Zone' }}</label>
+                <SearchableSelect
+                    v-model="form.type_zone"
+                    :options="typeZoneOptions"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
                 <span v-if="form.errors?.type_zone" class="text-danger">
                     <strong>{{ form.errors.type_zone }}</strong>
                 </span>
             </div>
         </div>
-        <!-- Coordinates -->
+        <!-- Coordonnées (optionnel) -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.coordinates') || 'Coordonnées' }} <span class="text-danger">*</span></label>
-                <input type="text" v-model="form.coordinates" class="form-control" :placeholder="t('fields.coordinates') || 'Coordonnées'" :disabled="isReadOnly">
+                <label>{{ t('fields.coordinates') || 'Coordonnées' }}
+                    <small class="text-muted">(optionnel — GPS : lat,lng)</small>
+                </label>
+                <input type="text" v-model="form.coordinates" class="form-control" placeholder="Ex: 4.0511,9.7679" :disabled="isReadOnly">
                 <span v-if="form.errors?.coordinates" class="text-danger">
                     <strong>{{ form.errors.coordinates }}</strong>
                 </span>
@@ -73,7 +89,7 @@ const statusOptions = [
         <!-- Description -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.description') }} <span class="text-danger">*</span></label>
+                <label>{{ t('fields.description') }}</label>
                 <textarea v-model="form.description" class="form-control" :placeholder="t('fields.description')" :disabled="isReadOnly" rows="2"></textarea>
                 <span v-if="form.errors?.description" class="text-danger">
                     <strong>{{ form.errors.description }}</strong>

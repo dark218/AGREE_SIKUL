@@ -107,14 +107,23 @@ class JourFerieController extends Controller
         try {
             $validated['etat'] = $validated['etat'] ?? 'actif';
             $validated['created_by'] = auth()->id();
+
+            // Auto-calcul jour/mois/annee depuis la date si fournie (cohérence avec form simplifié)
+            if (!empty($validated['date'])) {
+                $d = \Carbon\Carbon::parse($validated['date']);
+                $validated['jour'] = $validated['jour'] ?? $d->day;
+                $validated['mois'] = $validated['mois'] ?? $d->month;
+                $validated['annee'] = $validated['annee'] ?? $d->year;
+            }
+
             JourFerie::create($validated);
 
             return redirect()
                 ->route('parametrage.jours_feries.index')
                 ->with('success', 'Créé avec succès');
         } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors de la création');
+            \Log::error('JourFerieController@store: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la création: ' . $e->getMessage());
         }
     }
 

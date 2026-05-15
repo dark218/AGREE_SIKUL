@@ -25,14 +25,20 @@ class Institution extends BaseModel
         'type',
         'statut_juridique',
         'numero_autorisation',
+        'numero_agrement_2',
+        'numero_agrement_3',
+        'numero_agrement_4',
         'date_creation',
         'logo_id',
         'cachet_id',
         'directeur_general_id',
+        'promoteur',
+        'gerant',
         'email_principal',
         'telephone_principal',
         'site_web',
         'adresse_siege',
+        // Legacy strings (compat ancienne data)
         'code_postal',
         'boite_postale',
         'quartier',
@@ -40,12 +46,22 @@ class Institution extends BaseModel
         'ville',
         'departement',
         'region',
+        // Nouvelles FK localisation
+        'quartier_id',
+        'commune_id',
+        'departement_id',
+        'region_id',
         'pays_id',
-        'devise_principale',
+        // Devises
+        'devise_principale',     // legacy (varchar 3 — XOF/EUR...)
+        'devise_slogan',         // nouveau : slogan libre
+        'devise_comptabilite_id',// nouveau : FK devises
+        // Ministères
         'ministere_tutelle_1',
         'ministere_tutelle_2',
         'ministere_tutelle_3',
         'ministere_tutelle_4',
+        // Contacts
         'telephone_1',
         'telephone_2',
         'telephone_3',
@@ -97,6 +113,31 @@ class Institution extends BaseModel
     public function pays(): BelongsTo
     {
         return $this->belongsTo(Pays::class, 'pays_id');
+    }
+
+    public function quartier(): BelongsTo
+    {
+        return $this->belongsTo(Quartier::class, 'quartier_id');
+    }
+
+    public function communeRef(): BelongsTo
+    {
+        return $this->belongsTo(Commune::class, 'commune_id');
+    }
+
+    public function departementRef(): BelongsTo
+    {
+        return $this->belongsTo(Departement::class, 'departement_id');
+    }
+
+    public function regionRef(): BelongsTo
+    {
+        return $this->belongsTo(Region::class, 'region_id');
+    }
+
+    public function deviseComptabilite(): BelongsTo
+    {
+        return $this->belongsTo(Devises::class, 'devise_comptabilite_id');
     }
 
     // Scopes

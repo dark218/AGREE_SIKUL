@@ -12,13 +12,16 @@ use Modules\Parametrage\Entities\Pays;
 use Modules\Parametrage\Entities\Institution;
 use Modules\Parametrage\Entities\TypeCours;
 use Modules\Parametrage\Entities\TypeEtablissement;
+use Modules\Parametrage\Http\Controllers\Concerns\ProvidesParametrageLookups;
+use Modules\Parametrage\Http\Requests\StoreEcoleRequest;
+use Modules\Parametrage\Http\Requests\UpdateEcoleRequest;
 use App\Models\User;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Support\Facades\Log;
 
 class EcoleController extends Controller
 {
-    use ValidatesRequests;
+    use ValidatesRequests, ProvidesParametrageLookups;
 
     public function __construct()
     {
@@ -67,65 +70,11 @@ class EcoleController extends Controller
     public function create()
     {
         try {
-            Log::info('EcoleController@create - START');
-
-            // Récupérer les campus actifs
-            Log::info('EcoleController@create - Fetching campuses');
-            $campuses = Campus::where('statut', 'actif')
-                ->with('institution')
-                ->orderBy('nom')
-                ->get()
-                ->map(function ($campus) {
-                    return [
-                        'id' => $campus->id,
-                        'nom' => $campus->nom . ' (' . $campus->institution->nom . ')',
-                        'institution_id' => $campus->institution_id,
-                    ];
-                })
-                ->toArray();
-            Log::info('EcoleController@create - Campuses count: ' . count($campuses), ['campuses' => $campuses]);
-
-            // Récupérer les directeurs
-            Log::info('EcoleController@create - Fetching directeurs');
-            $directeurs = User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['administrateur', 'directeur', 'super_admin']);
-            })->orderBy('nom')
-                ->get(['id', 'nom', 'email'])
-                ->toArray();
-            Log::info('EcoleController@create - Directeurs count: ' . count($directeurs), ['directeurs' => $directeurs]);
-
-            // Récupérer les pays
-            Log::info('EcoleController@create - Fetching pays');
-            $paysList = Pays::actif()->get(['id', 'libelle', 'code'])->toArray();
-            Log::info('EcoleController@create - Pays count: ' . count($paysList), ['paysList' => $paysList]);
-
-            // Récupérer les types d'établissement
-            Log::info('EcoleController@create - Fetching typeEtablissements');
-            $typeEtablissements = TypeEtablissement::actif()->get(['id', 'libelle'])->toArray();
-            
-            // Récupérer les types de cours
-            Log::info('EcoleController@create - Fetching typeCours');
-            $typeCours = TypeCours::actif()->get(['id', 'libelle'])->toArray();
-            
-            // Récupérer les institutions
-            Log::info('EcoleController@create - Fetching institutions');
-            $institutions = Institution::actif()->get(['id', 'nom'])->toArray();
-
-            Log::info('EcoleController@create - Rendering view');
-            return Inertia::render('Parametrage::Ecoles/Create', [
-                'campuses' => $campuses,
-                'directeurs' => $directeurs,
-                'paysList' => $paysList,
-                'typeEtablissements' => $typeEtablissements,
-                'typeCours' => $typeCours,
-                'institutions' => $institutions,
-            ]);
+            return Inertia::render('Parametrage::Ecoles/Create', $this->ecoleLookups());
         } catch (\Exception $e) {
-            \Log::error('EcoleController@create - EXCEPTION', [
+            Log::error('EcoleController@create - EXCEPTION', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
             return back()->with('error', 'Erreur lors du chargement du formulaire: ' . $e->getMessage());
         }
@@ -134,112 +83,55 @@ class EcoleController extends Controller
     /**
      * Créer une nouvelle école
      */
-    public function store(Request $request)
+    public function store(StoreEcoleRequest $request)
     {
         try {
-            \Log::info('===== EcoleController@store - START =====');
-            \Log::info('📨 Request all data:', $request->all());
-
-            $validated = $request->validate([
-                'campus_id' => 'required|exists:campuses,id',
-                'code' => 'required|string|max:100|unique:ecoles,code',
-                'nom' => 'required|string|max:255',
-                'type_enseignement' => 'nullable|in:primaire,secondaire,superieur,formation,autre',
-                'directeur_id' => 'nullable|exists:users,id',
-                'capacite_totale' => 'nullable|integer|min:1',
-                'statut' => 'nullable|in:actif,non_actif,suspendu',
-                // Adresse et localisation
-                'adresse_siege' => 'nullable|string',
-                'code_postal' => 'nullable|string|max:20',
-                'boite_postale' => 'nullable|string|max:100',
-                'ville' => 'nullable|string|max:100',
-                'quartier' => 'nullable|string|max:100',
-                'commune' => 'nullable|string|max:100',
-                'departement' => 'nullable|string|max:100',
-                'region' => 'nullable|string|max:100',
-                'pays_id' => 'nullable|exists:pays,id',
-                // Contacts - Téléphones
-                'telephone_principal' => 'nullable|string|max:20',
-                'telephone_2' => 'nullable|string|max:20',
-                'telephone_3' => 'nullable|string|max:20',
-                // Contacts - WhatsApp
-                'whatsapp_1' => 'nullable|string|max:20',
-                'whatsapp_2' => 'nullable|string|max:20',
-                // Contacts - Autres
-                'fax' => 'nullable|string|max:20',
-                'email_principal' => 'nullable|email|max:255',
-                'email_1' => 'nullable|email|max:255',
-                'site_web' => 'nullable|url|max:255',
-                'facebook' => 'nullable|string|max:255',
-                'linkedin' => 'nullable|string|max:255',
-                'twitter' => 'nullable|string|max:255',
-                // Description
-                'description' => 'nullable|string',
-                'vision' => 'nullable|string',
-                'mission' => 'nullable|string',
-                // Dirigeants
-                'dirigeants' => 'nullable|array',
-                'dirigeants.*.nom' => 'nullable|string|max:255',
-                'dirigeants.*.prenom' => 'nullable|string|max:255',
-                'dirigeants.*.nom_restituer' => 'nullable|string|max:255',
-                'dirigeants.*.fonction' => 'nullable|string|max:255',
-                'dirigeants.*.ordre' => 'nullable|integer',
-            ]);
-
-            \Log::info('✅ Validation passed!');
-            \Log::info('📦 Validated data:', $validated);
-
+            $validated = $request->validated();
             $validated['statut'] = $validated['statut'] ?? 'actif';
-            // Ensure statut is one of the ENUM values: actif, non_actif, suspendu
-            if (!in_array($validated['statut'], ['actif', 'non_actif', 'suspendu'])) {
-                $validated['statut'] = 'actif';
-            }
             $validated['creation_username'] = auth()->user()->nom;
             $validated['creation_hostname'] = gethostname();
 
-            \Log::info('📝 Data before create:', $validated);
-
-            // Separate dirigeants from ecole data
             $dirigeants = $validated['dirigeants'] ?? [];
             unset($validated['dirigeants']);
 
             $ecole = Ecole::create($validated);
 
-            \Log::info('🎉 École created successfully!', ['id' => $ecole->id, 'nom' => $ecole->nom]);
-
-            // Save dirigeants (only if at least one field has a value)
-            if (!empty($dirigeants) && is_array($dirigeants)) {
-                \Log::info('💼 Saving dirigeants...', ['count' => count($dirigeants)]);
-                $savedCount = 0;
-                foreach ($dirigeants as $index => $dirigeant) {
-                    // Only save if at least one field has data
-                    if (!empty($dirigeant['nom']) || !empty($dirigeant['prenom']) || !empty($dirigeant['fonction'])) {
-                        $ecole->dirigeants()->create([
-                            'nom' => trim($dirigeant['nom'] ?? ''),
-                            'prenom' => trim($dirigeant['prenom'] ?? ''),
-                            'nom_restituer' => trim($dirigeant['nom_restituer'] ?? ''),
-                            'fonction' => trim($dirigeant['fonction'] ?? ''),
-                            'ordre' => intval($dirigeant['ordre'] ?? $index),
-                        ]);
-                        $savedCount++;
-                    }
-                }
-                \Log::info("✅ Dirigeants saved! Count: $savedCount");
-            } else {
-                \Log::info('ℹ️ No dirigeants to save');
-            }
+            $this->syncDirigeants($ecole, $dirigeants);
 
             return redirect()
                 ->route('parametrage.ecoles.index')
                 ->with('success', 'École créée avec succès');
         } catch (\Exception $e) {
-            \Log::error('❌ EcoleController@store - EXCEPTION:', [
+            Log::error('EcoleController@store - EXCEPTION', [
                 'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile() . ':' . $e->getLine(),
             ]);
-            return back()->with('error', 'Erreur lors de la création de l\'école: ' . $e->getMessage());
+            return back()->with('error', 'Erreur lors de la création de l\'école: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Persiste les dirigeants en best-effort (skip lignes vides).
+     */
+    private function syncDirigeants(Ecole $ecole, array $dirigeants, bool $replace = false): void
+    {
+        if ($replace) {
+            $ecole->dirigeants()->delete();
+        }
+        foreach ($dirigeants as $index => $d) {
+            $nom = trim($d['nom'] ?? '');
+            $prenom = trim($d['prenom'] ?? '');
+            $fonction = trim($d['fonction'] ?? '');
+            if (!$nom && !$prenom && !$fonction) {
+                continue;
+            }
+            $ecole->dirigeants()->create([
+                'nom' => $nom,
+                'prenom' => $prenom,
+                'nom_restituer' => trim($d['nom_restituer'] ?? ''),
+                'fonction' => $fonction,
+                'ordre' => intval($d['ordre'] ?? $index),
+            ]);
         }
     }
 
@@ -292,45 +184,15 @@ class EcoleController extends Controller
     {
         try {
             $ecole->load('campus', 'directeur', 'dirigeants');
-
-            $campuses = Campus::actif()
-                ->with('institution')
-                ->orderBy('nom')
-                ->get()
-                ->map(function ($campus) {
-                    return [
-                        'id' => $campus->id,
-                        'nom' => $campus->nom . ' (' . $campus->institution->nom . ')',
-                        'institution_id' => $campus->institution_id,
-                    ];
-                })
-                ->toArray();
-
-            $directeurs = User::whereHas('roles', function ($query) {
-                $query->whereIn('name', ['administrateur', 'directeur', 'super_admin']);
-            })->orderBy('nom')
-                ->get(['id', 'nom', 'email'])
-                ->toArray();
-
-            $paysList = Pays::actif()->get(['id', 'libelle', 'code'])->toArray();
-
-            $typeEnseignement = [
-                ['id' => 'primaire', 'libelle' => 'Primaire'],
-                ['id' => 'secondaire', 'libelle' => 'Secondaire'],
-                ['id' => 'superieur', 'libelle' => 'Supérieur'],
-                ['id' => 'formation', 'libelle' => 'Formation professionnelle'],
-                ['id' => 'autre', 'libelle' => 'Autre'],
-            ];
-
-            return Inertia::render('Parametrage::Ecoles/Edit', [
-                'ecole' => $ecole,
-                'campuses' => $campuses,
-                'directeurs' => $directeurs,
-                'paysList' => $paysList,
-                'typeEtablissements' => $typeEnseignement,
-            ]);
+            return Inertia::render('Parametrage::Ecoles/Edit', array_merge(
+                $this->ecoleLookups(),
+                ['ecole' => $ecole]
+            ));
         } catch (\Exception $e) {
-            Log::error('ecolecontroller@error: ' . $e->getMessage());
+            Log::error('EcoleController@edit - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
             return back()->with('error', 'Erreur lors du chargement du formulaire');
         }
     }
@@ -338,94 +200,29 @@ class EcoleController extends Controller
     /**
      * Mettre à jour une école
      */
-    public function update(Request $request, Ecole $ecole)
+    public function update(UpdateEcoleRequest $request, Ecole $ecole)
     {
         try {
-            $validated = $request->validate([
-                'campus_id' => 'required|exists:campuses,id',
-                'code' => 'required|string|max:100|unique:ecoles,code,' . $ecole->id,
-                'nom' => 'required|string|max:255',
-                'type_enseignement' => 'nullable|in:primaire,secondaire,superieur,formation,autre',
-                'directeur_id' => 'nullable|exists:users,id',
-                'capacite_totale' => 'nullable|integer|min:1',
-                'statut' => 'nullable|in:actif,non_actif,suspendu',
-                // Adresse et localisation
-                'adresse_siege' => 'nullable|string',
-                'code_postal' => 'nullable|string|max:20',
-                'boite_postale' => 'nullable|string|max:100',
-                'ville' => 'nullable|string|max:100',
-                'quartier' => 'nullable|string|max:100',
-                'commune' => 'nullable|string|max:100',
-                'departement' => 'nullable|string|max:100',
-                'region' => 'nullable|string|max:100',
-                'pays_id' => 'nullable|exists:pays,id',
-                // Contacts - Téléphones
-                'telephone_principal' => 'nullable|string|max:20',
-                'telephone_2' => 'nullable|string|max:20',
-                'telephone_3' => 'nullable|string|max:20',
-                // Contacts - WhatsApp
-                'whatsapp_1' => 'nullable|string|max:20',
-                'whatsapp_2' => 'nullable|string|max:20',
-                // Contacts - Autres
-                'fax' => 'nullable|string|max:20',
-                'email_principal' => 'nullable|email|max:255',
-                'email_1' => 'nullable|email|max:255',
-                'site_web' => 'nullable|url|max:255',
-                'facebook' => 'nullable|string|max:255',
-                'linkedin' => 'nullable|string|max:255',
-                'twitter' => 'nullable|string|max:255',
-                // Description
-                'description' => 'nullable|string',
-                'vision' => 'nullable|string',
-                'mission' => 'nullable|string',
-                // Dirigeants
-                'dirigeants' => 'nullable|array',
-                'dirigeants.*.nom' => 'nullable|string|max:255',
-                'dirigeants.*.prenom' => 'nullable|string|max:255',
-                'dirigeants.*.nom_restituer' => 'nullable|string|max:255',
-                'dirigeants.*.fonction' => 'nullable|string|max:255',
-                'dirigeants.*.ordre' => 'nullable|integer',
-            ]);
-
+            $validated = $request->validated();
             $validated['modification_username'] = auth()->user()->nom;
             $validated['modification_hostname'] = gethostname();
 
-            // Separate dirigeants from ecole data
             $dirigeants = $validated['dirigeants'] ?? [];
             unset($validated['dirigeants']);
 
             $ecole->update($validated);
 
-            // Update dirigeants - delete old and create new
-            $ecole->dirigeants()->delete();
-
-            if (!empty($dirigeants) && is_array($dirigeants)) {
-                \Log::info('💼 Updating dirigeants...', ['count' => count($dirigeants)]);
-                $savedCount = 0;
-                foreach ($dirigeants as $index => $dirigeant) {
-                    // Only save if at least one field has data
-                    if (!empty($dirigeant['nom']) || !empty($dirigeant['prenom']) || !empty($dirigeant['fonction'])) {
-                        $ecole->dirigeants()->create([
-                            'nom' => trim($dirigeant['nom'] ?? ''),
-                            'prenom' => trim($dirigeant['prenom'] ?? ''),
-                            'nom_restituer' => trim($dirigeant['nom_restituer'] ?? ''),
-                            'fonction' => trim($dirigeant['fonction'] ?? ''),
-                            'ordre' => intval($dirigeant['ordre'] ?? $index),
-                        ]);
-                        $savedCount++;
-                    }
-                }
-                \Log::info("✅ Dirigeants updated! Count: $savedCount");
-            } else {
-                \Log::info('ℹ️ No dirigeants to update');
-            }
+            $this->syncDirigeants($ecole, $dirigeants, replace: true);
 
             return redirect()
                 ->route('parametrage.ecoles.index')
                 ->with('success', 'École modifiée avec succès');
         } catch (\Exception $e) {
-            Log::error('ecolecontroller@error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors de la modification');
+            Log::error('EcoleController@update - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return back()->with('error', 'Erreur lors de la modification: ' . $e->getMessage())->withInput();
         }
     }
 

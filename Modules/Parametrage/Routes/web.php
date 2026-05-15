@@ -40,6 +40,7 @@ use Modules\Parametrage\Http\Controllers\ClasseController;
 use Modules\Parametrage\Http\Controllers\FichierController;
 use Modules\Parametrage\Http\Controllers\DevisePaysController;
 use Modules\Parametrage\Http\Controllers\TypeEtablissementSpeController;
+use Modules\Parametrage\Http\Controllers\LookupController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -560,3 +561,12 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
 
 // API: Classes details for auto-fill (outside parametrage group, no permission required)
 Route::get('/api/classes/{id}', [ClasseController::class, 'apiShow'])->name('classes.api-show');
+
+// API: Cascade géographique pour les formulaires (Institution/Campus/Ecole/Classe)
+// Quartier → Commune → Département → Région → Pays
+Route::prefix('parametrage/api')->name('parametrage.api.')->group(function () {
+    Route::get('/quartier/{id}/hierarchy', [LookupController::class, 'quartierHierarchy'])->name('quartier.hierarchy');
+    Route::get('/commune/{id}/hierarchy', [LookupController::class, 'communeHierarchy'])->name('commune.hierarchy');
+    Route::get('/departement/{id}/hierarchy', [LookupController::class, 'departementHierarchy'])->name('departement.hierarchy');
+    Route::get('/region/{id}/hierarchy', [LookupController::class, 'regionHierarchy'])->name('region.hierarchy');
+});

@@ -29,6 +29,12 @@ class ParametrageServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerViewsVue3();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \Modules\Parametrage\Console\MatchLocationsCommand::class,
+            ]);
+        }
     }
 
     /**

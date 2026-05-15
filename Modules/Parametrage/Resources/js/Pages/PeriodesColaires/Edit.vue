@@ -16,17 +16,19 @@ const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 const form = useForm({
-    annee_scolaire_id: page.props.item.annee_scolaire_id,
-    type_periode: page.props.item.type_periode,
     code: page.props.item.code,
     libelle: page.props.item.libelle,
-    numero_ordre: page.props.item.numero_ordre,
-    ecole_id: page.props.item.ecole_id,
+    cycle_id: page.props.item.cycle_id || null,
+    annee_scolaire_id: page.props.item.annee_scolaire_id,
     date_debut: page.props.item.date_debut,
     date_fin: page.props.item.date_fin,
-    est_periode_evaluation: page.props.item.est_periode_evaluation,
+    duree: page.props.item.duree || null,
+    type_periode: page.props.item.type_periode || null,
+    numero_ordre: page.props.item.numero_ordre || null,
+    ecole_id: page.props.item.ecole_id || null,
+    est_periode_evaluation: page.props.item.est_periode_evaluation || false,
     etat: page.props.item.etat,
-    });
+});
 const submitForm = () => {
     showUpdateLoader();
     form.put(route('parametrage.periodes_colaires.update', page.props.item?.id), {
@@ -62,7 +64,7 @@ const submitForm = () => {
                                     :form="form"
                                     mode="edit"
                                     :annees_scolaires="page.props.annees_scolaires"
-                                    :ecoles="page.props.ecoles"
+                                    :cycles="page.props.cycles"
                                 />
                                 <!-- Boutons -->
                                 <div class="row mt-3">

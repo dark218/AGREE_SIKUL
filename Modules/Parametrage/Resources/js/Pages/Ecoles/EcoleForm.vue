@@ -1,371 +1,303 @@
+<!--
+  EcoleForm.vue — refonte selon spec Orchidée
+
+  BLOC 1 — Informations de base :
+    L1: Campus | Institution (auto-fill depuis Campus)
+    L2: Code | Nom
+    L3: Sigle | Devise (slogan libre)
+    L4: Type d'établissement | Type d'enseignement
+    L5: Type de cours | Capacité maximale
+
+  BLOC 2 — Adresse / Localisation : Adresse + LocalisationBlock
+
+  BLOC 3 — Informations complémentaires :
+    L1: Date de création | Numéro d'agrément | Ministère de tutelle | Section
+    L2: Devise de tenue de la comptabilité | Logo
+
+  + Bloc Dirigeants (table dynamique) + Contacts + Description + Statut
+-->
 <script setup>
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import LocalisationBlock from '@/Components/Common/LocalisationBlock.vue';
+
 const { t } = useI18n();
+
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
-    typeEtablissements: {
-        type: Array,
-        default: () => [],
-    },
-    directeurs: {
-        type: Array,
-        default: () => [],
-    },
-    paysList: {
-    typeCours: {
-        type: Array,
-        default: () => [],
-    },
-    institutions: {
-        type: Array,
-        default: () => [],
-    },
-        type: Array,
-        default: () => [],
-    },
+    form: { type: Object, required: true },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
+    campuses: { type: Array, default: () => [] },
+    institutions: { type: Array, default: () => [] },
+    typeEtablissements: { type: Array, default: () => [] },
+    typeEnseignements: { type: Array, default: () => [] },
+    typeCours: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    directeurs: { type: Array, default: () => [] },
+    devises: { type: Array, default: () => [] },
+    paysList: { type: Array, default: () => [] },
+    regions: { type: Array, default: () => [] },
+    departements: { type: Array, default: () => [] },
+    communes: { type: Array, default: () => [] },
+    quartiers: { type: Array, default: () => [] },
 });
+
 const isReadOnly = props.mode === 'show';
+
 const statusOptions = [
-    { id: 'actif', libelle: t('common.active') || 'Actif' },
-    { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },
-    { id: 'suspendu', libelle: t('common.suspended') || 'Suspendu' },
+    { id: 'actif', libelle: 'Actif' },
+    { id: 'non_actif', libelle: 'Inactif' },
+    { id: 'suspendu', libelle: 'Suspendu' },
 ];
-const getDirecteurLabel = (opt) => opt ? `${opt.nom}` : '';
-// Dirigeants management
-const emptyDirigeant = {
-    nom: '',
-    prenom: '',
-    nom_restituer: '',
-    fonction: '',
-    ordre: 0,
-};
-const addDirigeant = () => {
+
+const deviseLabel = (d) => d ? `${d.code ?? ''} - ${d.libelle}${d.symbole ? ' (' + d.symbole + ')' : ''}`.trim() : '';
+
+// Auto-fill Institution depuis le Campus sélectionné
+watch(() => props.form.campus_id, (newCampusId) => {
+    if (!newCampusId || isReadOnly) return;
+    const campus = props.campuses.find((c) => String(c.id) === String(newCampusId));
+    if (campus?.institution_id) {
+        props.form.institution_id = campus.institution_id;
+    }
+});
+
+// ── Dirigeants (table dynamique) ──
+const emptyDirigeant = { nom: '', prenom: '', nom_restituer: '', fonction: '', ordre: 0 };
+
+function addDirigeant() {
     if (!Array.isArray(props.form.dirigeants)) {
         props.form.dirigeants = [];
     }
     const nextOrder = props.form.dirigeants.length > 0
-        ? Math.max(...props.form.dirigeants.map(d => d.ordre || 0)) + 1
+        ? Math.max(...props.form.dirigeants.map((d) => d.ordre || 0)) + 1
         : 1;
     props.form.dirigeants.push({ ...emptyDirigeant, ordre: nextOrder });
-};
-import { ref } from 'vue';
+}
 
-const logoPreview = ref(null);
-const handleLogoChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        props.form.logo = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            logoPreview.value = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
-const removeDirigeant = (index) => {
+function removeDirigeant(index) {
     props.form.dirigeants.splice(index, 1);
-};
+}
+
+// ── Logo ──
+const logoPreview = ref(null);
+
+function handleLogoChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    props.form.logo = file;
+    const reader = new FileReader();
+    reader.onload = (e) => { logoPreview.value = e.target.result; };
+    reader.readAsDataURL(file);
+}
 </script>
+
 <template>
     <div class="row g-3 custom-input">
-        <!-- SECTION 1: INFORMATIONS BASIQUES -->
+
+        <!-- ============================================== -->
+        <!-- BLOC 1 : INFORMATIONS DE BASE -->
+        <!-- ============================================== -->
         <div class="col-12">
             <h6 class="section-header">
-                <i class="fa fa-school"></i> {{ t('common.information_base') || 'Informations de base' }}
+                <i class="fa fa-school"></i> Informations de base
             </h6>
         </div>
+
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.campus_id"
-                    :options="campuses"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.campus_id" class="text-danger small">{{ form.errors.campus_id }}</span>
-            </div>
+            <label class="form-label fw-medium">Campus <span class="text-danger">*</span></label>
+            <SearchableSelect
+                v-model="form.campus_id"
+                :options="campuses"
+                optionValue="id"
+                optionLabel="nom"
+                placeholder="-- Sélectionner un campus --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.campus_id" class="text-danger small">{{ form.errors.campus_id }}</span>
         </div>
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
-                <input
-                    v-model="form.code"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.code') || 'Code'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.code" class="text-danger small">{{ form.errors.code }}</span>
-            </div>
+            <label class="form-label fw-medium">
+                Institution
+                <small class="text-muted">(auto-remonte depuis le campus)</small>
+            </label>
+            <SearchableSelect
+                v-model="form.institution_id"
+                :options="institutions"
+                optionValue="id"
+                optionLabel="nom"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.institution_id" class="text-danger small">{{ form.errors.institution_id }}</span>
+        </div>
+
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Code <span class="text-danger">*</span></label>
+            <input v-model="form.code" type="text" class="form-control" placeholder="Code" :disabled="isReadOnly" />
+            <span v-if="form.errors?.code" class="text-danger small">{{ form.errors.code }}</span>
         </div>
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom') || 'Nom' }} <span class="text-danger">*</span></label>
-                <input
-                    v-model="form.nom"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.nom') || 'Nom'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom" class="text-danger small">{{ form.errors.nom }}</span>
-            </div>
+            <label class="form-label fw-medium">Nom <span class="text-danger">*</span></label>
+            <input v-model="form.nom" type="text" class="form-control" placeholder="Nom de l'école" :disabled="isReadOnly" />
+            <span v-if="form.errors?.nom" class="text-danger small">{{ form.errors.nom }}</span>
+        </div>
+
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Sigle</label>
+            <input v-model="form.sigle" type="text" class="form-control" placeholder="Ex: ENSPG" :disabled="isReadOnly" />
+            <span v-if="form.errors?.sigle" class="text-danger small">{{ form.errors.sigle }}</span>
         </div>
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.type_enseignement') || 'Type d\'enseignement' }}</label>
-                <SearchableSelect
-                    v-model="form.type_enseignement"
-                    :options="typeEtablissements"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.type_enseignement" class="text-danger small">{{ form.errors.type_enseignement }}</span>
-            </div>
+            <label class="form-label fw-medium">
+                Devise
+                <small class="text-muted">(slogan)</small>
+            </label>
+            <input v-model="form.devise_slogan" type="text" class="form-control" placeholder="Ex: Excellence et rigueur" :disabled="isReadOnly" />
+            <span v-if="form.errors?.devise_slogan" class="text-danger small">{{ form.errors.devise_slogan }}</span>
+        </div>
+
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Type d'établissement</label>
+            <SearchableSelect
+                v-model="form.type_etablissement_id"
+                :options="typeEtablissements"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.type_etablissement_id" class="text-danger small">{{ form.errors.type_etablissement_id }}</span>
         </div>
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.directeur') || 'Directeur' }}</label>
-                <SearchableSelect
-                    v-model="form.directeur_id"
-                    :options="directeurs"
-                    optionValue="id"
-                    :optionLabel="getDirecteurLabel"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.directeur_id" class="text-danger small">{{ form.errors.directeur_id }}</span>
-            </div>
+            <label class="form-label fw-medium">Type d'enseignement</label>
+            <SearchableSelect
+                v-model="form.type_enseignement_id"
+                :options="typeEnseignements"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.type_enseignement_id" class="text-danger small">{{ form.errors.type_enseignement_id }}</span>
+        </div>
+
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Type de cours</label>
+            <SearchableSelect
+                v-model="form.type_cours_id"
+                :options="typeCours"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.type_cours_id" class="text-danger small">{{ form.errors.type_cours_id }}</span>
         </div>
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.capacite_totale') || 'Capacité totale' }}</label>
-                <input
-                    v-model.number="form.capacite_totale"
-                    type="number"
-                    class="form-control"
-                    :placeholder="t('fields.capacite_totale') || 'Capacité totale'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.capacite_totale" class="text-danger small">{{ form.errors.capacite_totale }}</span>
-            </div>
+            <label class="form-label fw-medium">Capacité maximale</label>
+            <input
+                v-model.number="form.capacite_maximale"
+                type="number"
+                class="form-control"
+                placeholder="Capacité maximale"
+                :disabled="isReadOnly"
+                min="0"
+            />
+            <span v-if="form.errors?.capacite_maximale" class="text-danger small">{{ form.errors.capacite_maximale }}</span>
         </div>
-        <!-- SECTION 2: ADRESSE ET LOCALISATION -->
+
+        <!-- ============================================== -->
+        <!-- BLOC 2 : ADRESSE / LOCALISATION -->
+        <!-- ============================================== -->
         <div class="col-12">
             <h6 class="section-header">
-                <i class="fa fa-map-marker"></i> {{ t('fields.address') || 'Adresse et localisation' }}
-            </h6>
-        </div>
-        <div class="col-sm-12">
-            <div class="mb-3">
-                <label>{{ t('fields.adresse_siege') || 'Adresse' }}</label>
-                <input type="text" v-model="form.adresse_siege" class="form-control" :placeholder="t('fields.adresse_siege') || 'Adresse'" :disabled="isReadOnly">
-                <span v-if="form.errors?.adresse_siege" class="text-danger small">{{ form.errors.adresse_siege }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.code_postal') || 'Code postal' }}</label>
-                <input type="text" v-model="form.code_postal" class="form-control" :placeholder="t('fields.code_postal') || 'Code postal'" :disabled="isReadOnly">
-                <span v-if="form.errors?.code_postal" class="text-danger small">{{ form.errors.code_postal }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('common.boite_postale') || 'Boîte postale' }}</label>
-                <input type="text" v-model="form.boite_postale" class="form-control" :placeholder="t('common.boite_postale') || 'BP'" :disabled="isReadOnly">
-                <span v-if="form.errors?.boite_postale" class="text-danger small">{{ form.errors.boite_postale }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.ville') || 'Ville' }}</label>
-                <input type="text" v-model="form.ville" class="form-control" :placeholder="t('fields.ville') || 'Ville'" :disabled="isReadOnly">
-                <span v-if="form.errors?.ville" class="text-danger small">{{ form.errors.ville }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.quartier') || 'Quartier' }}</label>
-                <input type="text" v-model="form.quartier" class="form-control" :placeholder="t('fields.quartier') || 'Quartier'" :disabled="isReadOnly">
-                <span v-if="form.errors?.quartier" class="text-danger small">{{ form.errors.quartier }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.commune') || 'Commune' }}</label>
-                <input type="text" v-model="form.commune" class="form-control" :placeholder="t('fields.commune') || 'Commune'" :disabled="isReadOnly">
-                <span v-if="form.errors?.commune" class="text-danger small">{{ form.errors.commune }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.departement') || 'Département' }}</label>
-                <input type="text" v-model="form.departement" class="form-control" :placeholder="t('fields.departement') || 'Département'" :disabled="isReadOnly">
-                <span v-if="form.errors?.departement" class="text-danger small">{{ form.errors.departement }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.region') || 'Région/Province' }}</label>
-                <input type="text" v-model="form.region" class="form-control" :placeholder="t('fields.region') || 'Région'" :disabled="isReadOnly">
-                <span v-if="form.errors?.region" class="text-danger small">{{ form.errors.region }}</span>
-            </div>
-        </div>
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') || 'Pays' }}</label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="paysList"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger small">{{ form.errors.pays_id }}</span>
-            </div>
-        </div>
-        <!-- SECTION 3: CONTACTS -->
-        <div class="col-12">
-            <h6 class="section-header">
-                <i class="fa fa-phone"></i> {{ t('common.contacts') || 'Contacts' }}
-            </h6>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.telephone_principal') || 'Téléphone principal' }}</label>
-                <input type="tel" v-model="form.telephone_principal" class="form-control" :placeholder="t('fields.telephone_principal')" :disabled="isReadOnly">
-                <span v-if="form.errors?.telephone_principal" class="text-danger small">{{ form.errors.telephone_principal }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.telephone_2') || 'Téléphone 2' }}</label>
-                <input type="tel" v-model="form.telephone_2" class="form-control" :placeholder="t('fields.telephone_2')" :disabled="isReadOnly">
-                <span v-if="form.errors?.telephone_2" class="text-danger small">{{ form.errors.telephone_2 }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.telephone_3') || 'Téléphone 3' }}</label>
-                <input type="tel" v-model="form.telephone_3" class="form-control" :placeholder="t('fields.telephone_3')" :disabled="isReadOnly">
-                <span v-if="form.errors?.telephone_3" class="text-danger small">{{ form.errors.telephone_3 }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.whatsapp_1') || 'WhatsApp 1' }}</label>
-                <input type="tel" v-model="form.whatsapp_1" class="form-control" :placeholder="t('fields.whatsapp_1')" :disabled="isReadOnly">
-                <span v-if="form.errors?.whatsapp_1" class="text-danger small">{{ form.errors.whatsapp_1 }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.whatsapp_2') || 'WhatsApp 2' }}</label>
-                <input type="tel" v-model="form.whatsapp_2" class="form-control" :placeholder="t('fields.whatsapp_2')" :disabled="isReadOnly">
-                <span v-if="form.errors?.whatsapp_2" class="text-danger small">{{ form.errors.whatsapp_2 }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.fax') || 'Fax' }}</label>
-                <input type="tel" v-model="form.fax" class="form-control" :placeholder="t('fields.fax')" :disabled="isReadOnly">
-                <span v-if="form.errors?.fax" class="text-danger small">{{ form.errors.fax }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.email_principal') || 'Email principal' }}</label>
-                <input type="email" v-model="form.email_principal" class="form-control" :placeholder="t('fields.email_principal')" :disabled="isReadOnly">
-                <span v-if="form.errors?.email_principal" class="text-danger small">{{ form.errors.email_principal }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.email_1') || 'Email 2' }}</label>
-                <input type="email" v-model="form.email_1" class="form-control" :placeholder="t('fields.email_1')" :disabled="isReadOnly">
-                <span v-if="form.errors?.email_1" class="text-danger small">{{ form.errors.email_1 }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.site_web') || 'Site web' }}</label>
-                <input type="url" v-model="form.site_web" class="form-control" :placeholder="t('fields.site_web')" :disabled="isReadOnly">
-                <span v-if="form.errors?.site_web" class="text-danger small">{{ form.errors.site_web }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.facebook') || 'Facebook' }}</label>
-                <input type="text" v-model="form.facebook" class="form-control" :placeholder="t('fields.facebook')" :disabled="isReadOnly">
-                <span v-if="form.errors?.facebook" class="text-danger small">{{ form.errors.facebook }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.linkedin') || 'LinkedIn' }}</label>
-                <input type="text" v-model="form.linkedin" class="form-control" :placeholder="t('fields.linkedin')" :disabled="isReadOnly">
-                <span v-if="form.errors?.linkedin" class="text-danger small">{{ form.errors.linkedin }}</span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.twitter') || 'Twitter' }}</label>
-                <input type="text" v-model="form.twitter" class="form-control" :placeholder="t('fields.twitter')" :disabled="isReadOnly">
-                <span v-if="form.errors?.twitter" class="text-danger small">{{ form.errors.twitter }}</span>
-            </div>
-        </div>
-        <!-- SECTION 4: DESCRIPTION -->
-        <div class="col-12">
-            <h6 class="section-header">
-                <i class="fa fa-file-text"></i> {{ t('fields.description') || 'Description' }}
+                <i class="fa fa-map-marker"></i> Adresse / Localisation
             </h6>
         </div>
         <div class="col-12">
-            <div class="mb-3">
-                <label>{{ t('fields.description') || 'Description' }}</label>
-                <textarea v-model="form.description" class="form-control" rows="3" :placeholder="t('fields.description')" :disabled="isReadOnly"></textarea>
-                <span v-if="form.errors?.description" class="text-danger small">{{ form.errors.description }}</span>
-            </div>
+            <LocalisationBlock
+                :form="form"
+                :paysList="paysList"
+                :regions="regions"
+                :departements="departements"
+                :communes="communes"
+                :quartiers="quartiers"
+                :disabled="isReadOnly"
+                :showAddressLine="true"
+                addressField="adresse_siege"
+                addressLabel="Adresse"
+            />
         </div>
-        <div class="col-12">
-            <div class="mb-3">
-                <label>{{ t('fields.vision') || 'Vision' }}</label>
-                <textarea v-model="form.vision" class="form-control" rows="2" :placeholder="t('fields.vision')" :disabled="isReadOnly"></textarea>
-                <span v-if="form.errors?.vision" class="text-danger small">{{ form.errors.vision }}</span>
-            </div>
-        </div>
-        <div class="col-12">
-            <div class="mb-3">
-                <label>{{ t('fields.mission') || 'Mission' }}</label>
-                <textarea v-model="form.mission" class="form-control" rows="2" :placeholder="t('fields.mission')" :disabled="isReadOnly"></textarea>
-                <span v-if="form.errors?.mission" class="text-danger small">{{ form.errors.mission }}</span>
-            </div>
-        </div>
-        <!-- SECTION 5: DIRIGEANTS -->
+
+        <!-- ============================================== -->
+        <!-- BLOC 3 : INFORMATIONS COMPLÉMENTAIRES -->
+        <!-- ============================================== -->
         <div class="col-12">
             <h6 class="section-header">
-                <i class="fa fa-users"></i> {{ t('common.dirigeants') || 'Dirigeants' }}
+                <i class="fa fa-info-circle"></i> Informations complémentaires
+            </h6>
+        </div>
+
+        <div class="col-sm-3">
+            <label class="form-label fw-medium">Date de création</label>
+            <input v-model="form.date_creation" type="date" class="form-control" :disabled="isReadOnly" />
+            <span v-if="form.errors?.date_creation" class="text-danger small">{{ form.errors.date_creation }}</span>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label fw-medium">Numéro d'agrément</label>
+            <input v-model="form.numero_agrement" type="text" class="form-control" placeholder="Ex: AGR/2020/001" :disabled="isReadOnly" />
+            <span v-if="form.errors?.numero_agrement" class="text-danger small">{{ form.errors.numero_agrement }}</span>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label fw-medium">Ministère de tutelle</label>
+            <input v-model="form.ministere_tutelle" type="text" class="form-control" :disabled="isReadOnly" />
+            <span v-if="form.errors?.ministere_tutelle" class="text-danger small">{{ form.errors.ministere_tutelle }}</span>
+        </div>
+        <div class="col-sm-3">
+            <label class="form-label fw-medium">Section</label>
+            <SearchableSelect
+                v-model="form.section_id"
+                :options="sections"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
+        </div>
+
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Devise de tenue de la comptabilité</label>
+            <SearchableSelect
+                v-model="form.devise_comptabilite_id"
+                :options="devises"
+                optionValue="id"
+                :optionLabel="deviseLabel"
+                placeholder="-- Sélectionner une devise --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.devise_comptabilite_id" class="text-danger small">{{ form.errors.devise_comptabilite_id }}</span>
+        </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">Logo</label>
+            <input type="file" @change="handleLogoChange" class="form-control" accept="image/*" :disabled="isReadOnly" />
+            <small class="text-muted d-block">JPG, PNG, GIF</small>
+            <div v-if="logoPreview" class="mt-2">
+                <img :src="logoPreview" alt="Aperçu" style="max-width: 120px; max-height: 120px; border: 1px solid #dee2e6; padding: 4px;" />
+            </div>
+            <span v-if="form.errors?.logo" class="text-danger small">{{ form.errors.logo }}</span>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- BLOC DIRIGEANTS (conservé du form existant) -->
+        <!-- ============================================== -->
+        <div class="col-12">
+            <h6 class="section-header">
+                <i class="fa fa-users"></i> Dirigeants
                 <button
                     v-if="!isReadOnly"
                     type="button"
@@ -373,7 +305,7 @@ const removeDirigeant = (index) => {
                     @click="addDirigeant"
                     title="Ajouter un dirigeant"
                 >
-                    <i class="fa fa-plus"></i>
+                    <i class="fa fa-plus"></i> Ajouter
                 </button>
             </h6>
         </div>
@@ -382,58 +314,21 @@ const removeDirigeant = (index) => {
                 <table class="table table-sm table-bordered">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 20%">{{ t('fields.nom') || 'Nom' }}</th>
-                            <th style="width: 20%">{{ t('fields.prenom') || 'Prénom' }}</th>
-                            <th style="width: 30%">{{ t('fields.nom_restituer') || 'Nom à restituer' }}</th>
-                            <th style="width: 25%">{{ t('fields.fonction') || 'Fonction' }}</th>
-                            <th v-if="!isReadOnly" style="width: 5%" class="text-center">{{ t('actions.delete') || 'Supprimer' }}</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Nom à restituer</th>
+                            <th>Fonction</th>
+                            <th v-if="!isReadOnly" style="width: 40px">×</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(dirigeant, index) in form.dirigeants" :key="index">
-                            <td>
-                                <input
-                                    v-model="dirigeant.nom"
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    :placeholder="t('fields.nom') || 'Nom'"
-                                    :disabled="isReadOnly"
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    v-model="dirigeant.prenom"
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    :placeholder="t('fields.prenom') || 'Prénom'"
-                                    :disabled="isReadOnly"
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    v-model="dirigeant.nom_restituer"
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    :placeholder="t('fields.nom_restituer') || 'Nom à restituer'"
-                                    :disabled="isReadOnly"
-                                />
-                            </td>
-                            <td>
-                                <input
-                                    v-model="dirigeant.fonction"
-                                    type="text"
-                                    class="form-control form-control-sm"
-                                    :placeholder="t('fields.fonction') || 'Fonction'"
-                                    :disabled="isReadOnly"
-                                />
-                            </td>
+                        <tr v-for="(d, i) in form.dirigeants" :key="i">
+                            <td><input v-model="d.nom" type="text" class="form-control form-control-sm" :disabled="isReadOnly" /></td>
+                            <td><input v-model="d.prenom" type="text" class="form-control form-control-sm" :disabled="isReadOnly" /></td>
+                            <td><input v-model="d.nom_restituer" type="text" class="form-control form-control-sm" :disabled="isReadOnly" /></td>
+                            <td><input v-model="d.fonction" type="text" class="form-control form-control-sm" :disabled="isReadOnly" /></td>
                             <td v-if="!isReadOnly" class="text-center">
-                                <button
-                                    type="button"
-                                    class="btn btn-sm btn-danger"
-                                    @click="removeDirigeant(index)"
-                                    title="Supprimer cette ligne"
-                                >
+                                <button type="button" class="btn btn-sm btn-danger" @click="removeDirigeant(i)" title="Supprimer">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </td>
@@ -442,156 +337,95 @@ const removeDirigeant = (index) => {
                 </table>
             </div>
         </div>
-        <div v-else-if="!isReadOnly" class="col-12">
-            <div class="alert alert-info small mb-3">
-                {{ t('messages.no_dirigeants') || 'Aucun dirigeant ajouté. Cliquez sur le + pour en ajouter.' }}
-            </div>
-        </div>
-        <!-- SECTION 6: STATUT -->
-        <!-- SECTION 3: INFORMATIONS COMPLÉMENTAIRES -->
+
+        <!-- BLOC CONTACTS -->
         <div class="col-12">
-            <h6 class="section-header">
-                <i class="fa fa-info-circle"></i> Informations complémentaires
-            </h6>
+            <h6 class="section-header"><i class="fa fa-phone"></i> Contacts</h6>
         </div>
-        <!-- Sigle -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Sigle</label>
-                <input type="text" v-model="form.sigle" class="form-control" placeholder="Ex: ENSPG" :disabled="isReadOnly">
-                <span v-if="form.errors?.sigle" class="text-danger small">{{ form.errors.sigle }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Téléphone principal</label>
+            <input v-model="form.telephone_principal" type="tel" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Devise -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Devise</label>
-                <input type="text" v-model="form.devise" class="form-control" placeholder="Excellence et rigueur" :disabled="isReadOnly">
-                <span v-if="form.errors?.devise" class="text-danger small">{{ form.errors.devise }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Téléphone 2</label>
+            <input v-model="form.telephone_2" type="tel" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Type d'établissement -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Type d'établissement</label>
-                <SearchableSelect
-                    v-model="form.type_etablissement_id"
-                    :options="typeEtablissements"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.type_etablissement_id" class="text-danger small">{{ form.errors.type_etablissement_id }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Téléphone 3</label>
+            <input v-model="form.telephone_3" type="tel" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Type de cours -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Type de cours</label>
-                <SearchableSelect
-                    v-model="form.type_cours_id"
-                    :options="typeCours"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.type_cours_id" class="text-danger small">{{ form.errors.type_cours_id }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">WhatsApp 1</label>
+            <input v-model="form.whatsapp_1" type="tel" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Institution -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Institution</label>
-                <SearchableSelect
-                    v-model="form.institution_id"
-                    :options="institutions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.institution_id" class="text-danger small">{{ form.errors.institution_id }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">WhatsApp 2</label>
+            <input v-model="form.whatsapp_2" type="tel" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Localisation -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Localisation</label>
-                <input type="text" v-model="form.localisation" class="form-control" placeholder="Quartier X, Ville Y" :disabled="isReadOnly">
-                <span v-if="form.errors?.localisation" class="text-danger small">{{ form.errors.localisation }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Fax</label>
+            <input v-model="form.fax" type="tel" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Date de création -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Date de création</label>
-                <input type="date" v-model="form.date_creation" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_creation" class="text-danger small">{{ form.errors.date_creation }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Email principal</label>
+            <input v-model="form.email_principal" type="email" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Numéro d'agrément -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Numéro d'agrément</label>
-                <input type="text" v-model="form.numero_agrement" class="form-control" placeholder="AGR/2020/001" :disabled="isReadOnly">
-                <span v-if="form.errors?.numero_agrement" class="text-danger small">{{ form.errors.numero_agrement }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Email 2</label>
+            <input v-model="form.email_1" type="email" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Ministère de tutelle -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Ministère de tutelle</label>
-                <input type="text" v-model="form.ministere_tutelle" class="form-control" placeholder="Ministère de l'Éducation" :disabled="isReadOnly">
-                <span v-if="form.errors?.ministere_tutelle" class="text-danger small">{{ form.errors.ministere_tutelle }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Site web</label>
+            <input v-model="form.site_web" type="url" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Logo -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Logo</label>
-                <input type="file" @change="handleLogoChange" class="form-control" accept="image/*" :disabled="isReadOnly">
-                <small class="text-muted">Formats acceptés: JPG, PNG, GIF</small>
-                <span v-if="form.errors?.logo" class="text-danger small">{{ form.errors.logo }}</span>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Facebook</label>
+            <input v-model="form.facebook" type="text" class="form-control" :disabled="isReadOnly" />
         </div>
-        <!-- Logo Preview -->
-        <div class="col-sm-6" v-if="form.logo || logoPreview">
-            <div class="mb-3">
-                <label>Aperçu du logo</label>
-                <div class="logo-preview" style="border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
-                    <img 
-                        :src="logoPreview || (form.logo && typeof form.logo === 'string' ? form.logo : '')" 
-                        alt="Logo preview" 
-                        class="img-fluid"
-                        style="max-width: 150px; max-height: 150px; object-fit: contain; display: block;"
-                    >
-                </div>
-            </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">LinkedIn</label>
+            <input v-model="form.linkedin" type="text" class="form-control" :disabled="isReadOnly" />
+        </div>
+        <div class="col-sm-4">
+            <label class="form-label fw-medium">Twitter</label>
+            <input v-model="form.twitter" type="text" class="form-control" :disabled="isReadOnly" />
         </div>
 
+        <!-- BLOC DESCRIPTION -->
         <div class="col-12">
-            <h6 class="section-header">
-                <i class="fa fa-check-circle"></i> {{ t('fields.status') || 'Statut' }}
-            </h6>
+            <h6 class="section-header"><i class="fa fa-file-text"></i> Description</h6>
+        </div>
+        <div class="col-12">
+            <label class="form-label fw-medium">Description</label>
+            <textarea v-model="form.description" class="form-control" rows="3" :disabled="isReadOnly"></textarea>
+        </div>
+        <div class="col-12">
+            <label class="form-label fw-medium">Vision</label>
+            <textarea v-model="form.vision" class="form-control" rows="2" :disabled="isReadOnly"></textarea>
+        </div>
+        <div class="col-12">
+            <label class="form-label fw-medium">Mission</label>
+            <textarea v-model="form.mission" class="form-control" rows="2" :disabled="isReadOnly"></textarea>
+        </div>
+
+        <!-- BLOC STATUT -->
+        <div class="col-12">
+            <h6 class="section-header"><i class="fa fa-check-circle"></i> Statut</h6>
         </div>
         <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.status') || 'Statut' }}</label>
-                <SearchableSelect
-                    v-model="form.statut"
-                    :options="statusOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.statut" class="text-danger small">{{ form.errors.statut }}</span>
-            </div>
+            <label class="form-label fw-medium">Statut</label>
+            <SearchableSelect
+                v-model="form.statut"
+                :options="statusOptions"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner --"
+                :disabled="isReadOnly"
+            />
         </div>
     </div>
 </template>
+
 <style scoped>
 .custom-input .section-header {
     margin-top: 20px;
@@ -602,9 +436,7 @@ const removeDirigeant = (index) => {
     font-weight: 600;
     font-size: 1rem;
 }
-.custom-input .col-12 h6 {
-    margin: 0;
-}
+.custom-input .col-12 h6 { margin: 0; }
 .custom-input .form-control,
 .custom-input select {
     border: 1px solid #dee2e6;
@@ -615,38 +447,12 @@ const removeDirigeant = (index) => {
     border-color: #0056b3;
     box-shadow: 0 0 0 0.2rem rgba(0, 86, 179, 0.25);
 }
-.custom-input label {
+.custom-input .form-label {
     font-weight: 500;
     margin-bottom: 0.5rem;
     font-size: 0.95rem;
 }
-.custom-input .text-danger {
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-}
-.custom-input .mb-3 {
-    margin-bottom: 1.5rem;
-}
-.custom-input .table {
-    margin-bottom: 0;
-}
-.custom-input .table-responsive {
-    margin-top: 15px;
-    margin-bottom: 20px;
-}
 .custom-input .form-control-sm {
-    border: 1px solid #dee2e6;
     padding: 0.375rem 0.5rem;
-}
-.custom-input .form-control-sm:focus {
-    border-color: #0056b3;
-    box-shadow: 0 0 0 0.2rem rgba(0, 86, 179, 0.25);
-}
-.custom-input .btn-sm {
-    padding: 0.375rem 0.5rem;
-    font-size: 0.85rem;
-}
-.custom-input .section-header .btn {
-    margin-top: -2px;
 }
 </style>
