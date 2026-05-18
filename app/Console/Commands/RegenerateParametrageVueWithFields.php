@@ -43,9 +43,6 @@ class RegenerateParametrageVueWithFields extends Command
             'CategorieEnseignant' => ['code', 'libelle', 'ecole_id', 'etat'],
             'JourFerie' => ['code', 'libelle', 'jour', 'mois', 'annee', 'date', 'pays_id', 'etat'],
             'Fonction' => ['code', 'libelle', 'unite_organisationnelle_id', 'etat'],
-            'Banque' => ['code', 'libelle', 'pays_id', 'etat'],
-            'FournisseurPaiement' => ['code', 'libelle', 'etat'],
-            'PaysDevise' => ['pays_id', 'devise_id', 'taux_change', 'etat'],
             'Zone' => ['code', 'libelle', 'pays_id', 'etat'],
             'Fichier' => ['libelle', 'chemin', 'type', 'etat'],
         ];

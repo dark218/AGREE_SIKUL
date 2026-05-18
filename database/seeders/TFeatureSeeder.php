@@ -58,7 +58,7 @@ class TFeatureSeeder extends Seeder
             ['id' => 25, 'libelle' => 'Type Apprenant', 'libelle_en' => 'Student Types', 'module_id' => 23, 'menu_url' => 'types-apprenants', 'icone' => 'fas fa-user-graduate', 'ordre' => 24, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 26, 'libelle' => 'Zone', 'libelle_en' => 'Zones', 'module_id' => 23, 'menu_url' => 'zones', 'icone' => 'fas fa-map', 'ordre' => 25, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 27, 'libelle' => 'Catégorie Apprenant', 'libelle_en' => 'Student Categories', 'module_id' => 23, 'menu_url' => 'categories-apprenants', 'icone' => 'fas fa-tag', 'ordre' => 26, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 28, 'libelle' => 'Moyens Paiement', 'libelle_en' => 'Payment Methods', 'module_id' => 23, 'menu_url' => 'moyens-paiement', 'icone' => 'fas fa-credit-card', 'ordre' => 27, 'created_at' => now(), 'updated_at' => now()],
+            // ['id' => 28, 'libelle' => 'Moyens Paiement', ...] — supprimé (commercial)
             ['id' => 29, 'libelle' => 'Unité Organisationnelle', 'libelle_en' => 'Organizational Units', 'module_id' => 23, 'menu_url' => 'unites-organisationnelles', 'icone' => 'fas fa-sitemap', 'ordre' => 28, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 30, 'libelle' => 'Jour Férié', 'libelle_en' => 'Holidays', 'module_id' => 23, 'menu_url' => 'jours-feries', 'icone' => 'fas fa-calendar-day', 'ordre' => 29, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 31, 'libelle' => 'Type Examen', 'libelle_en' => 'Exam Types', 'module_id' => 23, 'menu_url' => 'types-examens', 'icone' => 'fas fa-file-alt', 'ordre' => 30, 'created_at' => now(), 'updated_at' => now()],
@@ -164,21 +164,21 @@ class TFeatureSeeder extends Seeder
             ['id' => 103, 'libelle' => 'Accompagnateurs', 'libelle_en' => 'Accompanying Staff', 'module_id' => 18, 'menu_url' => 'accompagnateurs', 'icone' => 'fas fa-user-friends', 'ordre' => 6, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 61, 'libelle' => 'Tuteur', 'libelle_en' => 'Guardians', 'module_id' => 18, 'menu_url' => 'tuteurs', 'icone' => 'fas fa-user-shield', 'ordre' => 7, 'created_at' => now(), 'updated_at' => now()],
 
-            // ========== MODULE 19: SERVICE CLIENT ==========
-            ['id' => 104, 'libelle' => 'Clients', 'libelle_en' => 'Clients', 'module_id' => 19, 'menu_url' => 'clients', 'icone' => 'fas fa-users', 'ordre' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 105, 'libelle' => 'Moyens Paiement', 'libelle_en' => 'Payment Methods', 'module_id' => 19, 'menu_url' => 'moyens-paiement', 'icone' => 'fas fa-credit-card', 'ordre' => 2, 'created_at' => now(), 'updated_at' => now()],
+            // ========== MODULE 19: SERVICE CLIENT (supprimé — commercial) ==========
+            // ['id' => 104, 'libelle' => 'Clients', ...],
+            // ['id' => 105, 'libelle' => 'Moyens Paiement', ...],
 
-            // ========== MODULE 20: POS ==========
-            ['id' => 106, 'libelle' => 'Ventes POS', 'libelle_en' => 'POS Sales', 'module_id' => 20, 'menu_url' => 'ventepos', 'icone' => 'fas fa-receipt', 'ordre' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 107, 'libelle' => 'Sessions Caisse', 'libelle_en' => 'Cash Sessions', 'module_id' => 20, 'menu_url' => 'sessions-caisse', 'icone' => 'fas fa-calculator', 'ordre' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 108, 'libelle' => 'QR Codes', 'libelle_en' => 'QR Codes', 'module_id' => 20, 'menu_url' => 'qrcodes', 'icone' => 'fas fa-qrcode', 'ordre' => 3, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 109, 'libelle' => 'Remboursements', 'libelle_en' => 'Refunds', 'module_id' => 20, 'menu_url' => 'refunds', 'icone' => 'fas fa-undo', 'ordre' => 4, 'created_at' => now(), 'updated_at' => now()],
+            // ========== MODULE 20: POS (supprimé — commercial) ==========
+            // ['id' => 106, 'libelle' => 'Ventes POS', ...],
+            // ['id' => 107, 'libelle' => 'Sessions Caisse', ...],
+            // ['id' => 108, 'libelle' => 'QR Codes', ...],
+            // ['id' => 109, 'libelle' => 'Remboursements', ...],
 
-            // ========== MODULE 21: GESTION STOCK ==========
-            ['id' => 110, 'libelle' => 'Articles', 'libelle_en' => 'Articles', 'module_id' => 21, 'menu_url' => 'articles', 'icone' => 'fas fa-boxes', 'ordre' => 1, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 111, 'libelle' => 'Mouvements Stock', 'libelle_en' => 'Stock Movements', 'module_id' => 21, 'menu_url' => 'mouvements-stock', 'icone' => 'fas fa-arrows', 'ordre' => 2, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 112, 'libelle' => 'Inventaires', 'libelle_en' => 'Inventories', 'module_id' => 21, 'menu_url' => 'inventaires', 'icone' => 'fas fa-list-check', 'ordre' => 3, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 113, 'libelle' => 'Transferts Stock', 'libelle_en' => 'Stock Transfers', 'module_id' => 21, 'menu_url' => 'transferts-stock', 'icone' => 'fas fa-exchange-alt', 'ordre' => 4, 'created_at' => now(), 'updated_at' => now()],
+            // ========== MODULE 21: GESTION STOCK (supprimé — commercial) ==========
+            // ['id' => 110, 'libelle' => 'Articles', ...],
+            // ['id' => 111, 'libelle' => 'Mouvements Stock', ...],
+            // ['id' => 112, 'libelle' => 'Inventaires', ...],
+            // ['id' => 113, 'libelle' => 'Transferts Stock', ...],
 
             // ========== MODULE 22: WALLET ==========
             // ['id' => 114, 'libelle' => 'Portefeuilles', 'libelle_en' => 'Wallets', 'module_id' => 22, 'menu_url' => 'wallets', 'icone' => 'fas fa-wallet', 'ordre' => 1, 'created_at' => now(), 'updated_at' => now()],

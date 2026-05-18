@@ -136,7 +136,6 @@ class FixPermissionsSeeder extends Seeder
             'types_apprenants' => 'Types Apprenants',
             'zone' => 'Zones',
             'categories_apprenants' => 'Catégories Apprenants',
-            'moyens_paiement' => 'Moyens Paiements',
             'unites_organisationnelles' => 'Unités Organisationnelles',
             'jours_feries' => 'Jours Fériés',
             'types_examens' => 'Types Examens',

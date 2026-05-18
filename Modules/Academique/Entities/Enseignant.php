@@ -57,7 +57,7 @@ class Enseignant extends BaseModel
 
     public function emploisDuTemps(): HasMany
     {
-        return $this->hasMany(EmploiDuTemps::class, 'enseignant_id');
+        return $this->hasMany(EmploiTemps::class, 'enseignant_id');
     }
 
     public function absences(): HasMany

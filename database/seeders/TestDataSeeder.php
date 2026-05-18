@@ -95,23 +95,6 @@ class TestDataSeeder extends Seeder
         ]);
         echo "✅ Titres civilité créés\n";
 
-        // Créer Banques
-        DB::table('banques')->insertOrIgnore([
-            ['code' => 'BCK', 'libelle' => 'Banque du Congo', 'pays_id' => $paysId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'BCC', 'libelle' => 'Banque Commerciale', 'pays_id' => $paysId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'ECOBANK', 'libelle' => 'Ecobank', 'pays_id' => $paysId, 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        echo "✅ Banques créées\n";
-
-        // Créer Moyens de paiement
-        DB::table('moyens_paiement')->insertOrIgnore([
-            ['code' => 'ESPECE', 'libelle' => 'Espèce', 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'CHEQUE', 'libelle' => 'Chèque', 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'VIREMENT', 'libelle' => 'Virement', 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'MOBILE', 'libelle' => 'Mobile Money', 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        echo "✅ Moyens de paiement créés\n";
-
         // Créer Devises
         DB::table('devises')->insertOrIgnore([
             ['libelle' => 'Franc Congolais', 'code' => 'FCD', 'created_at' => now(), 'updated_at' => now()],

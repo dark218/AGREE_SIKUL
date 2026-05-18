@@ -23,7 +23,6 @@ class FixAllParametrageIndexProps extends Command
         // Mapping of Index.vue folder to correct prop name
         $mappings = [
             'AnneesScolaires' => 'anneesScolaires',
-            'Banques' => 'banques',
             'Campuses' => 'campuses',
             'CategoriesApprenant' => 'categories',
             'CategoriesEnseignant' => 'categories',
@@ -32,11 +31,9 @@ class FixAllParametrageIndexProps extends Command
             'CyclesEnseignement' => 'cycles',
             'Departements' => 'departements',
             'Devises' => 'devises',
-            'DevisesPays' => 'devisesPays',
             'Ecoles' => 'ecoles',
             'Fichiers' => 'fichiers',
             'Fonctions' => 'fonctions',
-            'FournisseursPaiement' => 'fournisseurs',
             'GroupesMatiere' => 'groupes',
             'Institutions' => 'institutions',
             'JoursFeries' => 'jours',

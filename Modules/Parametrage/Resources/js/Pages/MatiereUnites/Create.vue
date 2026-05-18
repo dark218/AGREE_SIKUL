@@ -79,10 +79,6 @@ onMounted(() => {
     loadDropdownData();
 });
 const submitForm = () => {
-    if (!form.ecole_id) {
-        alert('Erreur: Veuillez sélectionner une école');
-        return;
-    }
     showStoreLoader();
     form.post(route('parametrage.matiere_unites.store'), {
         onError: (errors) => {

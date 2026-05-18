@@ -49,9 +49,12 @@ class AbsenceApprenant extends BaseModel
         return $this->belongsTo(\Modules\Parametrage\Entities\Classe::class, 'classe_id');
     }
 
-    public function justifications(): HasMany
+    /**
+     * Justificatifs polymorphiques de l'absence (table justificatifs_absences).
+     */
+    public function justificatifs(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
-        return $this->hasMany(Justification::class, 'absence_id');
+        return $this->morphMany(JustificatifAbsence::class, 'absence', 'absence_type', 'absence_id');
     }
 
     public function scopeActif($query)

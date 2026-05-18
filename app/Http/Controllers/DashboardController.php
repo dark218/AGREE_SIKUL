@@ -1,183 +1,80 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Transaction;
 use App\Models\User;
-use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Inertia\Inertia;
 
+/**
+ * DashboardController — version AGREE SIKUL (école).
+ *
+ * Remplace l'ancien dashboard commercial (Transaction, VirtualCard, Wallet, etc.)
+ * par un dashboard centré sur l'établissement scolaire.
+ *
+ * Les compteurs sont calculés en best-effort : si une table n'existe pas encore
+ * (modules en cours de mise en place), on renvoie 0 plutôt que de crasher.
+ */
 class DashboardController extends Controller
 {
     public function index()
     {
-        $page_title =__( "Dashboard");
-        $baseCurrency = Currency::default();
-        $transactions = Transaction::auth()->latest()->take(5)->get();
-        $data['totalReceiveRemittance'] =Transaction::auth()->remitance()->where('attribute',"RECEIVED")->where('status',1)->sum('request_amount');
-        $data['totalSendRemittance'] =Transaction::auth()->remitance()->where('attribute',"SEND")->where('status',1)->sum('request_amount');
-        $data['cardAmount'] =VirtualCard::where('user_id',auth()->user()->id)->sum('amount');
-        $data['billPay'] = Transaction::auth()->billPay()->where('status',1)->sum('request_amount');
-        $data['topUps'] = Transaction::auth()->mobileTopup()->where('status',1)->sum('request_amount');
-        $data['withdraw'] = Transaction::auth()->moneyOut()->where('status',1)->sum('request_amount');
-        $data['toatlTransactions'] = Transaction::auth()->where('status',1)->sum('request_amount');
+        $pageTitle = __('Dashboard');
 
-        $start = strtotime(date('Y-m-01'));
-        $end = strtotime(date('Y-m-31'));
-          // Add Money
-        $pending_data  = [];
-        $success_data  = [];
-        $canceled_data = [];
-        $hold_data     = [];
-        $month_day  = [];
-        // Money Out
-        $Money_out_pending_data  = [];
-        $Money_out_success_data  = [];
-        $Money_out_canceled_data = [];
-        $Money_out_hold_data     = [];
-        while ($start <= $end) {
-            $start_date = date('Y-m-d', $start);
-
-            // Monthley add money
-            $pending = Transaction::auth()->where('type', PaymentGatewayConst::TYPEADDMONEY)
-                                        ->whereDate('created_at',$start_date)
-                                        ->where('status', 2)
-                                        ->count();
-            $success = Transaction::auth()->where('type', PaymentGatewayConst::TYPEADDMONEY)
-                                        ->whereDate('created_at',$start_date)
-                                        ->where('status', 1)
-                                        ->count();
-            $canceled = Transaction::auth()->where('type', PaymentGatewayConst::TYPEADDMONEY)
-                                        ->whereDate('created_at',$start_date)
-                                        ->where('status', 4)
-                                        ->count();
-            $hold = Transaction::auth()->where('type', PaymentGatewayConst::TYPEADDMONEY)
-                                        ->whereDate('created_at',$start_date)
-                                        ->where('status', 3)
-                                        ->count();
-            $pending_data[]  = $pending;
-            $success_data[]  = $success;
-            $canceled_data[] = $canceled;
-            $hold_data[]     = $hold;
-
-              // Monthley money Out
-              $money_pending = Transaction::auth()->where('type', PaymentGatewayConst::TYPEMONEYOUT)
-                                        ->whereDate('created_at',$start_date)
-                                        ->where('status', 2)
-                                        ->count();
-            $money_success = Transaction::auth()->where('type', PaymentGatewayConst::TYPEMONEYOUT)
-                                ->whereDate('created_at',$start_date)
-                                ->where('status', 1)
-                                ->count();
-            $money_canceled = Transaction::auth()->where('type', PaymentGatewayConst::TYPEMONEYOUT)
-                                ->whereDate('created_at',$start_date)
-                                ->where('status', 4)
-                                ->count();
-            $money_hold = Transaction::auth()->where('type', PaymentGatewayConst::TYPEMONEYOUT)
-                            ->whereDate('created_at',$start_date)
-                            ->where('status', 3)
-                            ->count();
-            $Money_out_pending_data[]  = $money_pending;
-            $Money_out_success_data[]  = $money_success;
-            $Money_out_canceled_data[] = $money_canceled;
-            $Money_out_hold_data[]     = $money_hold;
-
-            $month_day[] = date('Y-m-d', $start);
-            $start = strtotime('+1 day',$start);
-        }
-         // Chart one
-         $chart_one_data = [
-            'pending_data'  => $pending_data,
-            'success_data'  => $success_data,
-            'canceled_data' => $canceled_data,
-            'hold_data'     => $hold_data,
-        ];
-         // Chart two
-         $chart_two_data = [
-            'pending_data'  => $Money_out_pending_data,
-            'success_data'  => $Money_out_success_data,
-            'canceled_data' => $Money_out_canceled_data,
-            'hold_data'     => $Money_out_hold_data,
-        ];
-        $chartData =[
-            'chart_one_data'   => $chart_one_data,
-            'chart_two_data'   => $chart_two_data,
-            'month_day'        => $month_day,
+        $stats = [
+            'apprenants' => $this->safeCount('apprenants'),
+            'enseignants' => $this->safeCount('enseignants'),
+            'classes' => $this->safeCount('classes'),
+            'ecoles' => $this->safeCount('ecoles'),
+            'campuses' => $this->safeCount('campuses'),
+            'institutions' => $this->safeCount('institutions'),
+            'inscriptions_en_cours' => $this->safeCount('inscriptions', ['statut' => 'en_cours']),
+            'users_actifs' => $this->safeCount('users', ['statut' => 'actif']),
         ];
 
-         //
-        return view('user.dashboard',compact("page_title","baseCurrency",'transactions','data','chartData'));
-    }
-
-    public function logout(Request $request) {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect()->route('user.login')->with(['success' => [__('Logout Successfully!')]]);
-    }
-    public function qrScan($qr_code)
-    {
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: PUT, GET, POST");
-        header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
-        $qrCode = UserQrCode::where('qr_code',$qr_code)->first();
-        if(!$qrCode){
-            return response()->json(['error'=>__("Invalid request")]);
-        }
-        $user = User::find($qrCode->user_id);
-        if(!$user){
-            return response()->json(['error'=>__('Not found')]);
-        }
-        return $user->email;
-    }
-    public function agentQrScan($qr_code)
-    {
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: PUT, GET, POST");
-        header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
-        $qrCode = AgentQrCode::where('qr_code',$qr_code)->first();
-        if(!$qrCode){
-            return response()->json(['error'=>__("Invalid request")]);
-        }
-        $user = Agent::find($qrCode->agent_id);
-        if(!$user){
-            return response()->json(['error'=>__('Invalid Agent')]);
-        }
-        return $user->email;
-    }
-    public function merchantQrScan($qr_code)
-    {
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: PUT, GET, POST");
-        header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
-        $qrCode = MerchantQrCode::where('qr_code',$qr_code)->first();
-        if(!$qrCode){
-            return response()->json(['error'=>__("Invalid request")]);
-        }
-        $user = Merchant::find($qrCode->merchant_id);
-        if(!$user){
-            return response()->json(['error'=>__('Invalid merchant')]);
-        }
-        return $user->email;
-    }
-    public function deleteAccount(Request $request) {
-        $validator = Validator::make($request->all(),[
-            'target'        => 'required',
+        return Inertia::render('Dashboard/Index', [
+            'pageTitle' => $pageTitle,
+            'stats' => $stats,
         ]);
-        $validated = $validator->validate();
-        $user = auth()->user();
-        $user->status = false;
-        $user->email_verified = false;
-        $user->kyc_verified = false;
-        $user->deleted_at = now();
-        $user->save();
-        try{
-            Auth::logout();
-            return redirect()->route('index')->with(['success' => [__('Your profile deleted successfully!')]]);
-        }catch(Exception $e) {
-            return back()->with(['error' => [__("Something went wrong! Please try again.")]]);
+    }
+
+    /**
+     * Compte une table en safe-mode : retourne 0 si la table n'existe pas
+     * ou si une erreur survient (évite que le dashboard plante en dev).
+     */
+    private function safeCount(string $table, array $where = []): int
+    {
+        try {
+            if (!Schema::hasTable($table)) {
+                return 0;
+            }
+            $query = DB::table($table);
+            if (Schema::hasColumn($table, 'deleted_at')) {
+                $query->whereNull('deleted_at');
+            }
+            foreach ($where as $col => $val) {
+                if (Schema::hasColumn($table, $col)) {
+                    $query->where($col, $val);
+                }
+            }
+            return $query->count();
+        } catch (\Throwable $e) {
+            return 0;
         }
+    }
+
+    /**
+     * Endpoint AJAX simple pour rafraîchir les compteurs sans recharger la page.
+     */
+    public function stats(Request $request)
+    {
+        return response()->json([
+            'apprenants' => $this->safeCount('apprenants'),
+            'enseignants' => $this->safeCount('enseignants'),
+            'classes' => $this->safeCount('classes'),
+            'ecoles' => $this->safeCount('ecoles'),
+        ]);
     }
 }

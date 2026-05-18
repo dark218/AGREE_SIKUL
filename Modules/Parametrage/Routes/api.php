@@ -38,8 +38,5 @@ Route::prefix('v1')->group(function () {
     // Protected routes (authentication required)
     Route::middleware(['auth:api', 'jwt.blacklist'])->group(function () {
         Route::get('/global/devises', [GlobalController::class, 'getDevises'])->name('global.devises');
-        // Payment providers by country
-        Route::get("/global/fournisseurs-paiement", [GlobalController::class, "getFournisseursByPays"])->name("clients.fournisseurs-paiement");
-
     });
 });

@@ -7,8 +7,8 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Ecole\Entities\Ecole;
-use Modules\GestionStock\Entities\Fichier;
+use Modules\Parametrage\Entities\Ecole;
+use Modules\Parametrage\Entities\Fichier;
 
 class Depense extends BaseModel
 {

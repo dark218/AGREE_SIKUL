@@ -7,7 +7,7 @@ use Modules\Academique\Entities\Note;
 use Modules\Academique\Entities\Matiere;
 use Modules\Academique\Entities\MoyenneMatiere;
 use Modules\Academique\Entities\Inscription;
-use Modules\Academique\Entities\PresenceSeance;
+use Modules\Academique\Entities\Presence;
 use Modules\Academique\Entities\AbsenceApprenant;
 use Modules\Academique\Entities\AbsenceEnseignant;
 use Modules\Parametrage\Entities\Classe;
@@ -170,7 +170,7 @@ class PdfExportController extends Controller
         $classeId = $request->input('classe_id');
         $classe = $classeId ? Classe::with('ecole')->find($classeId) : null;
 
-        $query = PresenceSeance::query()->with(['apprenant', 'seance']);
+        $query = Presence::query()->with(['apprenant', 'seance']);
         if ($classeId) {
             $query->whereHas('apprenant', fn($q) => $q->where('classe_id', $classeId));
         }

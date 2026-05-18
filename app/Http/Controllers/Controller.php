@@ -38,8 +38,8 @@ use Illuminate\Routing\Controller as BaseController;
  *     description="Gestion de l'application cliente"
  * )
  *  @OA\Tag(
- *     name="Marchand",
- *     description="Gestion de l'application Marchande"
+ *     name="Apprenant",
+ *     description="Gestion des apprenants (école)"
  * )
  *  @OA\Tag(
  *     name="Agent",

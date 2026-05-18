@@ -28,18 +28,6 @@ class HandleInertiaRequests extends Middleware
             return 'app-welcome';
         }
 
-        $path = $request->path();
-        $isPosRoute = $request->routeIs('session-caisse-caissier.*') ||
-                      $request->routeIs('session-caisse-manager.*') ||
-                      $request->routeIs('ventepos.*') ||
-                      str_starts_with($path, 'session-caisse-caissier') ||
-                      str_starts_with($path, 'session-caisse-manager') ||
-                      str_starts_with($path, 'ventepos');
-
-        if ($isPosRoute) {
-            return 'app-pos';
-        }
-
         return 'app';
     }
 

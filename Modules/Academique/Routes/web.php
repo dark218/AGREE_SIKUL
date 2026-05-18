@@ -14,14 +14,12 @@ use Modules\Academique\Http\Controllers\DossierApprenantController;
 use Modules\Academique\Http\Controllers\AbsenceApprenantController;
 use Modules\Academique\Http\Controllers\AbsenceEnseignantController;
 use Modules\Academique\Http\Controllers\AffectationEnseignantController;
-use Modules\Academique\Http\Controllers\PresenceSeanceController;
 use Modules\Academique\Http\Controllers\PresencesController;
 use Modules\Academique\Http\Controllers\JustificatifAbsenceController;
 use Modules\Academique\Http\Controllers\DevoirController;
 use Modules\Academique\Http\Controllers\RenduDevoirController;
 use Modules\Academique\Http\Controllers\MoyenneMatiereController;
 use Modules\Academique\Http\Controllers\PersonnelAdministratifController;
-use Modules\Academique\Http\Controllers\AbsenceController;
 use Modules\Academique\Http\Controllers\ListeManuelsController;
 use Modules\Academique\Http\Controllers\ManuelController;
 use Modules\Academique\Http\Controllers\PassageController;
@@ -250,18 +248,6 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{affectationEnseignant}', [AffectationEnseignantController::class, 'destroy'])->name('destroy');
     });
 
-    // Presences Seances
-    Route::prefix('presences-seances')->name('presences_seances.')->group(function () {
-        Route::get('/', [PresenceSeanceController::class, 'index'])->name('index');
-        Route::get('/create', [PresenceSeanceController::class, 'create'])->name('create');
-        Route::post('/', [PresenceSeanceController::class, 'store'])->name('store');
-        Route::get('/{presence_seance}', [PresenceSeanceController::class, 'show'])->name('show');
-        Route::get('/{presence_seance}/edit', [PresenceSeanceController::class, 'edit'])->name('edit');
-        Route::put('/{presence_seance}', [PresenceSeanceController::class, 'update'])->name('update');
-        Route::put('/{presence_seance}/statut', [PresenceSeanceController::class, 'statut'])->name('statut');
-        Route::delete('/{presence_seance}', [PresenceSeanceController::class, 'destroy'])->name('destroy');
-    });
-
     // Presences
     Route::prefix('presences')->name('presences.')->group(function () {
         Route::get('/', [PresencesController::class, 'index'])->name('index');
@@ -338,17 +324,8 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{personnel_administratif}', [PersonnelAdministratifController::class, 'destroy'])->name('destroy');
     });
 
-    // Absences
-    Route::prefix('absences')->name('absences.')->group(function () {
-        Route::get('/', [AbsenceController::class, 'index'])->name('index');
-        Route::get('/create', [AbsenceController::class, 'create'])->name('create');
-        Route::post('/', [AbsenceController::class, 'store'])->name('store');
-        Route::get('/{absence}', [AbsenceController::class, 'show'])->name('show');
-        Route::get('/{absence}/edit', [AbsenceController::class, 'edit'])->name('edit');
-        Route::put('/{absence}', [AbsenceController::class, 'update'])->name('update');
-        Route::put('/{absence}/statut', [AbsenceController::class, 'statut'])->name('statut');
-        Route::delete('/{absence}', [AbsenceController::class, 'destroy'])->name('destroy');
-    });
+    // Absences génériques : feature consolidée dans /absences-apprenants et /absences-enseignants
+    // (la table `absences` générique a été dropée pour éliminer la triple redondance)
 
     // Route pour télécharger/visualiser les fichiers d'absence
     Route::get('/download-absence/{filePath}', [AbsenceApprenantController::class, 'downloadFile'])->name('download_absence_file');

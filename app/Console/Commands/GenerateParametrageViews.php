@@ -21,7 +21,7 @@ class GenerateParametrageViews extends Command
             ->get();
 
         // Features that already have views
-        $existingViews = ['Devises', 'Pays', 'PaysDevises', 'Zones', 'Banques', 'FournisseursPaiement'];
+        $existingViews = ['Devises', 'Pays', 'Zones'];
 
         $this->info("Generating Vue pages for Parametrage features...\n");
 

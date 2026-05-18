@@ -1,16 +1,11 @@
 {
     "Academique": true,
     "Administration": true,
-    "Business": true,
     "Communication": true,
     "Finances": true,
-    "GestionStock": true,
     "Parametrage": true,
     "Personnel": true,
-    "Pos": true,
     "RessourcesLogistique": true,
-    "ServiceClient": true,
     "Services": true,
-    "Wallet": true,
     "Rapport": true
 }

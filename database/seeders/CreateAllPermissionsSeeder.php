@@ -42,10 +42,6 @@ class CreateAllPermissionsSeeder extends Seeder
         // Special actions for specific permissions
         $specialActions = [
             'seances' => [],
-            'ventepos' => ['cancel', 'create', 'edit', 'list', 'refund', 'refund-line', 'refund-mixte', 'refund-mixte-quantite', 'refund-quantite', 'validate'],
-            'session-caisse-caissier' => ['fermerture', 'list', 'ouverture'],
-            'session-caisse-manager' => ['create', 'fermerture', 'list'],
-            'wallet' => ['edit', 'list', 'show-by-owner', 'statut'],
             'employement-contract' => ['create', 'delete', 'edit', 'list', 'update', 'validate'],
             'emploi-temps' => ['create', 'delete', 'edit', 'list'],
             'emplois-du-temps' => ['create', 'delete', 'list', 'update'],

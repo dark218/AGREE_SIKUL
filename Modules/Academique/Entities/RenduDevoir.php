@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\GestionStock\Entities\Fichier;
+use Modules\Parametrage\Entities\Fichier;
 
 class RenduDevoir extends BaseModel
 {

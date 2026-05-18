@@ -46,7 +46,6 @@ class PermissionSeeder extends Seeder
             'nature_contrat' => 'natures-contrats',
             'categorie_enseignant' => 'categorie-enseignants',
             'fonction' => 'fonctions',
-            'moyens_paiement' => 'moyens-paiement',
             'type_ressource' => 'types-ressources',
 
             // FINANCES modules

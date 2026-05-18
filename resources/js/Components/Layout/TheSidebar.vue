@@ -208,11 +208,7 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'fichiers', libelle: 'Fichiers', libelle_en: 'Files', icone: 'fas fa-file' },
 
             // Financial & Administrative
-            { menu_url: 'banques', libelle: 'Banques', libelle_en: 'Banks', icone: 'fas fa-university' },
             { menu_url: 'devises', libelle: 'Devises', libelle_en: 'Currencies', icone: 'fas fa-money-bill' },
-            { menu_url: 'devises_pays', libelle: 'Devises Pays', libelle_en: 'Country Currencies', icone: 'fas fa-globe' },
-            { menu_url: 'moyens_paiement', libelle: 'Moyens Paiement', libelle_en: 'Payment Methods', icone: 'fas fa-wallet' },
-            { menu_url: 'fournisseurs_paiement', libelle: 'Fournisseurs Paiement', libelle_en: 'Payment Providers', icone: 'fas fa-credit-card' },
 
             // Geography & Calendar
             { menu_url: 'pays', libelle: 'Pays', libelle_en: 'Countries', icone: 'fas fa-earth' },

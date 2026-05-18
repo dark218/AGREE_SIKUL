@@ -61,7 +61,7 @@ trait ProvidesParametrageLookups
      */
     protected function devisesLookup(): array
     {
-        return Devises::orderBy('libelle')->get(['id', 'libelle', 'code', 'symbole'])->toArray();
+        return Devises::orderBy('libelle')->get(['id', 'libelle', 'code', 'symbol'])->toArray();
     }
 
     /**

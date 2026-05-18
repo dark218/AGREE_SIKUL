@@ -15,9 +15,7 @@ use Modules\Administration\Http\Controllers\PermissionsController;
 use Modules\Administration\Http\Controllers\RoleController;
 use Modules\Administration\Http\Controllers\UserController;
 use Modules\Parametrage\Http\Controllers\DeviseController;
-use Modules\Parametrage\Http\Controllers\FournisseurPaiementController;
 use Modules\Parametrage\Http\Controllers\PaysController;
-use Modules\Parametrage\Http\Controllers\PaysDeviseController;
 use Modules\Parametrage\Http\Controllers\ZoneController;
 use Modules\Rapport\Http\Controllers\StatistiquesEcoleController;
 use Modules\Rapport\Http\Controllers\StatistiquesClassesController;
@@ -135,16 +133,7 @@ Route::middleware(['session_expired', 'auth:web'])->group(function () {
             ->name('notification.clear-all');
     });
 
-    // ============================================
-    // Routes Transactions (exemple)
-    // ============================================
-    Route::get('/transactions', function () {
-        return Inertia::render('Dashboard/Transactions', [
-            'menu' => 'transactions'
-        ]);
-    })->name('user.transactions.index');
-
-    // ============================================
+// ============================================
     // Routes Rapport (Statistiques)
     // ============================================
     Route::prefix('rapport')->name('rapport.')->group(function () {

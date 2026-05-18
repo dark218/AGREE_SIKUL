@@ -3,8 +3,6 @@
 use Modules\Parametrage\Http\Controllers\DeviseController;
 use Modules\Parametrage\Http\Controllers\PaysController;
 use Modules\Parametrage\Http\Controllers\ZoneController;
-use Modules\Parametrage\Http\Controllers\FournisseurPaiementController;
-use Modules\Parametrage\Http\Controllers\BanqueController;
 use Modules\Parametrage\Http\Controllers\RegionController;
 use Modules\Parametrage\Http\Controllers\DepartementController;
 use Modules\Parametrage\Http\Controllers\CommuneController;
@@ -30,7 +28,6 @@ use Modules\Parametrage\Http\Controllers\TypeRessourceController;
 use Modules\Parametrage\Http\Controllers\NatureContratController;
 use Modules\Parametrage\Http\Controllers\CategorieEnseignantController;
 use Modules\Parametrage\Http\Controllers\JourFerieController;
-use Modules\Parametrage\Http\Controllers\MoyensPaiementController;
 use Modules\Parametrage\Http\Controllers\FonctionController;
 use Modules\Parametrage\Http\Controllers\InstitutionController;
 use Modules\Parametrage\Http\Controllers\CampusController;
@@ -38,7 +35,6 @@ use Modules\Parametrage\Http\Controllers\EcoleController;
 use Modules\Parametrage\Http\Controllers\NiveauController;
 use Modules\Parametrage\Http\Controllers\ClasseController;
 use Modules\Parametrage\Http\Controllers\FichierController;
-use Modules\Parametrage\Http\Controllers\DevisePaysController;
 use Modules\Parametrage\Http\Controllers\TypeEtablissementSpeController;
 use Modules\Parametrage\Http\Controllers\LookupController;
 /*
@@ -87,21 +83,7 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::delete('/{id}', [PaysController::class, 'destroy'])->name('destroy');
     });
 
-    // ============================================
-    // Routes Gestion des Fournisseurs de Paiement
-    // ============================================
-    Route::prefix('fournisseurs-paiements')->name('fournisseurs_paiement.')->group(function () {
-        Route::get('/', [FournisseurPaiementController::class, 'index'])->name('index');
-        Route::get('/create', [FournisseurPaiementController::class, 'create'])->name('create');
-        Route::post('/', [FournisseurPaiementController::class, 'store'])->name('store');
-        Route::get('/{id}', [FournisseurPaiementController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [FournisseurPaiementController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [FournisseurPaiementController::class, 'update'])->name('update');
-        Route::put('/{id}/statut', [FournisseurPaiementController::class, 'activate'])->name('statut');
-        Route::delete('/{id}', [FournisseurPaiementController::class, 'destroy'])->name('destroy');
-    });
-
-    // ============================================
+// ============================================
     // Routes Gestion des Zones
     // ============================================
     Route::prefix('zones')->name('zones.')->group(function () {
@@ -115,22 +97,7 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::delete('/{id}', [ZoneController::class, 'destroy'])->name('destroy');
     });
 
-    // ============================================
-    // Routes Gestion des Banques
-    // ============================================
-    Route::prefix('banques')->name('banques.')->group(function () {
-        Route::get('/', [BanqueController::class, 'index'])->name('index');
-        Route::get('/create', [BanqueController::class, 'create'])->name('create');
-        Route::post('/', [BanqueController::class, 'store'])->name('store');
-        Route::get('/{id}', [BanqueController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [BanqueController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [BanqueController::class, 'update'])->name('update');
-        Route::put('/{id}/statut', [BanqueController::class, 'activate'])->name('statut');
-        Route::put('/{id}/toggle-active', [BanqueController::class, 'toggleActive'])->name('toggle-active');
-        Route::delete('/{id}', [BanqueController::class, 'destroy'])->name('destroy');
-    });
-
-    // ============================================
+// ============================================
     // GÉOGRAPHIE
     // ============================================
     Route::prefix('regions')->name('regions.')->group(function () {
@@ -435,19 +402,6 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::delete('/{fonction}', [FonctionController::class, 'destroy'])->name('destroy');
     });
 
-    // ============================================
-    // FINANCES
-    // ============================================
-    Route::prefix('moyens-paiements')->name('moyens_paiement.')->group(function () {
-        Route::get('/', [MoyensPaiementController::class, 'index'])->name('index');
-        Route::get('/create', [MoyensPaiementController::class, 'create'])->name('create');
-        Route::post('/', [MoyensPaiementController::class, 'store'])->name('store');
-        Route::get('/{moyen_paiement}', [MoyensPaiementController::class, 'show'])->name('show');
-        Route::get('/{moyen_paiement}/edit', [MoyensPaiementController::class, 'edit'])->name('edit');
-        Route::put('/{moyen_paiement}', [MoyensPaiementController::class, 'update'])->name('update');
-        Route::put('/{moyen_paiement}/statut', [MoyensPaiementController::class, 'activate'])->name('statut');
-        Route::delete('/{moyen_paiement}', [MoyensPaiementController::class, 'destroy'])->name('destroy');
-    });
 
     // ============================================
     // GESTION SCOLAIRE
@@ -530,17 +484,6 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::put('/{fichier}/statut', [FichierController::class, 'activate'])->name('statut');
     });
 
-    // Devises Pays
-    Route::prefix('devises-pays')->name('devises_pays.')->group(function () {
-        Route::get('/', [DevisePaysController::class, 'index'])->name('index');
-        Route::get('/create', [DevisePaysController::class, 'create'])->name('create');
-        Route::post('/', [DevisePaysController::class, 'store'])->name('store');
-        Route::get('/{devisespay}', [DevisePaysController::class, 'show'])->name('show');
-        Route::get('/{devisespay}/edit', [DevisePaysController::class, 'edit'])->name('edit');
-        Route::put('/{devisespay}', [DevisePaysController::class, 'update'])->name('update');
-        Route::delete('/{devisespay}', [DevisePaysController::class, 'destroy'])->name('destroy');
-        Route::put('/{devisespay}/statut', [DevisePaysController::class, 'activate'])->name('statut');
-    });
 
     // Types Établissement Spé
     Route::prefix('types-etablissements-spe')->name('types_etablissement_spe.')->group(function () {

@@ -3,13 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
-use Modules\Business\Entities\Employe;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Modules\Business\Entities\PointVente;
-use Modules\GestionStock\Entities\TransfertStock;
-use Modules\Pos\Entities\SessionCaisse;
-use Modules\Pos\Entities\VentePos;
 
 class Generator
 {
@@ -64,77 +59,6 @@ class Generator
     {
         return  "https://quickchart.io/qr?text=".$val."&size=200&centerImageUrl=http%3A%2F%2Fqrpayme.niqj4716.odns.fr%2Fassets%2Fimages%2Fsmile%2Ficone-3.png";
     }
-
-    /**
-     * Génère un code employé unique.
-     *
-     * @param  string  $raisonSociale   Raison sociale du marchand
-     * @param  string  $paysIso        ISO de pays (ex: CI, SN, FR) ou indicatif stocké
-     * @param  int|null $marchandId     Pour scoper l'unicité (optionnel)
-     * @return string
-     */
-    public static function generateEmployeeCode(
-        string $raisonSociale,
-        string $paysIso,
-        ?int $marchandId = null
-    ): string {
-
-        // =========================
-        // 1. Acronyme société (3 lettres)
-        // =========================
-        $clean = Str::of($raisonSociale)
-            ->upper()
-            ->replaceMatches('/[^A-Z0-9 ]/u', ' ')
-            ->squish();
-
-        $words = explode(' ', $clean);
-        $acronym = collect($words)
-            ->filter(fn($w) => strlen($w) > 0)
-            ->map(fn($w) => Str::substr($w, 0, 1))
-            ->implode('');
-
-
-        $acronym = Str::upper(Str::substr($acronym, 0, 3));
-
-
-        if (strlen($acronym) < 3) {
-            $acronym = str_pad($acronym, 3, 'X');
-        }
-
-        // =========================
-        // 2. Pays ISO (CI, SN, FR…)
-        // =========================
-//        dd($paysIso);
-        $paysIso = Str::upper(Str::substr($paysIso, 0, 2)) ?: 'XX';
-
-
-        // =========================
-        // 3. Base code
-        // =========================
-        $base = "EMP-{$paysIso}-{$acronym}";
-
-
-        if ($marchandId) {
-            $base .= "-M{$marchandId}";
-        }
-
-        // =========================
-        // 4. Séquence incrémentale
-        // =========================
-        $last = Employe::where('code_employe', 'like', $base . '%')
-            ->orderBy('code_employe', 'desc')
-            ->first();
-
-        $nextNumber = 1;
-
-        if ($last) {
-            preg_match('/(\d+)$/', $last->code_employe, $m);
-            $nextNumber = isset($m[1]) ? ((int)$m[1] + 1) : 1;
-        }
-
-        return sprintf('%s-%05d', $base, $nextNumber);
-    }
-
 
     /**
      * Génère un alias SMIL unique basé sur le nom et prénom.
@@ -212,110 +136,5 @@ class Generator
         }
 
         return !$query->exists();
-    }
-    public static function generateVenteReference(
-        string $paysIso,
-        int $pointVenteId,
-        int $caisseId,
-        \DateTimeInterface $date = null
-    ): string {
-
-        $date = $date ?? now();
-
-        // =========================
-        // Segments fixes
-        // =========================
-        $prefix = 'VTE';
-        $pays   = Str::upper(substr($paysIso, 0, 2));
-        $pv     = sprintf('PV%02d', $pointVenteId);
-        $caisse = sprintf('CA%02d', $caisseId);
-        $datePart = $date->format('Ymd');
-
-        // =========================
-        // Séquence journalière
-        // =========================
-        $base = "{$prefix}-{$pays}-{$pv}-{$caisse}-{$datePart}";
-
-        $last = VentePos::where('reference', 'like', $base . '%')
-            ->orderBy('reference', 'desc')
-            ->first();
-
-        $next = 1;
-
-        if ($last) {
-            preg_match('/(\d+)$/', $last->reference, $m);
-            $next = isset($m[1]) ? ((int)$m[1] + 1) : 1;
-        }
-
-        return sprintf('%s-%06d', $base, $next);
-    }
-    public static function generateSessionCaisseReference(
-        string $paysIso,
-        int $pointVenteId,
-        int $caisseId,
-        \DateTimeInterface $date = null
-    ): string {
-
-        $date = $date ?? now();
-
-        // =========================
-        // Segments fixes
-        // =========================
-        $prefix = 'SC';
-        $pays   = Str::upper(substr($paysIso, 0, 2));
-        $pv     = sprintf('PV%02d', $pointVenteId);
-        $caisse = sprintf('CA%02d', $caisseId);
-        $datePart = $date->format('Ymd');
-
-        $base = "{$prefix}-{$pays}-{$pv}-{$caisse}-{$datePart}";
-
-        // =========================
-        // Séquence journalière
-        // =========================
-        $last = SessionCaisse::where('reference', 'like', $base . '%')
-            ->orderBy('reference', 'desc')
-            ->first();
-
-        $next = 1;
-
-        if ($last) {
-            preg_match('/(\d+)$/', $last->reference, $m);
-            $next = isset($m[1]) ? ((int)$m[1] + 1) : 1;
-        }
-
-        return sprintf('%s-%03d', $base, $next);
-    }
-
-    public static function generateTransfertStockReference(
-        int $marchandId,
-        int $destinationPointVenteId
-    ): string {
-        // Récupérer le point de vente destination
-        $pointVente = PointVente::findOrFail($destinationPointVenteId);
-
-        // Code pays (fallback XX)
-        $paysCode = Str::upper(
-            $pointVente->marchand?->proprietaire?->pays?->iso ?? 'XX'
-        );
-
-        // Code point de vente (ex: PV03)
-        $pvCode = 'PV' . str_pad($destinationPointVenteId, 2, '0', STR_PAD_LEFT);
-
-        // Date YYMM
-        $datePart = now()->format('ym');
-
-        // Base de la référence
-        $base = "TRF-{$paysCode}-{$pvCode}-{$datePart}";
-
-        // Compteur mensuel par marchand + destination
-        $count = TransfertStock::where('reference', 'LIKE', "{$base}%")
-            ->whereHas('emplacementDestination', function ($q) use ($marchandId) {
-                $q->where('marchand_id', $marchandId);
-            })
-            ->count();
-
-        $sequence = str_pad($count + 1, 4, '0', STR_PAD_LEFT);
-
-        return "{$base}-{$sequence}";
     }
 }

@@ -13,9 +13,9 @@ class DevisesFactory extends Factory
     {
         return [
             'code' => $this->faker->currencyCode,
-            'symbole' => $this->faker->randomElement(['$', '€', '£', '¥', '₦', 'CFA']),
+            'symbol' => $this->faker->randomElement(['$', '€', '£', '¥', '₦', 'CFA']),
             'libelle' => $this->faker->word . ' Currency',
-            'decimal_point' => $this->faker->numberBetween(0, 4),
+            'decimal_places' => $this->faker->numberBetween(0, 4),
         ];
     }
 }
