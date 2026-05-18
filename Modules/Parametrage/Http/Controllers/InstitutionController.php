@@ -21,6 +21,24 @@ class InstitutionController extends Controller
 {
     use ValidatesRequests, ProvidesParametrageLookups;
 
+    /**
+     * Génère un code institution unique à partir du nom.
+     * Format : INST-{SLUG}-{N} où N s'incrémente si collision.
+     */
+    private function generateInstitutionCode(string $nom): string
+    {
+        $slug = strtoupper(\Illuminate\Support\Str::slug($nom, ''));
+        $slug = substr($slug, 0, 20) ?: 'INSTITUTION';
+        $base = 'INST-' . $slug;
+        $candidate = $base;
+        $i = 1;
+        while (Institution::where('code', $candidate)->exists()) {
+            $i++;
+            $candidate = $base . '-' . $i;
+        }
+        return $candidate;
+    }
+
     public function __construct()
     {
         $this->middleware('permission.check:institutions-list', ['only' => ['index']]);
@@ -89,6 +107,11 @@ class InstitutionController extends Controller
             $validated['langue_principale'] = $validated['langue_principale'] ?? 'fr';
             $validated['creation_username'] = auth()->user()->nom;
             $validated['creation_hostname'] = gethostname();
+
+            // Auto-génération du code si vide (slug du nom + suffixe unique)
+            if (empty($validated['code'])) {
+                $validated['code'] = $this->generateInstitutionCode($validated['nom']);
+            }
 
             Institution::create($validated);
 
@@ -176,6 +199,11 @@ class InstitutionController extends Controller
             $validated = $request->validated();
             $validated['modification_username'] = auth()->user()->nom;
             $validated['modification_hostname'] = gethostname();
+
+            // Garde le code existant si l'utilisateur n'en envoie pas un nouveau
+            if (empty($validated['code'])) {
+                $validated['code'] = $institution->code ?: $this->generateInstitutionCode($validated['nom']);
+            }
 
             $institution->update($validated);
 

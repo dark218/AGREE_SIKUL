@@ -14,7 +14,7 @@ class StoreInstitutionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => 'required|string|max:100|unique:institutions,code',
+            'code' => 'nullable|string|max:100|unique:institutions,code',
             'nom' => 'required|string|max:255',
             'sigle' => 'nullable|string|max:50',
             'type' => 'nullable|in:primaire,secondaire,superieur,formation,autre',

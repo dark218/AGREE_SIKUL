@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
 
             // Données de paramétrage de base
             ParametrageDataSeeder::class,
+            DevisesSeeder::class,
             SalleSeeder::class,
 
             // Matrice permissions par rôle

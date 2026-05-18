@@ -17,7 +17,7 @@ class UpdateInstitutionRequest extends FormRequest
         $institutionId = $this->route('institution')?->id ?? $this->route('institution');
 
         return [
-            'code' => ['required', 'string', 'max:100', Rule::unique('institutions', 'code')->ignore($institutionId)],
+            'code' => ['nullable', 'string', 'max:100', Rule::unique('institutions', 'code')->ignore($institutionId)],
             'nom' => 'required|string|max:255',
             'sigle' => 'nullable|string|max:50',
             'type' => 'nullable|in:primaire,secondaire,superieur,formation,autre',

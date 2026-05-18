@@ -3,6 +3,7 @@
 namespace Modules\Parametrage\Http\Controllers\Concerns;
 
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Entities\Commune;
@@ -22,38 +23,48 @@ use Modules\Parametrage\Entities\TypeEtablissement;
 
 /**
  * Lookups centralisés pour les formulaires Parametrage.
- * Évite la duplication code dans chaque controller create/edit.
+ *
+ * Toutes les listes sont cachées 1 heure (sauf devises 10 min) — les listes
+ * référentielles (pays, régions, etc.) changent rarement donc pas besoin
+ * de les requêter à chaque chargement de formulaire.
+ *
+ * Pour invalider manuellement : Cache::forget('parametrage.lookups.localisation')
+ * ou utiliser le tag (si driver le supporte) `Cache::tags('parametrage_lookups')->flush()`.
  */
 trait ProvidesParametrageLookups
 {
+    private const CACHE_TTL_LONG = 3600;   // 1h pour referentiels stables
+    private const CACHE_TTL_SHORT = 600;   // 10min pour listes modifiables
+
     /**
      * Listes de localisation (pays, régions, départements, communes, quartiers).
-     * Chaque liste est triée et minimaliste pour rester légère.
+     * Mises en cache 1h car les référentiels géographiques changent rarement.
      */
     protected function localisationLookups(): array
     {
-        return [
-            'paysList' => Pays::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-            'regions' => Region::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-            'departements' => Departement::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-            'communes' => Commune::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-            'quartiers' => Quartier::with(['commune.departement.region.pays'])
-                ->orderBy('libelle')
-                ->get(['id', 'libelle', 'code', 'commune_id'])
-                ->map(function ($q) {
-                    return [
-                        'id' => $q->id,
-                        'libelle' => $q->libelle,
-                        'code' => $q->code ?? null,
-                        // Hiérarchie pré-chargée pour cascade côté Vue
-                        'commune_id' => $q->commune_id,
-                        'departement_id' => $q->commune?->departement_id,
-                        'region_id' => $q->commune?->departement?->region_id,
-                        'pays_id' => $q->commune?->departement?->region?->pays_id,
-                    ];
-                })
-                ->toArray(),
-        ];
+        return Cache::remember('parametrage.lookups.localisation', self::CACHE_TTL_LONG, function () {
+            return [
+                'paysList' => Pays::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+                'regions' => Region::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+                'departements' => Departement::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+                'communes' => Commune::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+                'quartiers' => Quartier::with(['commune:id,departement_id', 'commune.departement:id,region_id', 'commune.departement.region:id,pays_id'])
+                    ->orderBy('libelle')
+                    ->get(['id', 'libelle', 'code', 'commune_id'])
+                    ->map(function ($q) {
+                        return [
+                            'id' => $q->id,
+                            'libelle' => $q->libelle,
+                            'code' => $q->code ?? null,
+                            'commune_id' => $q->commune_id,
+                            'departement_id' => $q->commune?->departement_id,
+                            'region_id' => $q->commune?->departement?->region_id,
+                            'pays_id' => $q->commune?->departement?->region?->pays_id,
+                        ];
+                    })
+                    ->toArray(),
+            ];
+        });
     }
 
     /**
@@ -61,7 +72,9 @@ trait ProvidesParametrageLookups
      */
     protected function devisesLookup(): array
     {
-        return Devises::orderBy('libelle')->get(['id', 'libelle', 'code', 'symbol'])->toArray();
+        return Cache::remember('parametrage.lookups.devises', self::CACHE_TTL_LONG, function () {
+            return Devises::orderBy('libelle')->get(['id', 'libelle', 'code', 'symbol'])->toArray();
+        });
     }
 
     /**
@@ -86,10 +99,12 @@ trait ProvidesParametrageLookups
         return array_merge(
             $this->localisationLookups(),
             [
-                'institutions' => Institution::where('statut', 'actif')
-                    ->orderBy('nom')
-                    ->get(['id', 'nom', 'code'])
-                    ->toArray(),
+                'institutions' => Cache::remember('parametrage.lookups.institutions', self::CACHE_TTL_SHORT, function () {
+                    return Institution::where('statut', 'actif')
+                        ->orderBy('nom')
+                        ->get(['id', 'nom', 'code'])
+                        ->toArray();
+                }),
                 'responsables' => $this->directeursLookup(),
             ]
         );
@@ -100,28 +115,36 @@ trait ProvidesParametrageLookups
      */
     protected function ecoleLookups(): array
     {
-        $campuses = Campus::where('statut', 'actif')
-            ->with('institution')
-            ->orderBy('nom')
-            ->get()
-            ->map(function ($campus) {
-                return [
-                    'id' => $campus->id,
-                    'nom' => $campus->nom . ($campus->institution ? ' (' . $campus->institution->nom . ')' : ''),
-                    'institution_id' => $campus->institution_id,
-                ];
-            })
-            ->toArray();
+        $campuses = Cache::remember('parametrage.lookups.campuses', self::CACHE_TTL_SHORT, function () {
+            return Campus::where('statut', 'actif')
+                ->with('institution:id,nom')
+                ->orderBy('nom')
+                ->get()
+                ->map(function ($campus) {
+                    return [
+                        'id' => $campus->id,
+                        'nom' => $campus->nom . ($campus->institution ? ' (' . $campus->institution->nom . ')' : ''),
+                        'institution_id' => $campus->institution_id,
+                    ];
+                })
+                ->toArray();
+        });
 
-        return array_merge(
-            $this->localisationLookups(),
-            [
-                'campuses' => $campuses,
+        $types = Cache::remember('parametrage.lookups.ecole_types', self::CACHE_TTL_LONG, function () {
+            return [
                 'institutions' => Institution::orderBy('nom')->get(['id', 'nom', 'code'])->toArray(),
                 'typeEtablissements' => TypeEtablissement::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'typeEnseignements' => TypeEnseignement::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'typeCours' => TypeCours::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'sections' => Section::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
+            ];
+        });
+
+        return array_merge(
+            $this->localisationLookups(),
+            ['campuses' => $campuses],
+            $types,
+            [
                 'directeurs' => $this->directeursLookup(),
                 'devises' => $this->devisesLookup(),
             ]
@@ -133,30 +156,35 @@ trait ProvidesParametrageLookups
      */
     protected function classeLookups(): array
     {
-        return [
-            'ecoles' => Ecole::where('statut', 'actif')
-                ->orderBy('nom')
-                ->get(['id', 'nom', 'code', 'campus_id'])
-                ->toArray(),
-            'campuses' => Campus::orderBy('nom')->get(['id', 'nom'])->toArray(),
-            'niveaux' => Niveau::orderBy('ordre')->get(['id', 'libelle', 'code', 'ecole_id'])->toArray(),
-            'sections' => Section::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
-            'cycles' => CycleEnseignement::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
-            'enseignants' => User::orderBy('nom')->get(['id', 'nom', 'prenoms'])->toArray(),
-            'anneesScolaires' => AnneeScolaire::orderBy('libelle', 'desc')->get(['id', 'libelle'])->toArray(),
-        ];
+        return Cache::remember('parametrage.lookups.classe_lists', self::CACHE_TTL_SHORT, function () {
+            return [
+                'ecoles' => Ecole::where('statut', 'actif')
+                    ->orderBy('nom')
+                    ->get(['id', 'nom', 'code', 'campus_id'])
+                    ->toArray(),
+                'campuses' => Campus::orderBy('nom')->get(['id', 'nom'])->toArray(),
+                'niveaux' => Niveau::orderBy('ordre')->get(['id', 'libelle', 'code', 'ecole_id'])->toArray(),
+                'sections' => Section::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
+                'cycles' => CycleEnseignement::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
+                'enseignants' => User::orderBy('nom')->get(['id', 'nom', 'prenoms'])->toArray(),
+                'anneesScolaires' => AnneeScolaire::orderBy('libelle', 'desc')->get(['id', 'libelle'])->toArray(),
+            ];
+        });
     }
 
     /**
      * Liste des utilisateurs éligibles comme directeur/responsable.
+     * Cache 10 min (peut changer si nouveau user créé).
      */
     protected function directeursLookup(): array
     {
-        return User::whereHas('roles', function ($q) {
-                $q->whereIn('name', ['administrateur', 'directeur', 'super_admin']);
-            })
-            ->orderBy('nom')
-            ->get(['id', 'nom', 'email'])
-            ->toArray();
+        return Cache::remember('parametrage.lookups.directeurs', self::CACHE_TTL_SHORT, function () {
+            return User::whereHas('roles', function ($q) {
+                    $q->whereIn('name', ['administrateur', 'directeur', 'super_admin']);
+                })
+                ->orderBy('nom')
+                ->get(['id', 'nom', 'email'])
+                ->toArray();
+        });
     }
 }
