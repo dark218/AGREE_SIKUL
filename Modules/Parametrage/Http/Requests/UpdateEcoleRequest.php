@@ -57,7 +57,7 @@ class UpdateEcoleRequest extends FormRequest
             'fax' => 'nullable|string|max:20',
             'email_principal' => 'nullable|email|max:255',
             'email_1' => 'nullable|email|max:255',
-            'site_web' => 'nullable|url|max:255',
+            'site_web' => 'nullable|string|max:255',
             'facebook' => 'nullable|string|max:255',
             'linkedin' => 'nullable|string|max:255',
             'twitter' => 'nullable|string|max:255',

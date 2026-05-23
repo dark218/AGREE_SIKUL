@@ -231,7 +231,7 @@ const deviseLabel = (d) => d ? `${d.code ?? ''} - ${d.libelle}${d.symbol ? ' (' 
         </div>
         <div class="col-sm-4">
             <label class="form-label fw-medium">Site web</label>
-            <input type="url" v-model="form.site_web" class="form-control" :disabled="isReadOnly" />
+            <input type="text" v-model="form.site_web" class="form-control" placeholder="www.exemple.com" :disabled="isReadOnly" />
         </div>
         <div class="col-sm-4">
             <label class="form-label fw-medium">Facebook</label>

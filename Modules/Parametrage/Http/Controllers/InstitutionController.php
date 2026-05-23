@@ -113,6 +113,11 @@ class InstitutionController extends Controller
                 $validated['code'] = $this->generateInstitutionCode($validated['nom']);
             }
 
+            // Normalisation site web : préfixe https:// si l'utilisateur a tapé "www.xxx.com"
+            if (!empty($validated['site_web']) && !preg_match('#^https?://#i', $validated['site_web'])) {
+                $validated['site_web'] = 'https://' . ltrim($validated['site_web'], '/');
+            }
+
             Institution::create($validated);
 
             return redirect()
@@ -203,6 +208,11 @@ class InstitutionController extends Controller
             // Garde le code existant si l'utilisateur n'en envoie pas un nouveau
             if (empty($validated['code'])) {
                 $validated['code'] = $institution->code ?: $this->generateInstitutionCode($validated['nom']);
+            }
+
+            // Normalisation site web
+            if (!empty($validated['site_web']) && !preg_match('#^https?://#i', $validated['site_web'])) {
+                $validated['site_web'] = 'https://' . ltrim($validated['site_web'], '/');
             }
 
             $institution->update($validated);

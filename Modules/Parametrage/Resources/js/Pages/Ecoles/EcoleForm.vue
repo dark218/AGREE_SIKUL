@@ -376,7 +376,7 @@ function handleLogoChange(event) {
         </div>
         <div class="col-sm-4">
             <label class="form-label fw-medium">Site web</label>
-            <input v-model="form.site_web" type="url" class="form-control" :disabled="isReadOnly" />
+            <input v-model="form.site_web" type="text" class="form-control" placeholder="www.exemple.com" :disabled="isReadOnly" />
         </div>
         <div class="col-sm-4">
             <label class="form-label fw-medium">Facebook</label>

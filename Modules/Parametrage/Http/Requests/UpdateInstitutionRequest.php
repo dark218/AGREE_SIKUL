@@ -53,7 +53,7 @@ class UpdateInstitutionRequest extends FormRequest
             'logo_id' => 'nullable|exists:fichier,id',
             'email_principal' => 'nullable|email|max:255',
             'telephone_principal' => 'nullable|string|max:20',
-            'site_web' => 'nullable|url|max:255',
+            'site_web' => 'nullable|string|max:255',
             'telephone_1' => 'nullable|string|max:20',
             'telephone_2' => 'nullable|string|max:20',
             'telephone_3' => 'nullable|string|max:20',
