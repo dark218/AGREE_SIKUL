@@ -22,21 +22,25 @@ class InstitutionController extends Controller
     use ValidatesRequests, ProvidesParametrageLookups;
 
     /**
-     * Génère un code institution unique à partir du nom.
-     * Format : INST-{SLUG}-{N} où N s'incrémente si collision.
+     * Génère un code institution incrémental simple.
+     * Format : INST001, INST002, INST003...
+     * Le paramètre $nom est ignoré (gardé pour compat de signature).
      */
-    private function generateInstitutionCode(string $nom): string
+    private function generateInstitutionCode(string $nom = ''): string
     {
-        $slug = strtoupper(\Illuminate\Support\Str::slug($nom, ''));
-        $slug = substr($slug, 0, 20) ?: 'INSTITUTION';
-        $base = 'INST-' . $slug;
-        $candidate = $base;
-        $i = 1;
-        while (Institution::where('code', $candidate)->exists()) {
-            $i++;
-            $candidate = $base . '-' . $i;
-        }
-        return $candidate;
+        // Compteur basé sur les codes existants au format INSTxxx
+        $lastNumber = Institution::where('code', 'like', 'INST%')
+            ->withTrashed()
+            ->get(['code'])
+            ->map(function ($i) {
+                if (preg_match('/^INST(\d+)$/i', $i->code, $m)) {
+                    return (int) $m[1];
+                }
+                return 0;
+            })
+            ->max() ?: 0;
+
+        return 'INST' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
     }
 
     public function __construct()

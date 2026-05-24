@@ -54,7 +54,7 @@ const statusOptions = [
     { id: 'suspendu', libelle: 'Suspendu' },
 ];
 
-const deviseLabel = (d) => d ? `${d.code ?? ''} - ${d.libelle}${d.symbol ? ' (' + d.symbol + ')' : ''}`.trim() : '';
+const deviseLabel = (d) => d ? (d.libelle ?? d.symbol ?? '') : '';
 
 // Auto-fill Institution depuis le Campus sélectionné
 watch(() => props.form.campus_id, (newCampusId) => {

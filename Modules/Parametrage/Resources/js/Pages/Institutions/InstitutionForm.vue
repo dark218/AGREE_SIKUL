@@ -32,7 +32,7 @@ const statusOptions = [
     { id: 'non_actif', libelle: 'Inactif' },
 ];
 
-const deviseLabel = (d) => d ? `${d.code ?? ''} - ${d.libelle}${d.symbol ? ' (' + d.symbol + ')' : ''}`.trim() : '';
+const deviseLabel = (d) => d ? (d.libelle ?? d.symbol ?? '') : '';
 </script>
 
 <template>
