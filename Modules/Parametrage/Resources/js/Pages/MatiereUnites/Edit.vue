@@ -23,6 +23,7 @@ const form = useForm({
     code: page.props.item?.code || '',
     libelle: page.props.item?.libelle || '',
     ecole_id: page.props.item?.ecole_id || null,
+    institution_id: page.props.item?.institution_id || null,
     niveau_id: page.props.item?.niveau_id || null,
     section_id: page.props.item?.section_id || null,
     cycle_id: page.props.item?.cycle_id || null,
@@ -32,7 +33,7 @@ const form = useForm({
     volume_horaire: page.props.item?.volume_horaire || null,
     est_obligatoire: page.props.item?.est_obligatoire || false,
     etat: page.props.item?.etat || 'actif',
-    });
+});
 // Load dropdown data
 onMounted(async () => {
     try {
@@ -98,6 +99,7 @@ const submitForm = () => {
                                     :sections="sections"
                                     :cycles="cycles"
                                     :ecoles="ecoles"
+                                    :institutions="page.props.institutions"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

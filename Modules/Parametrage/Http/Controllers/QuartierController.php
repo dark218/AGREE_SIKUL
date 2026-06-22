@@ -111,6 +111,7 @@ class QuartierController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:quartiers,code',
                 'libelle' => 'required|string|max:255',
+                'ville' => 'nullable|string|max:100',
                 'commune_id' => 'required|exists:communes,id',
                 'departement_id' => 'required|exists:departements,id',
                 'region_id' => 'required|exists:regions,id',
@@ -193,6 +194,7 @@ class QuartierController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:quartiers,code,' . $quartier->id,
                 'libelle' => 'required|string|max:255',
+                'ville' => 'nullable|string|max:100',
                 'commune_id' => 'required|exists:communes,id',
                 'departement_id' => 'required|exists:departements,id',
                 'region_id' => 'required|exists:regions,id',

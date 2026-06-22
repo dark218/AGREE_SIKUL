@@ -17,6 +17,8 @@ class NiveauEtude extends BaseModel
         'code',
         'sigle',
         'libelle',
+        'ecole_id',
+        'section_id',
         'cycle_id',
         'pays_id',
         'annee_scolaire_id',
@@ -36,6 +38,16 @@ class NiveauEtude extends BaseModel
     public function pays(): BelongsTo
     {
         return $this->belongsTo(Pays::class, 'pays_id');
+    }
+
+    public function ecole(): BelongsTo
+    {
+        return $this->belongsTo(Ecole::class, 'ecole_id');
+    }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class, 'section_id');
     }
 
     public function cycle(): BelongsTo

@@ -13,6 +13,7 @@ use Modules\Parametrage\Entities\Devises;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Institution;
 use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Pays;
 use Modules\Parametrage\Entities\Quartier;
 use Modules\Parametrage\Entities\Region;
@@ -158,12 +159,15 @@ trait ProvidesParametrageLookups
     {
         return Cache::remember('parametrage.lookups.classe_lists', self::CACHE_TTL_SHORT, function () {
             return [
-                'ecoles' => Ecole::where('statut', 'actif')
-                    ->orderBy('nom')
+                'ecoles' => Ecole::orderBy('nom')
                     ->get(['id', 'nom', 'code', 'campus_id'])
                     ->toArray(),
                 'campuses' => Campus::orderBy('nom')->get(['id', 'nom'])->toArray(),
-                'niveaux' => Niveau::orderBy('ordre')->get(['id', 'libelle', 'code', 'ecole_id'])->toArray(),
+                // Utilise NiveauEtude (paramétrage) au lieu de Niveau (académique)
+                // pour que la liste des niveaux paramétrés remonte bien
+                'niveaux' => NiveauEtude::orderBy('libelle')
+                    ->get(['id', 'libelle', 'code', 'ecole_id', 'section_id', 'cycle_id'])
+                    ->toArray(),
                 'sections' => Section::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'cycles' => CycleEnseignement::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'enseignants' => User::orderBy('nom')->get(['id', 'nom', 'prenoms'])->toArray(),

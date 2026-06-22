@@ -1,33 +1,36 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+
 const { t } = useI18n();
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
+    form: { type: Object, required: true },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
-    regions: {
-        type: Array,
-        default: () => [],
-    },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
+    regions: { type: Array, default: () => [] },
+    pays: { type: Array, default: () => [] },
 });
+
 const isReadOnly = computed(() => props.mode === 'show');
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+// CASCADE Région → Pays : quand on sélectionne une région, le pays se remplit
+watch(() => props.form.region_id, (newRegionId) => {
+    if (!newRegionId || isReadOnly.value) return;
+    const region = props.regions.find(r => String(r.id) === String(newRegionId));
+    if (region?.pays_id) {
+        props.form.pays_id = region.pays_id;
+    }
+});
 </script>
+
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
@@ -35,9 +38,7 @@ const statusOptions = [
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
-                <span v-if="form.errors?.code" class="text-danger">
-                    <strong>{{ form.errors.code }}</strong>
-                </span>
+                <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
         <!-- Libelle -->
@@ -53,13 +54,13 @@ const statusOptions = [
         <!-- Region -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.region') || 'Région' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
+                <label>{{ t('fields.region') || 'Région' }} <small class="text-muted">(le pays se remplit auto)</small> <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
                     v-model="form.region_id"
-                    :options="props.regions"
+                    :options="regions"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
                 <span v-if="form.errors?.region_id" class="d-block text-danger mt-1">
@@ -70,13 +71,13 @@ const statusOptions = [
         <!-- Pays -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.country') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
+                <label>{{ t('fields.country') || 'Pays' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
                     v-model="form.pays_id"
-                    :options="props.pays"
+                    :options="pays"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
                 <span v-if="form.errors?.pays_id" class="d-block text-danger mt-1">
@@ -93,7 +94,7 @@ const statusOptions = [
                     :options="statusOptions"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Select --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
                 <span v-if="form.errors?.etat" class="d-block text-danger mt-1">

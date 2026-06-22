@@ -1,341 +1,227 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+
 const { t } = useI18n();
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
+    form: { type: Object, required: true },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    matieres: {
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-        type: Array,
-        default: () => [],
-    },
+    ecoles: { type: Array, default: () => [] },
+    institutions: { type: Array, default: () => [] },
+    niveaux: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    matieres: { type: Array, default: () => [] },
+    anneesScolaires: { type: Array, default: () => [] },
+    pays: { type: Array, default: () => [] },
 });
+
 const isReadOnly = computed(() => props.mode === 'show');
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+// Auto-fill Institution depuis École
+watch(() => props.form.ecole_id, (newEcoleId) => {
+    if (!newEcoleId || isReadOnly.value) return;
+    const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
+    if (ecole?.institution_id) {
+        props.form.institution_id = ecole.institution_id;
+    }
+});
+
+const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 </script>
+
 <template>
     <div class="row g-3 custom-input">
-        <!-- Code -->
+        <!-- LIGNE 1 : Code | Libellé -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span class="text-danger">*</span></label>
-                <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')">
-                <span v-if="form.errors?.code" class="text-danger">
-                    <strong>{{ form.errors.code }}</strong>
-                </span>
+                <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
+                <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <!-- Libelle -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span class="text-danger">*</span></label>
-                <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')">
-                <span v-if="form.errors?.libelle" class="text-danger">
-                    <strong>{{ form.errors.libelle }}</strong>
-                </span>
+                <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
+                <span v-if="form.errors?.libelle" class="text-danger"><strong>{{ form.errors.libelle }}</strong></span>
             </div>
         </div>
-        <!-- Niveau Id -->
+
+        <!-- LIGNE 2 : École | Institution -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.niveau_id') }} <span class="text-danger">*</span></label>
+                <label>{{ t('fields.ecole') || 'École' }}</label>
                 <SearchableSelect
-                    v-model="form.niveau_id"
-                    :options="props.niveaux"
+                    v-model.number="form.ecole_id"
+                    :options="ecoles"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.niveau_id" class="text-danger">
-                    <strong>{{ form.errors.niveau_id }}</strong>
-                </span>
+                <span v-if="form.errors?.ecole_id" class="text-danger"><strong>{{ form.errors.ecole_id }}</strong></span>
             </div>
         </div>
-        <!-- Section Id -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.section_id') }} <span class="text-danger">*</span></label>
+                <label>{{ t('fields.institution') || 'Institution' }}
+                    <small class="text-muted">(auto depuis école)</small>
+                </label>
                 <SearchableSelect
-                    v-model="form.section_id"
-                    :options="props.sections"
+                    v-model.number="form.institution_id"
+                    :options="institutions"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.section_id" class="text-danger">
-                    <strong>{{ form.errors.section_id }}</strong>
-                </span>
+                <span v-if="form.errors?.institution_id" class="text-danger"><strong>{{ form.errors.institution_id }}</strong></span>
             </div>
         </div>
-        <!-- Cycle Id -->
+
+        <!-- LIGNE 3 : Niveau | Section -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.cycle_id') }} <span class="text-danger">*</span></label>
+                <label>{{ t('fields.niveau') || 'Niveau' }} <span class="text-danger">*</span></label>
                 <SearchableSelect
-                    v-model="form.cycle_id"
-                    :options="props.cycles"
+                    v-model.number="form.niveau_id"
+                    :options="niveaux"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.cycle_id" class="text-danger">
-                    <strong>{{ form.errors.cycle_id }}</strong>
-                </span>
+                <span v-if="form.errors?.niveau_id" class="text-danger"><strong>{{ form.errors.niveau_id }}</strong></span>
             </div>
         </div>
-        <!-- Matiere 1 Id -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.section') || 'Section' }}</label>
+                <SearchableSelect
+                    v-model.number="form.section_id"
+                    :options="sections"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
+            </div>
+        </div>
+
+        <!-- LIGNE 4 : Cycle | Matière 1 -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
+                <SearchableSelect
+                    v-model.number="form.cycle_id"
+                    :options="cycles"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
+            </div>
+        </div>
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>Matière 1</label>
                 <SearchableSelect
-                    v-model="form.matiere1_id"
-                    :options="props.matieres"
+                    v-model.number="form.matiere1_id"
+                    :options="matieres"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.matiere1_id" class="text-danger">
-                    <strong>{{ form.errors.matiere1_id }}</strong>
-                </span>
+                <span v-if="form.errors?.matiere1_id" class="text-danger"><strong>{{ form.errors.matiere1_id }}</strong></span>
             </div>
         </div>
-        <!-- Matiere 2 Id -->
+
+        <!-- LIGNES 5-9 : Matière 2 → Matière 10 (par paires) -->
+        <div v-for="n in [2, 4, 6, 8, 10]" :key="`pair-${n}`" class="row g-3 col-12 mx-0 px-0">
+            <div class="col-sm-6">
+                <div class="mb-3">
+                    <label>Matière {{ n }}</label>
+                    <SearchableSelect
+                        v-model.number="form[`matiere${n}_id`]"
+                        :options="matieres"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :disabled="isReadOnly"
+                    />
+                </div>
+            </div>
+            <div v-if="n !== 10" class="col-sm-6">
+                <div class="mb-3">
+                    <label>Matière {{ n + 1 }}</label>
+                    <SearchableSelect
+                        v-model.number="form[`matiere${n + 1}_id`]"
+                        :options="matieres"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :disabled="isReadOnly"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- APRÈS Matière 10 : Année scolaire | Pays -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>Matière 2</label>
+                <label>{{ t('fields.annee_scolaire') || 'Année scolaire' }}</label>
                 <SearchableSelect
-                    v-model="form.matiere2_id"
-                    :options="props.matieres"
+                    v-model.number="form.annee_scolaire_id"
+                    :options="anneesScolaires"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.matiere2_id" class="text-danger">
-                    <strong>{{ form.errors.matiere2_id }}</strong>
-                </span>
+                <span v-if="form.errors?.annee_scolaire_id" class="text-danger"><strong>{{ form.errors.annee_scolaire_id }}</strong></span>
             </div>
         </div>
-        <!-- Matiere 3 Id -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>Matière 3</label>
+                <label>{{ t('fields.pays') || 'Pays' }}</label>
                 <SearchableSelect
-                    v-model="form.matiere3_id"
-                    :options="props.matieres"
+                    v-model.number="form.pays_id"
+                    :options="pays"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.matiere3_id" class="text-danger">
-                    <strong>{{ form.errors.matiere3_id }}</strong>
-                </span>
+                <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
             </div>
         </div>
-                <!-- Année Scolaire -->
+
+        <!-- État physique -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') }}</label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="props.anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') }}</label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="props.pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger">
-                    <strong>{{ form.errors.pays_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 4 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 4</label>
-                <SearchableSelect
-                    v-model="form.matiere4_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere4_id" class="text-danger">
-                    <strong>{{ form.errors.matiere4_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 5 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 5</label>
-                <SearchableSelect
-                    v-model="form.matiere5_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere5_id" class="text-danger">
-                    <strong>{{ form.errors.matiere5_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 6 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 6</label>
-                <SearchableSelect
-                    v-model="form.matiere6_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere6_id" class="text-danger">
-                    <strong>{{ form.errors.matiere6_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 7 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 7</label>
-                <SearchableSelect
-                    v-model="form.matiere7_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere7_id" class="text-danger">
-                    <strong>{{ form.errors.matiere7_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 8 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 8</label>
-                <SearchableSelect
-                    v-model="form.matiere8_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere8_id" class="text-danger">
-                    <strong>{{ form.errors.matiere8_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 9 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 9</label>
-                <SearchableSelect
-                    v-model="form.matiere9_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere9_id" class="text-danger">
-                    <strong>{{ form.errors.matiere9_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière 10 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Matière 10</label>
-                <SearchableSelect
-                    v-model="form.matiere10_id"
-                    :options="props.matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere10_id" class="text-danger">
-                    <strong>{{ form.errors.matiere10_id }}</strong>
-                </span>
-            </div>
-        </div>
-<!-- État -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.etat') }}</label>
+                <label>{{ t('fields.etat') || 'État physique' }}</label>
                 <SearchableSelect
                     v-model="form.etat"
                     :options="statusOptions"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.etat" class="text-danger">
-                    <strong>{{ form.errors.etat }}</strong>
-                </span>
+                <span v-if="form.errors?.etat" class="text-danger"><strong>{{ form.errors.etat }}</strong></span>
             </div>
         </div>
     </div>

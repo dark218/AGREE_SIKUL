@@ -16,42 +16,37 @@ const toggleCollapse = () => {
 };
 const props = defineProps({
     title: String,
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    matieres: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
+    niveaux: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    matieres: { type: Array, default: () => [] },
+    anneesScolaires: { type: Array, default: () => [] },
+    pays: { type: Array, default: () => [] },
+    ecoles: { type: Array, default: () => [] },
+    institutions: { type: Array, default: () => [] },
 });
 const form = useForm({
     code: '',
     libelle: '',
+    ecole_id: null,
+    institution_id: null,
     niveau_id: null,
     section_id: null,
     cycle_id: null,
     matiere1_id: null,
     matiere2_id: null,
     matiere3_id: null,
+    matiere4_id: null,
+    matiere5_id: null,
+    matiere6_id: null,
+    matiere7_id: null,
+    matiere8_id: null,
+    matiere9_id: null,
+    matiere10_id: null,
+    annee_scolaire_id: null,
+    pays_id: null,
     etat: 'actif',
-    });
+});
 const submitForm = () => {
     console.log('📝 Form submitForm called');
     console.log('Form data:', form.data());
@@ -89,7 +84,18 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <GroupesMatiereForm :form="form" :niveaux="niveaux" :sections="sections" :cycles="cycles" :matieres="matieres" mode="create" />
+                                <GroupesMatiereForm
+                                    :form="form"
+                                    :niveaux="niveaux"
+                                    :sections="sections"
+                                    :cycles="cycles"
+                                    :matieres="matieres"
+                                    :ecoles="ecoles"
+                                    :institutions="institutions"
+                                    :annees-scolaires="anneesScolaires"
+                                    :pays="pays"
+                                    mode="create"
+                                />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

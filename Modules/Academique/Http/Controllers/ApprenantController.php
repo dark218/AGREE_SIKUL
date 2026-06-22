@@ -46,7 +46,18 @@ class ApprenantController extends Controller
     {
         return Inertia::render('Academique::Apprenants/Create', [
             'title' => __('actions.create'),
-            'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get(),
+            'classes' => Classe::whereNull('deleted_at')
+                ->orderBy('libelle')
+                ->orderBy('nom')
+                ->get(['id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id'])
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'code' => $c->code,
+                    'ecole_id' => $c->ecole_id,
+                    'campus_id' => $c->campus_id,
+                ]),
             'sections' => Section::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom')->get(),
@@ -157,7 +168,18 @@ class ApprenantController extends Controller
         return Inertia::render('Academique::Apprenants/Show', [
             'title' => __('actions.view'),
             'apprenant' => $apprenant,
-            'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get(),
+            'classes' => Classe::whereNull('deleted_at')
+                ->orderBy('libelle')
+                ->orderBy('nom')
+                ->get(['id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id'])
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'code' => $c->code,
+                    'ecole_id' => $c->ecole_id,
+                    'campus_id' => $c->campus_id,
+                ]),
             'sections' => Section::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom')->get(),
@@ -178,7 +200,18 @@ class ApprenantController extends Controller
         return Inertia::render('Academique::Apprenants/Edit', [
             'title' => __('actions.edit'),
             'apprenant' => $apprenant->load('user'),
-            'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get(),
+            'classes' => Classe::whereNull('deleted_at')
+                ->orderBy('libelle')
+                ->orderBy('nom')
+                ->get(['id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id'])
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'code' => $c->code,
+                    'ecole_id' => $c->ecole_id,
+                    'campus_id' => $c->campus_id,
+                ]),
             'sections' => Section::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom')->get(),

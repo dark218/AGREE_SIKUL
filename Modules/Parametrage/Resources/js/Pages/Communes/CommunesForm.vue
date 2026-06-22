@@ -1,37 +1,52 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+
 const { t } = useI18n();
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    departements: {
-        type: Array,
-        default: () => [],
-    },
-    regions: {
-        type: Array,
-        default: () => [],
-    },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
+    form: { type: Object, required: true },
+    departements: { type: Array, default: () => [] },
+    regions: { type: Array, default: () => [] },
+    pays: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
 });
+
 const isReadOnly = computed(() => props.mode === 'show');
 const statusOptions = computed(() => [
     { id: 'actif', libelle: t('common.actif') || 'Actif' },
     { id: 'inactif', libelle: t('common.inactif') || 'Inactif' },
 ]);
+
+// CASCADE Département → Région + Pays
+watch(() => props.form.departement_id, (newDeptId) => {
+    if (!newDeptId || isReadOnly.value) return;
+    const dept = props.departements.find(d => String(d.id) === String(newDeptId));
+    if (dept) {
+        if (dept.region_id) props.form.region_id = dept.region_id;
+        if (dept.pays_id) props.form.pays_id = dept.pays_id;
+        // Si pays_id absent sur département, on tente via la région
+        if (!dept.pays_id && dept.region_id) {
+            const region = props.regions.find(r => String(r.id) === String(dept.region_id));
+            if (region?.pays_id) props.form.pays_id = region.pays_id;
+        }
+    }
+});
+
+// CASCADE Région → Pays (au cas où on modifie juste la région)
+watch(() => props.form.region_id, (newRegionId) => {
+    if (!newRegionId || isReadOnly.value) return;
+    const region = props.regions.find(r => String(r.id) === String(newRegionId));
+    if (region?.pays_id) {
+        props.form.pays_id = region.pays_id;
+    }
+});
 </script>
+
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
@@ -57,10 +72,10 @@ const statusOptions = computed(() => [
         <!-- Departement -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.departement') || 'Département' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
+                <label>{{ t('fields.departement') || 'Département' }} <small class="text-muted">(la région et le pays se remplissent auto)</small> <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
                     v-model="form.departement_id"
-                    :options="props.departements"
+                    :options="departements"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
@@ -77,7 +92,7 @@ const statusOptions = computed(() => [
                 <label>{{ t('fields.region') || 'Région' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
                     v-model="form.region_id"
-                    :options="props.regions"
+                    :options="regions"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
@@ -91,10 +106,10 @@ const statusOptions = computed(() => [
         <!-- Pays -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.country') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
+                <label>{{ t('fields.country') || 'Pays' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
                     v-model="form.pays_id"
-                    :options="props.pays"
+                    :options="pays"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"

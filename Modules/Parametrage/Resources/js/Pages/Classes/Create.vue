@@ -89,7 +89,7 @@ const submitForm = () => {
                                 <span class="dash-payment-badge">
                                     <i class="fa fa-plus"></i>
                                 </span>
-                                <h5 class="title mb-0">{{ t('common.add_new') }} - {{ t('common.classe') }}</h5>
+                                <h5 class="title mb-0">{{ t('common.add_new') }} - Classe / Salle de cours</h5>
                             </div>
                             <button type="button" class="collapse-toggle" :class="{ collapsed: isCollapsed }" @click.stop="toggleCollapse">
                                 <i class="fa fa-chevron-up"></i>

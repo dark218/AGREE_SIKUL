@@ -9,6 +9,8 @@ use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Pays;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\AnneeScolaire;
+use Modules\Parametrage\Entities\Ecole;
+use Modules\Parametrage\Entities\Section;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Support\Facades\Log;
 
@@ -78,10 +80,15 @@ class NiveauEtudeController extends Controller
                 ];
             });
 
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle']);
+            $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
+
             return Inertia::render('Parametrage::NiveauxÉtude/Create', [
                 'pays' => $pays,
                 'cycles' => $cycles,
                 'anneesScolaires' => $anneesScolaires,
+                'ecoles' => $ecoles,
+                'sections' => $sections,
             ]);
         } catch (\Exception $e) {
             Log::error('niveauetudecontroller@error: ' . $e->getmessage());
@@ -95,6 +102,8 @@ class NiveauEtudeController extends Controller
             'code' => 'required|string|max:100|unique:niveaux_etudes,code',
             'sigle' => 'nullable|string|max:50',
             'libelle' => 'required|string|max:255',
+            'ecole_id' => 'nullable|exists:ecoles,id',
+            'section_id' => 'nullable|exists:sections,id',
             'cycle_id' => 'required|exists:cycles_enseignement,id',
             'pays_id' => 'required|exists:pays,id',
             'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
@@ -141,11 +150,16 @@ class NiveauEtudeController extends Controller
                 ];
             });
 
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle']);
+            $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
+
             return Inertia::render('Parametrage::NiveauxÉtude/Show', [
                 'niveauEtude' => $niveauEtude,
                 'pays' => $pays,
                 'cycles' => $cycles,
                 'anneesScolaires' => $anneesScolaires,
+                'ecoles' => $ecoles,
+                'sections' => $sections,
             ]);
         } catch (\Exception $e) {
             Log::error('niveauetudecontroller@error: ' . $e->getmessage());
@@ -177,11 +191,16 @@ class NiveauEtudeController extends Controller
                 ];
             });
 
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle']);
+            $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
+
             return Inertia::render('Parametrage::NiveauxÉtude/Edit', [
                 'niveauEtude' => $niveauEtude,
                 'pays' => $pays,
                 'cycles' => $cycles,
                 'anneesScolaires' => $anneesScolaires,
+                'ecoles' => $ecoles,
+                'sections' => $sections,
             ]);
         } catch (\Exception $e) {
             Log::error('niveauetudecontroller@error: ' . $e->getmessage());
@@ -196,6 +215,8 @@ class NiveauEtudeController extends Controller
                 'code' => 'required|string|max:100|unique:niveaux_etudes,code,' . $niveauEtude->id,
                 'sigle' => 'nullable|string|max:50',
                 'libelle' => 'required|string|max:255',
+                'ecole_id' => 'nullable|exists:ecoles,id',
+                'section_id' => 'nullable|exists:sections,id',
                 'cycle_id' => 'required|exists:cycles_enseignement,id',
                 'pays_id' => 'required|exists:pays,id',
                 'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',

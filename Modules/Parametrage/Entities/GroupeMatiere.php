@@ -15,6 +15,8 @@ class GroupeMatiere extends BaseModel
     protected $fillable = [
         'code',
         'libelle',
+        'ecole_id',
+        'institution_id',
         'niveau_id',
         'section_id',
         'cycle_id',

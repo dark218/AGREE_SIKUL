@@ -15,6 +15,7 @@ class Quartier extends BaseModel
     protected $fillable = [
         'code',
         'libelle',
+        'ville',
         'commune_id',
         'departement_id',
         'region_id',

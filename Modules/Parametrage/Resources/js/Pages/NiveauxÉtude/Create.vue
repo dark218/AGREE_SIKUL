@@ -16,26 +16,23 @@ const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 const props = defineProps({
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
+    pays: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    anneesScolaires: { type: Array, default: () => [] },
+    ecoles: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
 });
 const form = useForm({
     code: '',
+    sigle: '',
     libelle: '',
+    ecole_id: null,
+    section_id: null,
     cycle_id: null,
     pays_id: null,
+    annee_scolaire_id: null,
     etat: 'actif',
-    });
+});
 const submitForm = () => {
     showStoreLoader();
     form.post(route('parametrage.niveaux_etude.store'), {
@@ -63,7 +60,15 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <NiveauxÉtudeForm :form="form" :pays="page.props.pays" :cycles="page.props.cycles" mode="create" />
+                                <NiveauxÉtudeForm
+                                    :form="form"
+                                    :pays="props.pays"
+                                    :cycles="props.cycles"
+                                    :annees-scolaires="props.anneesScolaires"
+                                    :ecoles="props.ecoles"
+                                    :sections="props.sections"
+                                    mode="create"
+                                />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

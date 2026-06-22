@@ -35,12 +35,13 @@ const props = defineProps({
 const form = useForm({
     code: '',
     libelle: '',
+    ville: '',
     commune_id: null,
     departement_id: null,
     region_id: null,
     pays_id: null,
     etat: 'actif',
-    });
+});
 const submitForm = () => {
     showStoreLoader();
     form.post(route('parametrage.quartiers.store'), {

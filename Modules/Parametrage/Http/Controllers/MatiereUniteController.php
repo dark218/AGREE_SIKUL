@@ -10,6 +10,7 @@ use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\Ecole;
+use Modules\Parametrage\Entities\Institution;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class MatiereUniteController extends Controller
@@ -57,13 +58,15 @@ class MatiereUniteController extends Controller
             $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
-            $ecoles = Ecole::actif()->orderBy('nom')->get(['id', 'nom', 'code'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::MatiereUnites/Create', [
                 'niveaux' => $niveaux,
                 'sections' => $sections,
                 'cycles' => $cycles,
                 'ecoles' => $ecoles,
+                'institutions' => $institutions,
             ]);
         } catch (\Exception $e) {
             // Logging handled by exception handler
@@ -77,6 +80,8 @@ class MatiereUniteController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:matieres_unites,code',
                 'libelle' => 'required|string|max:255',
+                'ecole_id' => 'nullable|exists:ecoles,id',
+                'institution_id' => 'nullable|exists:institutions,id',
                 'matiere_id' => 'nullable|exists:matieres,id',
                 'section_id' => 'nullable|exists:sections,id',
                 'cycle_id' => 'nullable|exists:cycles_enseignement,id',
@@ -114,7 +119,8 @@ class MatiereUniteController extends Controller
             $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
-            $ecoles = Ecole::actif()->orderBy('nom')->get(['id', 'nom', 'code'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::MatiereUnites/Show', [
                 'matiereUnite' => $matiereUnite->load(['niveau', 'section', 'cycle', 'ecole']),
@@ -122,6 +128,7 @@ class MatiereUniteController extends Controller
                 'sections' => $sections,
                 'cycles' => $cycles,
                 'ecoles' => $ecoles,
+                'institutions' => $institutions,
             ]);
         } catch (\Exception $e) {
             // Logging handled by exception handler
@@ -135,7 +142,8 @@ class MatiereUniteController extends Controller
             $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
-            $ecoles = Ecole::actif()->orderBy('nom')->get(['id', 'nom', 'code'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::MatiereUnites/Edit', [
                 'item' => $matiereUnite->load(['niveau', 'section', 'cycle', 'ecole']),
@@ -143,6 +151,7 @@ class MatiereUniteController extends Controller
                 'sections' => $sections,
                 'cycles' => $cycles,
                 'ecoles' => $ecoles,
+                'institutions' => $institutions,
             ]);
         } catch (\Exception $e) {
             // Logging handled by exception handler
@@ -156,6 +165,8 @@ class MatiereUniteController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:matieres_unites,code,' . $matiereUnite->id,
                 'libelle' => 'required|string|max:255',
+                'ecole_id' => 'nullable|exists:ecoles,id',
+                'institution_id' => 'nullable|exists:institutions,id',
                 'matiere_id' => 'nullable|exists:matieres,id',
                 'section_id' => 'nullable|exists:sections,id',
                 'cycle_id' => 'nullable|exists:cycles_enseignement,id',

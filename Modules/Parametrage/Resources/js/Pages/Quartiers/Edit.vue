@@ -37,12 +37,13 @@ const props = defineProps({
 const form = useForm({
     code: page.props.quartier?.code || '',
     libelle: page.props.quartier?.libelle || '',
+    ville: page.props.quartier?.ville || '',
     commune_id: page.props.quartier?.commune_id || null,
     departement_id: page.props.quartier?.departement_id || null,
     region_id: page.props.quartier?.region_id || null,
     pays_id: page.props.quartier?.pays_id || null,
     etat: page.props.quartier?.etat || 'actif',
-    });
+});
 // Check if form has any errors
 const formHasErrors = computed(() => {
     return Object.keys(form.errors || {}).length > 0;

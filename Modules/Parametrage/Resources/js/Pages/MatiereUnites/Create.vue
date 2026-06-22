@@ -13,22 +13,11 @@ const page = usePage();
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showStoreLoader, hideLoader } = useLoader();
 const isCollapsed = ref(false);
 defineProps({
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
+    niveaux: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    ecoles: { type: Array, default: () => [] },
+    institutions: { type: Array, default: () => [] },
 });
 const niveaux = ref([]);
 const sections = ref([]);
@@ -41,6 +30,7 @@ const form = useForm({
     code: '',
     libelle: '',
     ecole_id: null,
+    institution_id: null,
     niveau_id: null,
     section_id: null,
     cycle_id: null,
@@ -50,7 +40,7 @@ const form = useForm({
     volume_horaire: null,
     est_obligatoire: false,
     etat: 'actif',
-    });
+});
 // Load dropdown data with API fallback
 const loadDropdownData = async () => {
     try {
@@ -128,6 +118,7 @@ const submitForm = () => {
                                     :sections="sections"
                                     :cycles="cycles"
                                     :ecoles="ecoles"
+                                    :institutions="page.props.institutions"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

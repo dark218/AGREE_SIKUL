@@ -12,6 +12,8 @@ use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Pays;
+use Modules\Parametrage\Entities\Ecole;
+use Modules\Parametrage\Entities\Institution;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class GroupeMatiereController extends Controller
@@ -94,6 +96,9 @@ class GroupeMatiereController extends Controller
                 return ['id' => $item->id, 'libelle' => $item->libelle];
             });
 
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
+
             return Inertia::render('Parametrage::GroupesMatiere/Create', [
                 'niveaux' => $niveaux,
                 'sections' => $sections,
@@ -101,6 +106,8 @@ class GroupeMatiereController extends Controller
                 'matieres' => $matieres,
                 'anneesScolaires' => $anneesScolaires,
                 'pays' => $pays,
+                'ecoles' => $ecoles,
+                'institutions' => $institutions,
             ]);
         } catch (\Exception $e) {
             \Log::error('GroupeMatiere Create Error: ' . $e->getMessage(), [
@@ -180,12 +187,21 @@ class GroupeMatiereController extends Controller
 
             $groupeMatiere->load(['niveau', 'section', 'cycle', 'niveau', 'section', 'cycle', 'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5', 'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10', 'anneeScolaire', 'pays']);
 
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
+            $anneesScolaires = AnneeScolaire::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
+            $pays = Pays::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
+
             return Inertia::render('Parametrage::GroupesMatiere/Show', [
                 'groupeMatiere' => $groupeMatiere,
                 'niveaux' => $niveaux,
                 'sections' => $sections,
                 'cycles' => $cycles,
                 'matieres' => $matieres,
+                'ecoles' => $ecoles,
+                'institutions' => $institutions,
+                'anneesScolaires' => $anneesScolaires,
+                'pays' => $pays,
             ]);
         } catch (\Exception $e) {
             \Log::error('GroupeMatiere Show Error: ' . $e->getMessage());
@@ -203,12 +219,21 @@ class GroupeMatiereController extends Controller
 
             $item = $groupeMatiere->load(['niveau', 'section', 'cycle', 'niveau', 'section', 'cycle', 'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5', 'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10', 'anneeScolaire', 'pays']);
 
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
+            $anneesScolaires = AnneeScolaire::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
+            $pays = Pays::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
+
             return Inertia::render('Parametrage::GroupesMatiere/Edit', [
                 'item' => $item,
                 'niveaux' => $niveaux,
                 'sections' => $sections,
                 'cycles' => $cycles,
                 'matieres' => $matieres,
+                'ecoles' => $ecoles,
+                'institutions' => $institutions,
+                'anneesScolaires' => $anneesScolaires,
+                'pays' => $pays,
             ]);
         } catch (\Exception $e) {
             \Log::error('GroupeMatiere Edit Error: ' . $e->getMessage());

@@ -16,34 +16,38 @@ const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 const props = defineProps({
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    matieres: {
-        type: Array,
-        default: () => [],
-    },
+    niveaux: { type: Array, default: () => [] },
+    sections: { type: Array, default: () => [] },
+    cycles: { type: Array, default: () => [] },
+    matieres: { type: Array, default: () => [] },
+    ecoles: { type: Array, default: () => [] },
+    institutions: { type: Array, default: () => [] },
+    anneesScolaires: { type: Array, default: () => [] },
+    pays: { type: Array, default: () => [] },
 });
+const i = page.props.item || {};
 const form = useForm({
-    code: page.props.item?.code || '',
-    libelle: page.props.item?.libelle || '',
-    niveau_id: page.props.item?.niveau_id || null,
-    section_id: page.props.item?.section_id || null,
-    cycle_id: page.props.item?.cycle_id || null,
-    matiere1_id: page.props.item?.matiere1_id || null,
-    matiere2_id: page.props.item?.matiere2_id || null,
-    matiere3_id: page.props.item?.matiere3_id || null,
-    etat: page.props.item?.etat || 'actif',
-    });
+    code: i.code || '',
+    libelle: i.libelle || '',
+    ecole_id: i.ecole_id || null,
+    institution_id: i.institution_id || null,
+    niveau_id: i.niveau_id || null,
+    section_id: i.section_id || null,
+    cycle_id: i.cycle_id || null,
+    matiere1_id: i.matiere1_id || null,
+    matiere2_id: i.matiere2_id || null,
+    matiere3_id: i.matiere3_id || null,
+    matiere4_id: i.matiere4_id || null,
+    matiere5_id: i.matiere5_id || null,
+    matiere6_id: i.matiere6_id || null,
+    matiere7_id: i.matiere7_id || null,
+    matiere8_id: i.matiere8_id || null,
+    matiere9_id: i.matiere9_id || null,
+    matiere10_id: i.matiere10_id || null,
+    annee_scolaire_id: i.annee_scolaire_id || null,
+    pays_id: i.pays_id || null,
+    etat: i.etat || 'actif',
+});
 const submitForm = () => {
     showUpdateLoader();
     form.put(route('parametrage.groupes_matiere.update', page.props.item?.id), {
@@ -77,7 +81,18 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <GroupesMatiereForm :form="form" :niveaux="niveaux" :sections="sections" :cycles="cycles" :matieres="matieres" mode="edit" />
+                                <GroupesMatiereForm
+                                    :form="form"
+                                    :niveaux="niveaux"
+                                    :sections="sections"
+                                    :cycles="cycles"
+                                    :matieres="matieres"
+                                    :ecoles="ecoles"
+                                    :institutions="institutions"
+                                    :annees-scolaires="anneesScolaires"
+                                    :pays="pays"
+                                    mode="edit"
+                                />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

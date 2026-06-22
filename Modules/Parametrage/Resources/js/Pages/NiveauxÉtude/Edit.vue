@@ -17,11 +17,15 @@ const toggleCollapse = () => {
 };
 const form = useForm({
     code: page.props.niveauEtude?.code || '',
+    sigle: page.props.niveauEtude?.sigle || '',
     libelle: page.props.niveauEtude?.libelle || '',
+    ecole_id: page.props.niveauEtude?.ecole_id || null,
+    section_id: page.props.niveauEtude?.section_id || null,
     cycle_id: page.props.niveauEtude?.cycle_id || null,
     pays_id: page.props.niveauEtude?.pays_id || null,
+    annee_scolaire_id: page.props.niveauEtude?.annee_scolaire_id || null,
     etat: page.props.niveauEtude?.etat || 'actif',
-    });
+});
 const submitForm = () => {
     showUpdateLoader();
     form.put(route('parametrage.niveaux_etude.update', page.props.niveauEtude?.id), {
@@ -50,7 +54,15 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <NiveauxÉtudeForm :form="form" :pays="page.props.pays" :cycles="page.props.cycles" mode="edit" />
+                                <NiveauxÉtudeForm
+                                    :form="form"
+                                    :pays="page.props.pays"
+                                    :cycles="page.props.cycles"
+                                    :annees-scolaires="page.props.anneesScolaires"
+                                    :ecoles="page.props.ecoles"
+                                    :sections="page.props.sections"
+                                    mode="edit"
+                                />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

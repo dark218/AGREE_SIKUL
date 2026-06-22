@@ -49,7 +49,7 @@ const form = useForm({
                                 <span class="dash-payment-badge">
                                     <i class="fa fa-eye"></i>
                                 </span>
-                                <h5 class="title mb-0">{{ t('common.classe') }} - {{ page.props.classe?.nom }}</h5>
+                                <h5 class="title mb-0">Classe / Salle de cours - {{ page.props.classe?.nom }}</h5>
                             </div>
                             <button type="button" class="collapse-toggle" :class="{ collapsed: isCollapsed }" @click.stop="toggleCollapse">
                                 <i class="fa fa-chevron-up"></i>
