@@ -17,18 +17,14 @@ return new class extends Migration
                 }
             });
 
-            $this->cleanOrphans('matieres_unites', ['ecole_id' => 'ecoles', 'niveau_id' => 'niveaux_etudes', 'section_id' => 'sections', 'cycle_id' => 'cycles_enseignement']);
+            $this->cleanOrphans('matieres_unites', [
+                'ecole_id' => 'ecoles',
+                'niveau_id' => 'niveaux_etudes',
+                'section_id' => 'sections',
+                'cycle_id' => 'cycles_enseignement',
+            ]);
 
-            DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            try {
-                Schema::table('matieres_unites', function (Blueprint $table) {
-                    if (Schema::hasTable('institutions')) {
-                        try { $table->foreign('institution_id')->references('id')->on('institutions')->nullOnDelete(); } catch (\Throwable $e) {}
-                    }
-                });
-            } finally {
-                DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            }
+            $this->addForeignIfMissing('matieres_unites', 'institution_id', 'institutions');
         }
 
         // ── groupes_matieres ──
@@ -45,24 +41,16 @@ return new class extends Migration
                 }
             });
 
-            $this->cleanOrphans('groupes_matieres', ['niveau_id' => 'niveaux_etudes', 'cycle_id' => 'cycles_enseignement', 'pays_id' => 'pays', 'annee_scolaire_id' => 'annees_scolaires']);
+            $this->cleanOrphans('groupes_matieres', [
+                'niveau_id' => 'niveaux_etudes',
+                'cycle_id' => 'cycles_enseignement',
+                'pays_id' => 'pays',
+                'annee_scolaire_id' => 'annees_scolaires',
+            ]);
 
-            DB::statement('SET FOREIGN_KEY_CHECKS=0');
-            try {
-                Schema::table('groupes_matieres', function (Blueprint $table) {
-                    if (Schema::hasTable('institutions')) {
-                        try { $table->foreign('institution_id')->references('id')->on('institutions')->nullOnDelete(); } catch (\Throwable $e) {}
-                    }
-                    if (Schema::hasTable('ecoles')) {
-                        try { $table->foreign('ecole_id')->references('id')->on('ecoles')->nullOnDelete(); } catch (\Throwable $e) {}
-                    }
-                    if (Schema::hasTable('sections')) {
-                        try { $table->foreign('section_id')->references('id')->on('sections')->nullOnDelete(); } catch (\Throwable $e) {}
-                    }
-                });
-            } finally {
-                DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            }
+            $this->addForeignIfMissing('groupes_matieres', 'institution_id', 'institutions');
+            $this->addForeignIfMissing('groupes_matieres', 'ecole_id', 'ecoles');
+            $this->addForeignIfMissing('groupes_matieres', 'section_id', 'sections');
         }
     }
 
@@ -96,6 +84,48 @@ return new class extends Migration
     }
 
     /**
+     * Ajoute une FK uniquement si elle n'existe pas déjà (vérifié via information_schema).
+     */
+    private function addForeignIfMissing(string $table, string $column, string $refTable): void
+    {
+        if (!Schema::hasTable($table) || !Schema::hasColumn($table, $column) || !Schema::hasTable($refTable)) {
+            return;
+        }
+        if ($this->fkExists($table, $column)) {
+            return;
+        }
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        try {
+            Schema::table($table, function (Blueprint $t) use ($column, $refTable) {
+                $t->foreign($column)->references('id')->on($refTable)->nullOnDelete();
+            });
+        } catch (\Throwable $e) {
+            // log silencieusement, on continue avec les autres FK
+        } finally {
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+    }
+
+    /**
+     * Détecte si une FK existe déjà sur (table, colonne) dans la DB courante.
+     */
+    private function fkExists(string $table, string $column): bool
+    {
+        try {
+            $database = DB::connection()->getDatabaseName();
+            $count = DB::table('information_schema.KEY_COLUMN_USAGE')
+                ->where('TABLE_SCHEMA', $database)
+                ->where('TABLE_NAME', $table)
+                ->where('COLUMN_NAME', $column)
+                ->whereNotNull('REFERENCED_TABLE_NAME')
+                ->count();
+            return $count > 0;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
      * Met à NULL les colonnes FK pointant vers des lignes inexistantes,
      * pour éviter qu'un ALTER TABLE échoue lors du rebuild des contraintes.
      */
@@ -108,7 +138,7 @@ return new class extends Migration
             try {
                 DB::statement("UPDATE {$table} t LEFT JOIN {$refTable} r ON r.id = t.{$column} SET t.{$column} = NULL WHERE r.id IS NULL AND t.{$column} IS NOT NULL");
             } catch (\Throwable $e) {
-                // ignore : si ça plante, FOREIGN_KEY_CHECKS=0 prendra le relai
+                // ignore
             }
         }
     }
