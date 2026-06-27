@@ -161,9 +161,15 @@ trait ProvidesParametrageLookups
                 'ecoles' => Ecole::orderBy('nom')
                     ->get(['id', 'nom', 'code', 'campus_id'])
                     ->toArray(),
-                'campuses' => Campus::orderBy('nom')->get(['id', 'nom'])->toArray(),
+                // On expose `libelle` (= nom) en plus de `nom` car les selects
+                // du formulaire Classe utilisent optionLabel="libelle".
+                'campuses' => Campus::orderBy('nom')->get(['id', 'nom'])
+                    ->map(fn ($c) => ['id' => $c->id, 'nom' => $c->nom, 'libelle' => $c->nom])
+                    ->toArray(),
                 // Utilise NiveauEtude (paramétrage) au lieu de Niveau (académique)
-                // pour que la liste des niveaux paramétrés remonte bien
+                // pour que la liste des niveaux paramétrés remonte bien.
+                // ⚠️ La validation (Store/UpdateClasseRequest) et la clé étrangère
+                // classes.niveau_id doivent donc pointer sur la table niveaux_etudes.
                 'niveaux' => NiveauEtude::orderBy('libelle')
                     ->get(['id', 'libelle', 'code', 'ecole_id', 'section_id', 'cycle_id'])
                     ->toArray(),

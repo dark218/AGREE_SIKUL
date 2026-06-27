@@ -49,7 +49,9 @@ class Classe extends BaseModel
 
     public function niveau(): BelongsTo
     {
-        return $this->belongsTo(Niveau::class, 'niveau_id');
+        // niveau_id référence la table niveaux_etudes (NiveauEtude), pas Niveau,
+        // car c'est cette liste qui alimente le formulaire Classe.
+        return $this->belongsTo(NiveauEtude::class, 'niveau_id');
     }
 
     public function campus(): BelongsTo

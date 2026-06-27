@@ -22,7 +22,8 @@ class StoreClasseRequest extends FormRequest
             'ecole_id' => 'nullable|exists:ecoles,id',
             'campus_id' => 'nullable|exists:campuses,id',
             'section_id' => 'nullable|exists:sections,id',
-            'niveau_id' => 'nullable|exists:niveaux,id',
+            // Le formulaire liste les NiveauEtude (table niveaux_etudes), pas Niveau.
+            'niveau_id' => 'nullable|exists:niveaux_etudes,id',
             'cycle_id' => 'nullable|exists:cycles_enseignement,id',
             'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
             // Enseignant et capacité
