@@ -151,7 +151,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
         </div>
 
         <div class="col-sm-6">
-            <label class="form-label fw-medium">École <span class="text-danger">*</span></label>
+            <label class="form-label fw-medium">École</label>
             <SearchableSelect
                 v-model="form.ecole_id"
                 :options="ecoles"
@@ -183,7 +183,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
         </div>
         <div class="col-sm-6">
-            <label class="form-label fw-medium">Niveau <span class="text-danger">*</span></label>
+            <label class="form-label fw-medium">Niveau</label>
             <SearchableSelect
                 v-model="form.niveau_id"
                 :options="filteredNiveaux"

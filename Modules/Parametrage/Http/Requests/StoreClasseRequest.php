@@ -19,10 +19,10 @@ class StoreClasseRequest extends FormRequest
             'libelle_affichage' => 'nullable|string|max:255',
             'batiment' => 'nullable|string|max:100',
             // Structure académique
-            'ecole_id' => 'required|exists:ecoles,id',
+            'ecole_id' => 'nullable|exists:ecoles,id',
             'campus_id' => 'nullable|exists:campuses,id',
             'section_id' => 'nullable|exists:sections,id',
-            'niveau_id' => 'required|exists:niveaux,id',
+            'niveau_id' => 'nullable|exists:niveaux,id',
             'cycle_id' => 'nullable|exists:cycles_enseignement,id',
             'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
             // Enseignant et capacité
