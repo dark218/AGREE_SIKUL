@@ -45,9 +45,10 @@ const props = defineProps({
     },
 });
 const form = useForm({
-    nom: '',
-    code_salle: '',
+    code: '',
+    libelle: '',
     libelle_affichage: '',
+    batiment: '',
     ecole_id: null,
     niveau_id: null,
     campus_id: null,
@@ -56,8 +57,10 @@ const form = useForm({
     enseignant_titulaire_id: null,
     annee_scolaire_id: null,
     capacite_max: null,
-    salle: '',
+    capacite_actuelle: null,
     statut: 'actif',
+    // Legacy (compat mapping backend)
+    nom: '',
 });
 const submitForm = () => {
     console.log('🔵 [CLASSE CREATE] submitForm - FORM DATA:', form.data());

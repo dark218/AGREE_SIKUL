@@ -48,9 +48,10 @@ const props = defineProps({
     },
 });
 const form = useForm({
-    nom: page.props.classe?.nom || '',
-    code_salle: page.props.classe?.code_salle || '',
+    code: page.props.classe?.code || '',
+    libelle: page.props.classe?.libelle || '',
     libelle_affichage: page.props.classe?.libelle_affichage || '',
+    batiment: page.props.classe?.batiment || '',
     ecole_id: page.props.classe?.ecole_id || null,
     niveau_id: page.props.classe?.niveau_id || null,
     campus_id: page.props.classe?.campus_id || null,
@@ -58,9 +59,11 @@ const form = useForm({
     cycle_id: page.props.classe?.cycle_id || null,
     enseignant_titulaire_id: page.props.classe?.enseignant_titulaire_id || null,
     annee_scolaire_id: page.props.classe?.annee_scolaire_id || null,
-    salle: page.props.classe?.salle || '',
     capacite_max: page.props.classe?.capacite_max || null,
+    capacite_actuelle: page.props.classe?.capacite_actuelle || null,
     statut: page.props.classe?.statut || 'actif',
+    // Legacy (compat mapping backend)
+    nom: page.props.classe?.nom || '',
 });
 const submitForm = () => {
     showUpdateLoader();

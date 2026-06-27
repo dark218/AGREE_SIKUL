@@ -56,7 +56,12 @@ const statusOptions = [
 
 // Cascade École → Campus (auto-fill du campus depuis l'école)
 watch(() => props.form.ecole_id, (newEcoleId) => {
-    if (!newEcoleId || isReadOnly) return;
+    if (isReadOnly) return;
+    // École vidée → on rend la main pour saisir le campus manuellement
+    if (!newEcoleId) {
+        props.form.campus_id = null;
+        return;
+    }
     const ecole = props.ecoles.find((e) => String(e.id) === String(newEcoleId));
     if (ecole?.campus_id) {
         props.form.campus_id = ecole.campus_id;
@@ -167,7 +172,26 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
                 Campus
                 <span v-if="ecoleSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
             </label>
-            <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b;" />
+            <!-- École sélectionnée → campus auto-rempli (lecture seule) -->
+            <input
+                v-if="ecoleSelected"
+                type="text"
+                class="form-control"
+                :value="campusLabel"
+                disabled
+                style="background:#eef2f7; color:#64748b;"
+            />
+            <!-- Pas d'école → saisie manuelle du campus -->
+            <SearchableSelect
+                v-else
+                v-model="form.campus_id"
+                :options="campuses"
+                optionValue="id"
+                optionLabel="libelle"
+                placeholder="-- Sélectionner un campus --"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.campus_id" class="text-danger small">{{ form.errors.campus_id }}</span>
         </div>
 
         <div class="col-sm-6">
