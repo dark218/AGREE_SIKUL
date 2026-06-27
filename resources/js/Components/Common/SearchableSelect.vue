@@ -3,16 +3,27 @@
     <input
       ref="input"
       class="ss-input"
-      :class="{ 'ss-open': open, 'ss-has-value': modelValue, 'ss-disabled': disabled }"
+      :class="{ 'ss-open': open, 'ss-has-value': hasValue, 'ss-disabled': disabled, 'ss-clearable': hasValue && !disabled }"
       type="text"
       :value="inputDisplay"
       :placeholder="open ? searchPlaceholder : placeholder"
       autocomplete="off"
       :disabled="disabled"
       @focus="openList"
+      @click="openList"
       @input="onInput"
       @blur="onBlur"
     />
+    <!-- Bouton vider (X) -->
+    <span
+      v-if="hasValue && !disabled"
+      class="ss-clear"
+      title="Vider"
+      @mousedown.prevent
+      @click.stop="clearSelection"
+    >
+      <i class="fa fa-times"></i>
+    </span>
     <span class="ss-icon" :class="{ 'ss-icon-open': open }">
       <i class="fa fa-chevron-down"></i>
     </span>
@@ -100,6 +111,11 @@ const selectedLabel = computed(() => {
 
 const isSelected = (o) => String(getValue(o)) === String(props.modelValue);
 
+// Vrai si une valeur est sélectionnée (0 est une valeur valide)
+const hasValue = computed(
+  () => props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== ""
+);
+
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase();
   if (!q) return props.options;
@@ -186,11 +202,27 @@ const positionMenu = () => {
 const openList = () => {
   if (props.disabled) return; // ne rien faire si disabled
 
-  open.value = true;
-  // Affiche toute la liste au focus
-  query.value = "";
+  // Si la liste était fermée, on l'ouvre et on repart d'une recherche vide
+  // (affiche toute la liste). Si elle est déjà ouverte, on ne réinitialise
+  // pas la recherche en cours.
+  if (!open.value) {
+    open.value = true;
+    query.value = "";
+  }
   // Utiliser requestAnimationFrame pour s'assurer que le rendu est terminé
   requestAnimationFrame(() => {
+    positionMenu();
+  });
+};
+
+// Vider la sélection
+const clearSelection = () => {
+  if (props.disabled) return;
+  emit("update:modelValue", null);
+  query.value = "";
+  open.value = true;
+  nextTick(() => {
+    input.value?.focus();
     positionMenu();
   });
 };
@@ -270,6 +302,36 @@ const onBlur = () => {
   transition: all 0.25s ease;
   outline: none;
   cursor: pointer;
+}
+
+/* Plus de place à droite quand le bouton "vider" est présent */
+.ss-input.ss-clearable {
+  padding-right: 56px;
+}
+
+/* Bouton vider (X) */
+.ss-clear {
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #94a3b8;
+  font-size: 11px;
+  cursor: pointer;
+  background: #f1f5f9;
+  transition: all 0.15s ease;
+  z-index: 1;
+}
+
+.ss-clear:hover {
+  background: #fee2e2;
+  color: #ef4444;
 }
 
 .ss-input:focus,
