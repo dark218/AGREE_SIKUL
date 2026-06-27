@@ -1,8 +1,13 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
-defineProps({ form: Object, classes: Array, matieres: Array, error: Object });
+const props = defineProps({ form: Object, classes: Array, matieres: Array, error: Object });
+
+// Cascade : Classe → École + Campus + Niveau + Section + Cycle
+useClasseCascade(props.form, () => props.classes);
 const typeOptions = [
     { id: 'devoir', libelle: t('fields.devoir') || 'Devoir' },
     { id: 'controle', libelle: t('fields.controle') || 'Contrôle' },
@@ -19,6 +24,7 @@ const statusOptions = [
         <div class="form-group"><label>{{ t('fields.titre') }}*</label><input type="text" v-model="form.titre" class="form-control" :class="{ 'is-invalid': error?.titre }" /></div>
         <div class="form-group"><label>{{ t('fields.type') }}*</label><select v-model="form.type" class="form-control"><option v-for="t in typeOptions" :key="t.id" :value="t.id">{{ t.libelle }}</option></select></div>
         <div class="form-group"><label>{{ t('fields.classe') }}</label><SearchableSelect v-model="form.classe_id" :options="classes" optionValue="id" optionLabel="nom" /></div>
+        <InheritedContextBar :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null" title="Hérité de la classe" />
         <div class="form-group"><label>{{ t('fields.matiere') }}</label><SearchableSelect v-model="form.matiere_id" :options="matieres" optionValue="id" optionLabel="titre" /></div>
         <div class="form-group"><label>{{ t('fields.date') }}</label><input type="date" v-model="form.date" class="form-control" /></div>
         <div class="form-row">

@@ -2,14 +2,18 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
-defineProps({
+const props = defineProps({
     form: Object,
     matieres: Array,
     enseignants: Array,
     classes: Array,
     error: Object,
 });
+
+useClasseCascade(props.form, () => props.classes);
 const statusOptions = [
     { id: 'actif', libelle: t('common.active') || 'Actif' },
     { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },
@@ -91,6 +95,7 @@ const typeOptions = [
                 optionLabel="nom"
             />
         </div>
+        <InheritedContextBar :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null" title="Hérité de la classe" />
         <!-- Dates -->
         <div class="form-row">
             <div class="form-group col-md-6">

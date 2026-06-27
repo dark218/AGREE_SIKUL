@@ -63,8 +63,16 @@ class DevoirController extends Controller
                 ->toArray();
             \Log::info('✅ Matieres loaded: ' . count($matieres));
 
-            // Get classes with full FK chain for cascade (École, Campus, Niveau, Section, Cycle)
-            $classes = ParametrageClasse::select('id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+            // Get classes with full FK chain + relations pour cascade + ContextBar
+            $classes = ParametrageClasse::with([
+                    'ecole:id,nom',
+                    'campus:id,nom',
+                    'niveau:id,libelle',
+                    'section:id,libelle',
+                    'cycle:id,libelle',
+                    'anneeScolaire:id,libelle',
+                ])
+                ->select('id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
                 ->get()
                 ->map(fn($c) => [
                     'id' => $c->id,
@@ -72,11 +80,17 @@ class DevoirController extends Controller
                     'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
                     'code' => $c->code,
                     'ecole_id' => $c->ecole_id,
+                    'ecole_nom' => $c->ecole?->nom,
                     'campus_id' => $c->campus_id,
+                    'campus_nom' => $c->campus?->nom,
                     'niveau_id' => $c->niveau_id,
+                    'niveau_libelle' => $c->niveau?->libelle,
                     'section_id' => $c->section_id,
+                    'section_libelle' => $c->section?->libelle,
                     'cycle_id' => $c->cycle_id,
+                    'cycle_libelle' => $c->cycle?->libelle,
                     'annee_scolaire_id' => $c->annee_scolaire_id,
+                    'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                 ])
                 ->toArray();
             \Log::info('✅ Classes loaded: ' . count($classes));

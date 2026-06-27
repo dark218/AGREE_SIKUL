@@ -1,6 +1,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 const { t } = useI18n();
 const props = defineProps({
     form: {
@@ -22,6 +24,10 @@ const props = defineProps({
     },
 });
 const isReadOnly = props.mode === 'show';
+
+// Cascade : Apprenant → Classe + École + Campus + Niveau + ...
+useApprenantCascade(props.form, () => props.apprenants);
+
 const statusOptions = [
     { id: 'present', libelle: 'Présent' },
     { id: 'retard', libelle: 'En retard' },
@@ -48,6 +54,15 @@ const statusOptions = [
                     <strong>{{ form.errors.apprenant_id }}</strong>
                 </span>
             </div>
+        </div>
+
+        <!-- Contexte hérité de l'Apprenant -->
+        <InheritedContextBar
+            :source="apprenants?.find(a => String(a.id) === String(form.apprenant_id)) || null"
+            title="Hérité de l'apprenant"
+        />
+
+        <div class="d-none"><!-- Cell-break -->
         </div>
        
         <!-- Séance -->

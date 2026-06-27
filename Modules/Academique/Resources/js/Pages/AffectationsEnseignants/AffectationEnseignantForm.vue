@@ -3,6 +3,8 @@ import { defineProps, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 
 const { t } = useI18n();
 
@@ -57,38 +59,9 @@ const autoLabel = (list, id) => {
 const ecoleLabel = computed(() => autoLabel(props.ecoles, props.form.ecole_id));
 const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
 
-// Handle classe selection to auto-fill dependent fields
-const handleClasseChange = async (newClasseId) => {
-    if (!newClasseId) return;
-
-    try {
-        console.log('[Auto-fill] Fetching classe data for ID:', newClasseId);
-        const response = await fetch(`/api/classes/${newClasseId}`);
-        if (!response.ok) {
-            console.error('[Auto-fill] API error:', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log('[Auto-fill] Data received:', data);
-
-        // Auto-fill dependent fields
-        props.form.ecole_id = data.ecole_id || null;
-        props.form.campus_id = data.campus_id || null;
-        props.form.section_id = data.section_id || null;
-        props.form.cycle_id = data.cycle_id || null;
-        props.form.annee_scolaire_id = data.annee_scolaire_id || null;
-
-        console.log('[Auto-fill] Form updated:', {
-            ecole_id: props.form.ecole_id,
-            campus_id: props.form.campus_id,
-            section_id: props.form.section_id,
-            cycle_id: props.form.cycle_id,
-            annee_scolaire_id: props.form.annee_scolaire_id
-        });
-    } catch (error) {
-        console.error('[Auto-fill] Error:', error);
-    }
-};
+// Cascade auto via composable
+useClasseCascade(props.form, () => props.classes);
+const handleClasseChange = () => { /* composable gère tout */ };
 
 const etatOptions = [
     { id: 'actif', libelle: 'Actif' },
@@ -159,7 +132,11 @@ const etatOptions = [
         </div>
 
         <!-- Contexte hiérarchique (affiché quand classe sélectionnée) -->
-        <HierarchyContextBar
+        <InheritedContextBar
+            :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+            title="Hérité de la classe"
+        />
+        <HierarchyContextBar v-if="false"
             :form="form"
             :ecoles="ecoles"
             :campuses="campuses"

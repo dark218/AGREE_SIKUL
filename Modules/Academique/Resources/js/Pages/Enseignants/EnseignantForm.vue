@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import { useGeoCascade } from '@/Composables/useGeoCascade';
 
 const { t } = useI18n();
 
@@ -22,6 +23,14 @@ const props = defineProps({
 const photoPreview = ref(null);
 const photoLoadError = ref(false);
 const isReadOnly = computed(() => props.mode === 'show');
+
+// Cascade géographique : Commune → Département → Région → Pays
+useGeoCascade(props.form, {
+    quartiers: () => [],
+    communes: () => props.communes,
+    departements: () => props.departements,
+    regions: () => props.regions,
+});
 
 // Handle photo file change with preview using FileReader
 const handlePhotoChange = (e) => {

@@ -3,8 +3,11 @@ import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
 import { useClasseAutoFill } from '../../composables/useClasseAutoFill';
 import { useApprenantAutoFill } from '../../composables/useApprenantAutoFill';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
+import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 
 const { t } = useI18n();
 
@@ -46,6 +49,10 @@ const props = defineProps({
 
 const isReadOnly = props.mode === 'show';
 const classeSelected = computed(() => !!props.form.classe_id);
+
+// Cascade auto via nouveaux composables (instantané)
+useClasseCascade(props.form, () => props.classes);
+useApprenantCascade(props.form, () => props.apprenants);
 
 const autoLabel = (list, id) => {
     if (!id || !list?.length) return '—';
@@ -343,7 +350,11 @@ const selectedFiles = computed(() => {
                 </div>
             </div>
             <!-- Contexte hiérarchique (auto-rempli par la classe) -->
-            <HierarchyContextBar :form="form" :ecoles="ecoles" :campuses="campuses" />
+            <InheritedContextBar
+                :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+                title="Hérité de la classe"
+            />
+            <HierarchyContextBar v-if="false" :form="form" :ecoles="ecoles" :campuses="campuses" />
 
             <div class="col-sm-6">
                 <div class="mb-3">

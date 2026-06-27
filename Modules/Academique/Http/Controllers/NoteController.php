@@ -77,11 +77,20 @@ class NoteController extends Controller
         try {
             \Log::info('🔍 NoteController::create() called');
 
-            $apprenants = Apprenant::with('user')->whereNull('deleted_at')->select('id', 'matricule', 'user_id', 'nom', 'prenoms')->get()->map(fn($a) => [
+            $apprenants = Apprenant::with('user')->whereNull('deleted_at')
+                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->get()->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->user
                     ? $a->user->prenoms . ' ' . $a->user->nom . ' (' . $a->matricule . ')'
-                    : ($a->prenoms ? $a->prenoms . ' ' : '') . ($a->nom ?: 'Sans nom') . ' (' . $a->matricule . ')'
+                    : ($a->prenoms ? $a->prenoms . ' ' : '') . ($a->nom ?: 'Sans nom') . ' (' . $a->matricule . ')',
+                'classe_id' => $a->classe_id,
+                'ecole_id' => $a->ecole_id,
+                'campus_id' => $a->campus_id,
+                'niveau_id' => $a->niveau_id,
+                'section_id' => $a->section_id,
+                'cycle_id' => $a->cycle_id,
+                'pays_id' => $a->pays_id,
             ])->toArray();
 
             $evaluations = Evaluation::whereNull('deleted_at')->select('id', 'titre')->get()->map(fn($e) => [
@@ -93,10 +102,26 @@ class NoteController extends Controller
                 'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'sections' => Section::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-                'classes' => Classe::whereNull('deleted_at')->select('id', 'libelle_affichage', 'nom')->get()->map(fn($c) => [
-                    'id' => $c->id,
-                    'libelle' => $c->libelle_affichage ?: $c->nom
-                ])->toArray(),
+                'classes' => Classe::whereNull('deleted_at')
+                    ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+                    ->select('id', 'libelle_affichage', 'libelle', 'nom', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                    ->get()->map(fn($c) => [
+                        'id' => $c->id,
+                        'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                        'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                        'ecole_id' => $c->ecole_id,
+                        'ecole_nom' => $c->ecole?->nom,
+                        'campus_id' => $c->campus_id,
+                        'campus_nom' => $c->campus?->nom,
+                        'niveau_id' => $c->niveau_id,
+                        'niveau_libelle' => $c->niveau?->libelle,
+                        'section_id' => $c->section_id,
+                        'section_libelle' => $c->section?->libelle,
+                        'cycle_id' => $c->cycle_id,
+                        'cycle_libelle' => $c->cycle?->libelle,
+                        'annee_scolaire_id' => $c->annee_scolaire_id,
+                        'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+                    ])->toArray(),
                 'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
                 'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
@@ -208,11 +233,20 @@ class NoteController extends Controller
         try {
             $note->load('evaluation', 'apprenant.user', 'anneeScolaire', 'section', 'cycle', 'classe', 'ecole', 'campus', 'periode', 'natureExamen', 'typeExamen', 'matiere', 'groupe', 'enseignant.user');
 
-            $apprenants = Apprenant::with('user')->whereNull('deleted_at')->select('id', 'matricule', 'user_id', 'nom', 'prenoms')->get()->map(fn($a) => [
+            $apprenants = Apprenant::with('user')->whereNull('deleted_at')
+                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->get()->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->user
                     ? $a->user->prenoms . ' ' . $a->user->nom . ' (' . $a->matricule . ')'
-                    : ($a->prenoms ? $a->prenoms . ' ' : '') . ($a->nom ?: 'Sans nom') . ' (' . $a->matricule . ')'
+                    : ($a->prenoms ? $a->prenoms . ' ' : '') . ($a->nom ?: 'Sans nom') . ' (' . $a->matricule . ')',
+                'classe_id' => $a->classe_id,
+                'ecole_id' => $a->ecole_id,
+                'campus_id' => $a->campus_id,
+                'niveau_id' => $a->niveau_id,
+                'section_id' => $a->section_id,
+                'cycle_id' => $a->cycle_id,
+                'pays_id' => $a->pays_id,
             ])->toArray();
 
             $evaluations = Evaluation::whereNull('deleted_at')->select('id', 'titre')->get()->map(fn($e) => [
@@ -224,10 +258,26 @@ class NoteController extends Controller
                 'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'sections' => Section::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-                'classes' => Classe::whereNull('deleted_at')->select('id', 'libelle_affichage', 'nom')->get()->map(fn($c) => [
-                    'id' => $c->id,
-                    'libelle' => $c->libelle_affichage ?: $c->nom
-                ])->toArray(),
+                'classes' => Classe::whereNull('deleted_at')
+                    ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+                    ->select('id', 'libelle_affichage', 'libelle', 'nom', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                    ->get()->map(fn($c) => [
+                        'id' => $c->id,
+                        'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                        'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                        'ecole_id' => $c->ecole_id,
+                        'ecole_nom' => $c->ecole?->nom,
+                        'campus_id' => $c->campus_id,
+                        'campus_nom' => $c->campus?->nom,
+                        'niveau_id' => $c->niveau_id,
+                        'niveau_libelle' => $c->niveau?->libelle,
+                        'section_id' => $c->section_id,
+                        'section_libelle' => $c->section?->libelle,
+                        'cycle_id' => $c->cycle_id,
+                        'cycle_libelle' => $c->cycle?->libelle,
+                        'annee_scolaire_id' => $c->annee_scolaire_id,
+                        'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+                    ])->toArray(),
                 'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
                 'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
@@ -289,11 +339,20 @@ class NoteController extends Controller
     public function edit(Note $note)
     {
         try {
-            $apprenants = Apprenant::with('user')->whereNull('deleted_at')->select('id', 'matricule', 'user_id', 'nom', 'prenoms')->get()->map(fn($a) => [
+            $apprenants = Apprenant::with('user')->whereNull('deleted_at')
+                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->get()->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->user
                     ? $a->user->prenoms . ' ' . $a->user->nom . ' (' . $a->matricule . ')'
-                    : ($a->prenoms ? $a->prenoms . ' ' : '') . ($a->nom ?: 'Sans nom') . ' (' . $a->matricule . ')'
+                    : ($a->prenoms ? $a->prenoms . ' ' : '') . ($a->nom ?: 'Sans nom') . ' (' . $a->matricule . ')',
+                'classe_id' => $a->classe_id,
+                'ecole_id' => $a->ecole_id,
+                'campus_id' => $a->campus_id,
+                'niveau_id' => $a->niveau_id,
+                'section_id' => $a->section_id,
+                'cycle_id' => $a->cycle_id,
+                'pays_id' => $a->pays_id,
             ])->toArray();
 
             $evaluations = Evaluation::whereNull('deleted_at')->select('id', 'titre')->get()->map(fn($e) => [
@@ -305,10 +364,26 @@ class NoteController extends Controller
                 'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'sections' => Section::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-                'classes' => Classe::whereNull('deleted_at')->select('id', 'libelle_affichage', 'nom')->get()->map(fn($c) => [
-                    'id' => $c->id,
-                    'libelle' => $c->libelle_affichage ?: $c->nom
-                ])->toArray(),
+                'classes' => Classe::whereNull('deleted_at')
+                    ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+                    ->select('id', 'libelle_affichage', 'libelle', 'nom', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                    ->get()->map(fn($c) => [
+                        'id' => $c->id,
+                        'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                        'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                        'ecole_id' => $c->ecole_id,
+                        'ecole_nom' => $c->ecole?->nom,
+                        'campus_id' => $c->campus_id,
+                        'campus_nom' => $c->campus?->nom,
+                        'niveau_id' => $c->niveau_id,
+                        'niveau_libelle' => $c->niveau?->libelle,
+                        'section_id' => $c->section_id,
+                        'section_libelle' => $c->section?->libelle,
+                        'cycle_id' => $c->cycle_id,
+                        'cycle_libelle' => $c->cycle?->libelle,
+                        'annee_scolaire_id' => $c->annee_scolaire_id,
+                        'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+                    ])->toArray(),
                 'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
                 'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),

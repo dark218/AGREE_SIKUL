@@ -3,6 +3,7 @@ import { computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
 import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
 const props = defineProps({
@@ -171,9 +172,12 @@ const handleMatiereChange = async (newMatiereId) => {
                 </div>
             </div>
         </div>
-        <!-- Contexte hiérarchique (auto-rempli par la classe) -->
+        <!-- Contexte hiérarchique hérité automatiquement de la Classe -->
         <div class="row mb-3">
-            <HierarchyContextBar :form="form" />
+            <InheritedContextBar
+                :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+                title="Hérité de la classe"
+            />
         </div>
 
         <!-- Titre -->

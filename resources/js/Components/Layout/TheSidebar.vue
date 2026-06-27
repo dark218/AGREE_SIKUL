@@ -3,6 +3,7 @@ import { ref, inject, computed, onMounted } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppLogo from '@/Components/Common/AppLogo.vue';
 import { usePermissions } from '@/Composables/usePermissions';
+import { buildFeatureHref } from '@/Composables/useAppFeatures';
 
 // ============================================================================
 // PROPS & INJECTIONS
@@ -271,19 +272,66 @@ const PARAMETRAGE_GROUPS = [
       items: ['titres_civilites', 'types_evenement'] },
 ];
 
-// Map module -> groupes. Seul le paramétrage est groupé pour l'instant.
+/**
+ * Sous-groupes (sous-modules) du module Académique.
+ */
+const ACADEMIQUE_GROUPS = [
+    { id: 'gestion', libelle: 'Gestion Académique', libelle_en: 'Academic Management', icone: 'fas fa-users',
+      items: ['apprenants', 'enseignants', 'tuteurs', 'matieres'] },
+    { id: 'pedagogie', libelle: 'Pédagogie', libelle_en: 'Teaching', icone: 'fas fa-chalkboard-teacher',
+      items: ['cours', 'seances', 'emplois-du-temps'] },
+    { id: 'evaluations', libelle: 'Évaluations & Notes', libelle_en: 'Assessments & Grades', icone: 'fas fa-star',
+      items: ['evaluations', 'notes', 'bulletins', 'moyennes-matieres'] },
+    { id: 'travaux', libelle: 'Travaux', libelle_en: 'Assignments', icone: 'fas fa-list-check',
+      items: ['devoirs', 'rendus-devoirs'] },
+    { id: 'inscriptions', libelle: 'Inscriptions & Dossiers', libelle_en: 'Enrollments & Files', icone: 'fas fa-clipboard-check',
+      items: ['inscriptions', 'dossiers-apprenants'] },
+    { id: 'absences', libelle: 'Absences & Présences', libelle_en: 'Absences & Attendance', icone: 'fas fa-user-check',
+      items: ['absences-apprenants', 'absences-enseignants', 'presences', 'presences-seances', 'justificatifs-absences'] },
+    { id: 'examens', libelle: 'Examens', libelle_en: 'Exams', icone: 'fas fa-file-pen',
+      items: ['planification-examens', 'examens-en-ligne', 'mes-examens', 'exam-finance'] },
+    { id: 'administration', libelle: 'Administration', libelle_en: 'Administration', icone: 'fas fa-briefcase',
+      items: ['personnels-administratifs'] },
+];
+
+// Map module -> groupes. Plusieurs modules peuvent être groupés.
 const MENU_GROUPS = {
     parametrage: PARAMETRAGE_GROUPS,
+    academique: ACADEMIQUE_GROUPS,
 };
 
 /**
- * Normalise un identifiant de menu pour absorber les variations - / _ / pluriel.
+ * Normalise un identifiant : minuscules, sans accents, sans - / _ / espaces,
+ * et chaque mot au singulier (on retire le "s" final de chaque mot). Absorbe
+ * toutes les variations rencontrées (-, _, pluriel interne ou final).
  */
 function normalizeKey(value) {
     return String(value || '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '') // supprime les accents
         .toLowerCase()
-        .replace(/[-_]/g, '')
-        .replace(/s$/, '');
+        .split(/[-_\s]+/)
+        .map(word => word.replace(/s$/, ''))
+        .join('');
+}
+
+/**
+ * Retrouve la définition de sous-groupes d'un module quelle que soit la source
+ * (id numérique venant de la base OU id texte du fallback). On teste plusieurs
+ * champs car le backend envoie un id numérique, pas la clé "parametrage".
+ */
+function resolveGroupsDef(menu) {
+    const candidates = [menu.id, menu.code, menu.route_prefix, menu.libelle, menu.libelle_en]
+        .filter(Boolean)
+        .map(normalizeKey);
+
+    for (const key of Object.keys(MENU_GROUPS)) {
+        const normKey = normalizeKey(key);
+        if (candidates.includes(normKey)) {
+            return MENU_GROUPS[key];
+        }
+    }
+    return null;
 }
 
 // ============================================================================
@@ -507,18 +555,24 @@ function isMenuActive(menu) {
  * Les features non rattachées à un groupe sont placées dans un groupe "Autres".
  */
 function getMenuGroups(menu) {
-    const groupsDef = MENU_GROUPS[menu.id] || MENU_GROUPS[normalizeKey(menu.id)];
+    const groupsDef = resolveGroupsDef(menu);
     if (!groupsDef) return null;
 
     const features = (menu.fonctionnalitesActives || menu.feature || [])
         .filter(feature => canAccessFeature(feature));
     if (features.length === 0) return [];
 
+    // Jetons normalisés d'une feature : menu_url + libellés (robuste si menu_url diffère).
+    const featureTokens = feature => [feature.menu_url, feature.libelle, feature.libelle_en]
+        .filter(Boolean)
+        .map(normalizeKey);
+
     const used = new Set();
     const groups = groupsDef.map(group => {
         const wanted = group.items.map(normalizeKey);
         const groupFeatures = features.filter(feature => {
-            const match = wanted.includes(normalizeKey(feature.menu_url));
+            const tokens = featureTokens(feature);
+            const match = wanted.some(w => tokens.includes(w));
             if (match) used.add(feature.menu_url);
             return match;
         });
@@ -576,100 +630,11 @@ function getMenuLabel(menu) {
 }
 
 /**
- * Construit le href approprié pour une feature en tenant compte du module
+ * Construit le href approprié pour une feature en tenant compte du module.
+ * Implémentation partagée avec le CommandPalette (source de vérité unique).
  */
 function getFeatureHref(feature, menu) {
-    // Si le menu_url inclut déjà un slash, utilisez-le tel quel
-    if (feature.menu_url.includes('/')) {
-        return `/${feature.menu_url}`;
-    }
-
-    // Mapping des modules à leurs préfixes de route
-    const moduleRouteMap = {
-        'academique': 'academique',
-        'Académique': 'academique',
-        'Academic': 'academique',
-        'parametrage': 'parametrage',
-        'Paramétrage': 'parametrage',
-        'Settings': 'parametrage',
-        'administration': 'administration',
-        'Administration': 'administration',
-        'business': 'business',
-        'Business': 'business',
-        'service-client': 'service-client',
-        'Service Client': 'service-client',
-        'Customer Service': 'service-client',
-        'services': 'services',
-        'Services': 'services',
-        'finances': 'finances',
-        'Finances': 'finances',
-    };
-
-    const menuKey = menu.id || menu.libelle || menu.libelle_en;
-    const modulePrefix = moduleRouteMap[menu.libelle] || moduleRouteMap[menu.libelle_en] || moduleRouteMap[menuKey];
-
-    // Cas particuliers: certains menu_url ne correspondent pas à des préfixes de route
-    const specialRoutes = {
-        // Administration module
-        'users': 'administration.users.index',
-        'roles': 'administration.roles.index',
-        'modules': 'administration.modules.index',
-        'fonctionnalites': 'administration.features.index',
-        'permissions': 'administration.permissions.index',
-        'error-logs': 'administration.errorlog.index',
-        // Academique module
-        'personnels-administratifs': 'academique.personnels_administratifs.index',
-        'emplois-du-temps': 'academique.emplois_du_temps.index',
-        'exam-finance': 'academique.exam-finance.index',
-        'planification-examens': 'academique.planification-examens.index',
-        'examens-en-ligne': 'academique.examens-en-ligne.index',
-        'mes-examens': 'academique.composition.mes-examens',
-        // Services module
-        'cantine': 'services-cantine.index',
-        'menus': 'menus.index',
-        'inscriptions-cantine': 'inscriptions-cantine.index',
-        'passages-cantine': 'passages-cantine.index',
-        'services-transport': 'services-transport.index',
-        'inscriptions-transport': 'inscriptions-transport.index',
-        'consultations-infirmerie': 'consultations-infirmerie.index',
-        // Finances module
-        'ecolage': 'finances.ecolage.index',
-        'autres-revenus': 'finances.autres-revenus.index',
-        'versements': 'finances.versements.index',
-        'facturations-apprenants': 'finances.facturation-apprenants.index',
-        'achats-depenses': 'finances.achats-depenses.index',
-        'salaires': 'finances.salaires.index',
-        'groupes-comptes': 'finances.groupes-comptes.index',
-        'lignes-recettes': 'finances.lignes-recettes.index',
-        'lignes-depenses': 'finances.lignes-depenses.index',
-        'postes-recettes': 'finances.postes-recettes.index',
-        'postes-depenses': 'finances.postes-depenses.index',
-        'rapports-financiers': 'finances.rapports-financiers.index',
-        // Rapport module
-        'rapport/statistiques-ecole': 'rapport.statistiques-ecole.index',
-        'rapport/statistiques-classes': 'rapport.statistiques-classes.index',
-        'parametrage-generaux': 'parametrage-generaux.index',
-        'admin-chat': 'admin-chat.index',
-    };
-
-    if (specialRoutes[feature.menu_url]) {
-        return route(specialRoutes[feature.menu_url]);
-    }
-
-    // Construction standard du route
-    if (modulePrefix) {
-        // Convert hyphens to underscores for route name (menu_url uses hyphens, route names use underscores)
-        const routePart = feature.menu_url.replace(/-/g, '_');
-        const routeName = `${modulePrefix}.${routePart}.index`;
-        try {
-            return route(routeName);
-        } catch (e) {
-            // Si la route n'existe pas, retourner un chemin fallback
-            return `/${modulePrefix}/${feature.menu_url}`;
-        }
-    }
-
-    return `/${feature.menu_url}`;
+    return buildFeatureHref(feature, menu);
 }
 
 /**

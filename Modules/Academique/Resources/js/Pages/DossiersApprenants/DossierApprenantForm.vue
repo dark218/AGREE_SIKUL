@@ -2,6 +2,8 @@
 import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 const { t } = useI18n();
 const props = defineProps({
     form: {
@@ -17,6 +19,9 @@ const props = defineProps({
 });
 const isReadOnly = computed(() => props.mode === 'show');
 const isEditMode = computed(() => props.mode === 'edit');
+
+// Cascade : Apprenant → Classe + École + Campus + ...
+useApprenantCascade(props.form, () => props.apprenants);
 
 // Convert Proxy(Array) to normal array to fix SearchableSelect
 const appartenantsList = computed(() => {
@@ -134,6 +139,10 @@ const fileFields = [
                     <strong>{{ form.errors.apprenant_id[0] || form.errors.apprenant_id }}</strong>
                 </span>
             </div>
+            <InheritedContextBar
+                :source="apprenants?.find(a => String(a.id) === String(form.apprenant_id)) || null"
+                title="Hérité de l'apprenant"
+            />
         </div>
 
         <!-- File Fields Section -->

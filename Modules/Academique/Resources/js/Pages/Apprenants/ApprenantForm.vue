@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
 import { useClasseAutoFill } from '../../composables/useClasseAutoFill';
+import { useGeoCascade } from '@/Composables/useGeoCascade';
 
 const { t } = useI18n();
 
@@ -73,6 +74,14 @@ const props = defineProps({
 
 const isReadOnly = props.mode === 'show';
 const classeSelected = computed(() => !!props.form.classe_id);
+
+// Cascade géographique : Quartier → Commune → Département → Région → Pays
+useGeoCascade(props.form, {
+    quartiers: () => props.quartiers,
+    communes: () => props.communes,
+    departements: () => props.departements,
+    regions: () => props.regions,
+});
 
 const autoLabel = (list, id) => {
     if (!id || !list?.length) return '—';

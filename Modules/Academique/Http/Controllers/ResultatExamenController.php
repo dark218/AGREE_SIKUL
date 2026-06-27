@@ -77,7 +77,21 @@ class ResultatExamenController extends Controller
             ->map(fn($e) => ['id' => $e->id, 'titre' => $e->titre . ' (' . ($e->matiere?->libelle ?? '') . ')']);
 
         $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
-        $classes = Classe::where('statut', 'actif')->get(['id', 'nom']);
+        $classes = Classe::where('statut', 'actif')
+            ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+            ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+            ->get()
+            ->map(fn($c) => [
+                'id' => $c->id,
+                'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                'ecole_id' => $c->ecole_id, 'ecole_nom' => $c->ecole?->nom,
+                'campus_id' => $c->campus_id, 'campus_nom' => $c->campus?->nom,
+                'niveau_id' => $c->niveau_id, 'niveau_libelle' => $c->niveau?->libelle,
+                'section_id' => $c->section_id, 'section_libelle' => $c->section?->libelle,
+                'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
+                'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+            ]);
 
         // Stats globales
         $totalTentatives = TentativeExamen::whereIn('statut', ['corrigee', 'soumise'])->count();

@@ -65,11 +65,11 @@ class ApprenantController extends Controller
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'regions' => Region::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle', 'departement_id')->get(),
+            'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle', 'region_id', 'pays_id')->get(),
+            'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get(),
             'pays' => Pays::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'quartiers' => Quartier::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            'quartiers' => Quartier::whereNull('deleted_at')->select('id', 'libelle', 'commune_id')->get(),
         ]);
     }
 
@@ -187,11 +187,11 @@ class ApprenantController extends Controller
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'regions' => Region::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle', 'departement_id')->get(),
+            'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle', 'region_id', 'pays_id')->get(),
+            'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get(),
             'pays' => Pays::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'quartiers' => Quartier::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            'quartiers' => Quartier::whereNull('deleted_at')->select('id', 'libelle', 'commune_id')->get(),
         ]);
     }
 
@@ -219,11 +219,11 @@ class ApprenantController extends Controller
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'regions' => Region::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle', 'departement_id')->get(),
+            'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle', 'region_id', 'pays_id')->get(),
+            'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get(),
             'pays' => Pays::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'quartiers' => Quartier::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            'quartiers' => Quartier::whereNull('deleted_at')->select('id', 'libelle', 'commune_id')->get(),
         ]);
     }
 

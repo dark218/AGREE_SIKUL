@@ -1,6 +1,8 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useEcoleCascade } from '@/Composables/useEcoleCascade';
 const { t } = useI18n();
 const props = defineProps({
     form: { type: Object, required: true },
@@ -8,6 +10,9 @@ const props = defineProps({
     mode: { type: String, default: 'create', validator: (value) => ['create', 'edit', 'show'].includes(value) },
 });
 const isReadOnly = props.mode === 'show';
+
+// Cascade : École → Pays + Institution + Campus
+useEcoleCascade(props.form, () => props.ecoles);
 const statusOptions = [
     { id: 'actif', libelle: t('common.active') || 'Actif' },
     { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },

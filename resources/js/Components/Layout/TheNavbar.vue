@@ -5,8 +5,24 @@ import axios from 'axios';
 import { useTimeAgo } from '@/Composables/useTimeAgo';
 import { useLocale } from '@/Composables/useLocale';
 import NotificationModal from '@/Components/Common/NotificationModal.vue';
+import CommandPalette from '@/Components/Common/CommandPalette.vue';
 
 const page = usePage();
+
+// Palette de recherche de fonctionnalités (Ctrl+K)
+const showCommandPalette = ref(false);
+
+function openCommandPalette() {
+    showCommandPalette.value = true;
+}
+
+function handleGlobalShortcuts(event) {
+    // Ctrl+K (ou Cmd+K) ouvre la palette de recherche
+    if ((event.ctrlKey || event.metaKey) && (event.key === 'k' || event.key === 'K')) {
+        event.preventDefault();
+        showCommandPalette.value = true;
+    }
+}
 const sidebarState = inject('sidebarState');
 const { formatTimeAgo } = useTimeAgo();
 const { currentLocale, changeLocale, t } = useLocale();
@@ -118,11 +134,13 @@ function handleClickOutside(event) {
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
     document.addEventListener('click', handleClickOutsideUser);
+    document.addEventListener('keydown', handleGlobalShortcuts);
 });
 
 onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
     document.removeEventListener('click', handleClickOutsideUser);
+    document.removeEventListener('keydown', handleGlobalShortcuts);
 });
 </script>
 
@@ -158,15 +176,12 @@ onUnmounted(() => {
             </nav>
         </div>
 
-        <!-- Search Bar -->
-        <div class="navbar-search">
-            <input
-                type="text"
-                placeholder="Rechercher..."
-                class="search-input"
-            />
-            <i class="fas fa-search search-icon"></i>
-        </div>
+        <!-- Search Bar -> ouvre la palette de fonctionnalités -->
+        <button type="button" class="navbar-search" @click="openCommandPalette">
+            <i class="fas fa-search search-icon-left"></i>
+            <span class="search-placeholder">Rechercher une fonctionnalité… (Ex: Cycle, Apprenant)</span>
+            <kbd class="search-kbd">Ctrl K</kbd>
+        </button>
 
         <div class="navbar-right">
             <!-- User Info Mini -->
@@ -313,6 +328,9 @@ onUnmounted(() => {
         @close="showNotificationModal = false"
         @marked-as-read="handleNotificationMarkedAsRead"
     />
+
+    <!-- Palette de recherche de fonctionnalités (Ctrl+K) -->
+    <CommandPalette v-model:open="showCommandPalette" />
 </template>
 
 <style scoped>
@@ -338,44 +356,57 @@ onUnmounted(() => {
     flex: 1;
 }
 
-/* Search Bar */
+/* Search Bar (bouton qui ouvre la palette) */
 .navbar-search {
     position: relative;
     display: flex;
     align-items: center;
-    width: 260px;
-    margin: 0 20px;
-}
-
-.search-input {
-    width: 100%;
+    gap: 10px;
+    width: 340px;
+    max-width: 40vw;
     height: 40px;
-    padding: 0 40px 0 16px;
+    padding: 0 10px 0 16px;
+    margin: 0 20px;
     border: 1px solid #E2E8F0;
     border-radius: 999px;
-    font-size: 0.875rem;
-    color: #2D3748;
     background: #F7FAFC;
-    transition: all 0.3s ease;
-    outline: none;
-}
-
-.search-input::placeholder {
     color: #A0AEC0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+    text-align: left;
 }
 
-.search-input:focus {
+.navbar-search:hover {
     background: #fff;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    border-color: var(--color-primary, #E5590C);
+    box-shadow: 0 0 0 3px rgba(229, 89, 12, 0.12);
 }
 
-.search-icon {
-    position: absolute;
-    right: 14px;
+.search-icon-left {
     color: #718096;
     font-size: 14px;
-    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.search-placeholder {
+    flex: 1;
+    font-size: 0.8125rem;
+    color: #A0AEC0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-kbd {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    color: #718096;
+    font-size: 0.6875rem;
+    font-family: monospace;
 }
 
 

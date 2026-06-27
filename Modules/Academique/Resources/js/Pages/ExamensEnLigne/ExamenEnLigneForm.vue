@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 
 const { t } = useI18n();
 
@@ -22,6 +24,9 @@ const props = defineProps({
 });
 
 const isReadOnly = props.mode === 'show';
+
+// Cascade : Classe → École + Campus + ...
+useClasseCascade(props.form, () => props.classes);
 
 const statutLabels = {
     brouillon: 'Brouillon',
@@ -88,6 +93,10 @@ const typeQuestionOptions = [
                 />
                 <div v-if="form.errors.classe_id" class="text-danger small mt-1">{{ form.errors.classe_id }}</div>
             </div>
+            <InheritedContextBar
+                :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+                title="Hérité de la classe"
+            />
             <div class="col-sm-6">
                 <label class="form-label">{{ t('common.enseignant') || 'Enseignant' }}</label>
                 <SearchableSelect

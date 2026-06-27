@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { onMounted } from 'vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
 import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
 const props = defineProps({
@@ -107,8 +108,11 @@ const statusOptions = [
                 </span>
             </div>
         </div>
-        <!-- Contexte hiérarchique (auto-rempli par la classe) -->
-        <HierarchyContextBar :form="form" />
+        <!-- Contexte hiérarchique hérité automatiquement de la Classe -->
+        <InheritedContextBar
+            :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+            title="Hérité de la classe"
+        />
 
         <!-- Enseignant -->
         <div class="col-sm-4">

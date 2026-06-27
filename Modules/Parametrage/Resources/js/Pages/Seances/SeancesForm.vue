@@ -1,14 +1,18 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
-defineProps({
+const props = defineProps({
     form: Object,
     classes: Array,
     matieres: Array,
     enseignants: Array,
     error: Object,
 });
+
+useClasseCascade(props.form, () => props.classes);
 const statusOptions = [
     { id: 'actif', libelle: t('common.active') || 'Actif' },
     { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },
@@ -44,6 +48,7 @@ const statusOptions = [
             <label>{{ t('fields.classe') || 'Classe' }}</label>
             <SearchableSelect v-model="form.classe_id" :options="classes" optionValue="id" optionLabel="nom" />
         </div>
+        <InheritedContextBar :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null" title="Hérité de la classe" />
         <div class="form-group">
             <label>{{ t('fields.matiere') || 'Matière' }}</label>
             <SearchableSelect v-model="form.matiere_id" :options="matieres" optionValue="id" optionLabel="titre" />

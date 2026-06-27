@@ -3,6 +3,9 @@ import { computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
+import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 
 const { t } = useI18n();
 
@@ -103,38 +106,11 @@ watch(() => props.form, (newForm) => {
     console.log('🔄 [NoteForm] Form data changed:', newForm);
 }, { deep: true });
 
-// Handle classe selection to auto-fill dependent fields
-const handleClasseChange = async (newClasseId) => {
-    if (!newClasseId) return;
+// Cascade auto via composables (instantané, depuis listes en props)
+useClasseCascade(props.form, () => props.classes);
+useApprenantCascade(props.form, () => props.apprenants);
 
-    try {
-        console.log('[Auto-fill] Fetching classe data for ID:', newClasseId);
-        const response = await fetch(`/api/classes/${newClasseId}`);
-        if (!response.ok) {
-            console.error('[Auto-fill] API error:', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log('[Auto-fill] Data received:', data);
-
-        // Auto-fill dependent fields
-        props.form.ecole_id = data.ecole_id || null;
-        props.form.campus_id = data.campus_id || null;
-        props.form.section_id = data.section_id || null;
-        props.form.cycle_id = data.cycle_id || null;
-        props.form.annee_scolaire_id = data.annee_scolaire_id || null;
-
-        console.log('[Auto-fill] Form updated:', {
-            ecole_id: props.form.ecole_id,
-            campus_id: props.form.campus_id,
-            section_id: props.form.section_id,
-            cycle_id: props.form.cycle_id,
-            annee_scolaire_id: props.form.annee_scolaire_id
-        });
-    } catch (error) {
-        console.error('[Auto-fill] Error:', error);
-    }
-};
+const handleClasseChange = () => { /* composable gère tout via watch */ };
 
 const statutOptions = [
     { id: 'en_attente', libelle: t('common.en_attente') || 'En attente' },
@@ -143,40 +119,7 @@ const statutOptions = [
     { id: 'suspendue', libelle: t('common.suspendue') || 'Suspendue' },
 ];
 
-// Handle apprenant selection to auto-fill dependent fields
-const handleApprenantChange = async (newApprenantId) => {
-    if (!newApprenantId) return;
-
-    try {
-        console.log('[Auto-fill Apprenant] Fetching apprenant data for ID:', newApprenantId);
-        const response = await fetch(`/academique/apprenants/${newApprenantId}/api-show`);
-        if (!response.ok) {
-            console.error('[Auto-fill Apprenant] API error:', response.status);
-            return;
-        }
-        const { data } = await response.json();
-        console.log('[Auto-fill Apprenant] Data received:', data);
-
-        // Auto-fill dependent fields from apprenant
-        if (data.classe_id) props.form.classe_id = data.classe_id;
-        if (data.ecole_id) props.form.ecole_id = data.ecole_id;
-        if (data.campus_id) props.form.campus_id = data.campus_id;
-        if (data.section_id) props.form.section_id = data.section_id;
-        if (data.cycle_id) props.form.cycle_id = data.cycle_id;
-        if (data.annee_scolaire_id) props.form.annee_scolaire_id = data.annee_scolaire_id;
-
-        console.log('[Auto-fill Apprenant] Form updated:', {
-            classe_id: props.form.classe_id,
-            ecole_id: props.form.ecole_id,
-            campus_id: props.form.campus_id,
-            section_id: props.form.section_id,
-            cycle_id: props.form.cycle_id,
-            annee_scolaire_id: props.form.annee_scolaire_id
-        });
-    } catch (error) {
-        console.error('[Auto-fill Apprenant] Error:', error);
-    }
-};
+const handleApprenantChange = () => { /* composable useApprenantCascade gère tout via watch */ };
 
 // Handle matiere selection to auto-fill coefficient
 const handleMatiereChange = async (newMatiereId) => {
@@ -384,7 +327,11 @@ onMounted(() => {
             </div>
         </div>
 
-        <HierarchyContextBar v-if="classeSelected" :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
+        <InheritedContextBar
+            v-if="classeSelected"
+            :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+            title="Hérité de la classe"
+        />
 
         <!-- École -->
         <div class="col-sm-6">

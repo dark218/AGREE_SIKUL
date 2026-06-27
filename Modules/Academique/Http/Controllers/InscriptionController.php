@@ -76,10 +76,9 @@ class InscriptionController extends Controller
             \Log::info('InscriptionController::create - Starting');
 
             $apprenants = Apprenant::with('user')
-                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms')
+                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
                 ->get()
                 ->map(function ($apprenant) {
-                    // Affiche user si associé, sinon affiche nom/prenoms de l'apprenant
                     if ($apprenant->user) {
                         $libelle = $apprenant->user->prenoms . ' ' . $apprenant->user->nom . ' (' . $apprenant->matricule . ')';
                     } else {
@@ -90,12 +89,32 @@ class InscriptionController extends Controller
                         'id' => $apprenant->id,
                         'libelle' => $libelle,
                         'numero_inscription' => $apprenant->numero_inscription,
+                        'classe_id' => $apprenant->classe_id,
+                        'ecole_id' => $apprenant->ecole_id,
+                        'campus_id' => $apprenant->campus_id,
+                        'niveau_id' => $apprenant->niveau_id,
+                        'section_id' => $apprenant->section_id,
+                        'cycle_id' => $apprenant->cycle_id,
+                        'pays_id' => $apprenant->pays_id,
                     ];
                 })->values()->toArray();
 
             \Log::info('InscriptionController::create - Apprenants loaded: ' . count($apprenants));
 
-            $classes = Classe::select('id', 'nom')->get()->toArray();
+            $classes = Classe::with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+                ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                ->get()
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'ecole_id' => $c->ecole_id, 'ecole_nom' => $c->ecole?->nom,
+                    'campus_id' => $c->campus_id, 'campus_nom' => $c->campus?->nom,
+                    'niveau_id' => $c->niveau_id, 'niveau_libelle' => $c->niveau?->libelle,
+                    'section_id' => $c->section_id, 'section_libelle' => $c->section?->libelle,
+                    'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
+                    'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+                ])->toArray();
             \Log::info('InscriptionController::create - Classes loaded: ' . count($classes));
 
             $anneesScolaires = AnneeScolaire::select('id', 'libelle')->get()->toArray();
@@ -191,10 +210,9 @@ class InscriptionController extends Controller
             ]);
 
             $apprenants = Apprenant::with('user')
-                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms')
+                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
                 ->get()
                 ->map(function ($apprenant) {
-                    // Affiche user si associé, sinon affiche nom/prenoms de l'apprenant
                     if ($apprenant->user) {
                         $libelle = $apprenant->user->prenoms . ' ' . $apprenant->user->nom . ' (' . $apprenant->matricule . ')';
                     } else {
@@ -205,10 +223,30 @@ class InscriptionController extends Controller
                         'id' => $apprenant->id,
                         'libelle' => $libelle,
                         'numero_inscription' => $apprenant->numero_inscription,
+                        'classe_id' => $apprenant->classe_id,
+                        'ecole_id' => $apprenant->ecole_id,
+                        'campus_id' => $apprenant->campus_id,
+                        'niveau_id' => $apprenant->niveau_id,
+                        'section_id' => $apprenant->section_id,
+                        'cycle_id' => $apprenant->cycle_id,
+                        'pays_id' => $apprenant->pays_id,
                     ];
                 })->values()->toArray();
 
-            $classes = Classe::select('id', 'nom')->get()->toArray();
+            $classes = Classe::with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+                ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                ->get()
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'ecole_id' => $c->ecole_id, 'ecole_nom' => $c->ecole?->nom,
+                    'campus_id' => $c->campus_id, 'campus_nom' => $c->campus?->nom,
+                    'niveau_id' => $c->niveau_id, 'niveau_libelle' => $c->niveau?->libelle,
+                    'section_id' => $c->section_id, 'section_libelle' => $c->section?->libelle,
+                    'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
+                    'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+                ])->toArray();
             $anneesScolaires = AnneeScolaire::select('id', 'libelle')->get()->toArray();
             $ecoles = Ecole::select('id', 'nom')->get()->toArray();
             $campuses = Campus::select('id', 'nom')->get()->toArray();
@@ -239,10 +277,9 @@ class InscriptionController extends Controller
             ]);
 
             $apprenants = Apprenant::with('user')
-                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms')
+                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
                 ->get()
                 ->map(function ($apprenant) {
-                    // Affiche user si associé, sinon affiche nom/prenoms de l'apprenant
                     if ($apprenant->user) {
                         $libelle = $apprenant->user->prenoms . ' ' . $apprenant->user->nom . ' (' . $apprenant->matricule . ')';
                     } else {
@@ -253,10 +290,30 @@ class InscriptionController extends Controller
                         'id' => $apprenant->id,
                         'libelle' => $libelle,
                         'numero_inscription' => $apprenant->numero_inscription,
+                        'classe_id' => $apprenant->classe_id,
+                        'ecole_id' => $apprenant->ecole_id,
+                        'campus_id' => $apprenant->campus_id,
+                        'niveau_id' => $apprenant->niveau_id,
+                        'section_id' => $apprenant->section_id,
+                        'cycle_id' => $apprenant->cycle_id,
+                        'pays_id' => $apprenant->pays_id,
                     ];
                 })->values()->toArray();
 
-            $classes = Classe::select('id', 'nom')->get()->toArray();
+            $classes = Classe::with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
+                ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                ->get()
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'ecole_id' => $c->ecole_id, 'ecole_nom' => $c->ecole?->nom,
+                    'campus_id' => $c->campus_id, 'campus_nom' => $c->campus?->nom,
+                    'niveau_id' => $c->niveau_id, 'niveau_libelle' => $c->niveau?->libelle,
+                    'section_id' => $c->section_id, 'section_libelle' => $c->section?->libelle,
+                    'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
+                    'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
+                ])->toArray();
             $anneesScolaires = AnneeScolaire::select('id', 'libelle')->get()->toArray();
             $ecoles = Ecole::select('id', 'nom')->get()->toArray();
             $campuses = Campus::select('id', 'nom')->get()->toArray();

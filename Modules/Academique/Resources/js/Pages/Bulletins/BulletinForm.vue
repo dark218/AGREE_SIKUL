@@ -3,6 +3,9 @@ import { watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
+import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 const { t } = useI18n();
 const props = defineProps({
     form: {
@@ -37,47 +40,12 @@ const props = defineProps({
 });
 const isReadOnly = props.mode === 'show';
 
-// Handle apprenant selection to auto-fill classe and annee_scolaire
-const handleApprenantChange = async (newApprenantId) => {
-    if (!newApprenantId) return;
+// Cascade auto via composables (instantané)
+useClasseCascade(props.form, () => props.classes);
+useApprenantCascade(props.form, () => props.apprenants);
 
-    try {
-        console.log('[Bulletin Auto-fill] Fetching apprenant data for ID:', newApprenantId);
-        const response = await fetch(`/academique/apprenants/${newApprenantId}/api-show`);
-        if (!response.ok) {
-            console.error('[Bulletin Auto-fill] API error:', response.status);
-            return;
-        }
-        const json = await response.json();
-        console.log('[Bulletin Auto-fill] Data received:', json);
-
-        if (!json.success || !json.data) {
-            console.error('[Bulletin Auto-fill] Invalid response format');
-            return;
-        }
-
-        const data = json.data;
-        // Auto-fill dependent fields from apprenant
-        props.form.classe_id = data.classe_id || null;
-        props.form.annee_scolaire_id = data.annee_scolaire_id || null;
-
-        console.log('[Bulletin Auto-fill] Form updated:', {
-            classe_id: props.form.classe_id,
-            annee_scolaire_id: props.form.annee_scolaire_id
-        });
-    } catch (error) {
-        console.error('[Bulletin Auto-fill] Error:', error);
-    }
-};
-
-// Watch apprenant changes in create/edit mode
-if (props.mode !== 'show') {
-    watch(() => props.form.apprenant_id, (newVal) => {
-        if (newVal) {
-            handleApprenantChange(newVal);
-        }
-    });
-}
+const handleApprenantChange = () => { /* composable gère tout via watch */ };
+const handleClasseChange = () => { /* composable gère tout via watch */ };
 
 </script>
 <template>
@@ -118,7 +86,11 @@ if (props.mode !== 'show') {
             </div>
         </div>
         <!-- Contexte hiérarchique (affiché quand classe sélectionnée) -->
-        <HierarchyContextBar
+        <InheritedContextBar
+            :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+            title="Hérité de la classe"
+        />
+        <HierarchyContextBar v-if="false"
             :form="form"
         />
         <!-- Année Scolaire -->
