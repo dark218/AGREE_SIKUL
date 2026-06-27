@@ -96,7 +96,7 @@ class GroupeMatiereController extends Controller
                 return ['id' => $item->id, 'libelle' => $item->libelle];
             });
 
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
             $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::GroupesMatiere/Create', [
@@ -187,7 +187,7 @@ class GroupeMatiereController extends Controller
 
             $groupeMatiere->load(['niveau', 'section', 'cycle', 'niveau', 'section', 'cycle', 'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5', 'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10', 'anneeScolaire', 'pays']);
 
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
             $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
             $anneesScolaires = AnneeScolaire::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
             $pays = Pays::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
@@ -219,7 +219,7 @@ class GroupeMatiereController extends Controller
 
             $item = $groupeMatiere->load(['niveau', 'section', 'cycle', 'niveau', 'section', 'cycle', 'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5', 'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10', 'anneeScolaire', 'pays']);
 
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
             $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
             $anneesScolaires = AnneeScolaire::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);
             $pays = Pays::all()->map(fn($i) => ['id' => $i->id, 'libelle' => $i->libelle]);

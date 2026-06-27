@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n';
 import { onMounted } from 'vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
 const props = defineProps({
     form: {
@@ -20,37 +21,11 @@ const props = defineProps({
 });
 const isReadOnly = props.mode === 'show';
 
-// Handle classe selection to auto-fill dependent fields
-const handleClasseChange = async (newClasseId) => {
-    if (!newClasseId) return;
+// Auto-fill via composable (instantané, depuis liste passée en prop)
+useClasseCascade(props.form, () => props.classes);
 
-    try {
-        console.log('[Auto-fill] Fetching classe data for ID:', newClasseId);
-        const response = await fetch(`/api/classes/${newClasseId}`);
-        if (!response.ok) {
-            console.error('[Auto-fill] API error:', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log('[Auto-fill] Data received:', data);
-
-        // Auto-fill dependent fields
-        props.form.ecole_id = data.ecole_id || null;
-        props.form.campus_id = data.campus_id || null;
-        props.form.section_id = data.section_id || null;
-        props.form.cycle_id = data.cycle_id || null;
-        props.form.annee_scolaire_id = data.annee_scolaire_id || null;
-
-        console.log('[Auto-fill] Form updated:', {
-            ecole_id: props.form.ecole_id,
-            campus_id: props.form.campus_id,
-            section_id: props.form.section_id,
-            cycle_id: props.form.cycle_id,
-            annee_scolaire_id: props.form.annee_scolaire_id
-        });
-    } catch (error) {
-        console.error('[Auto-fill] Error:', error);
-    }
+const handleClasseChange = () => {
+    // Le composable s'occupe automatiquement de tout via le watch.
 };
 
 onMounted(() => {

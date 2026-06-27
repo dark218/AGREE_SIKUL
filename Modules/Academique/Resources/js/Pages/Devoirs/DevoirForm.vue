@@ -3,6 +3,7 @@ import { computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import { useClasseCascade } from '@/Composables/useClasseCascade';
 const { t } = useI18n();
 const props = defineProps({
     form: Object,
@@ -94,37 +95,13 @@ onMounted(() => {
     }
 });
 
-// Handle classe selection to auto-fill dependent fields
-const handleClasseChange = async (newClasseId) => {
-    if (!newClasseId) return;
+// Auto-fill des FK dépendantes via composable (instantané, depuis la liste passée en prop)
+// Hérite : ecole_id, campus_id, institution_id, niveau_id, section_id, cycle_id, annee_scolaire_id, pays_id
+useClasseCascade(props.form, () => props.classes);
 
-    try {
-        console.log('[Auto-fill] Fetching classe data for ID:', newClasseId);
-        const response = await fetch(`/api/classes/${newClasseId}`);
-        if (!response.ok) {
-            console.error('[Auto-fill] API error:', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log('[Auto-fill] Data received:', data);
-
-        // Auto-fill dependent fields
-        props.form.ecole_id = data.ecole_id || null;
-        props.form.campus_id = data.campus_id || null;
-        props.form.section_id = data.section_id || null;
-        props.form.cycle_id = data.cycle_id || null;
-        props.form.annee_scolaire_id = data.annee_scolaire_id || null;
-
-        console.log('[Auto-fill] Form updated:', {
-            ecole_id: props.form.ecole_id,
-            campus_id: props.form.campus_id,
-            section_id: props.form.section_id,
-            cycle_id: props.form.cycle_id,
-            annee_scolaire_id: props.form.annee_scolaire_id
-        });
-    } catch (error) {
-        console.error('[Auto-fill] Error:', error);
-    }
+// Conserve le handler pour le @update:model-value (compat avec template existant)
+const handleClasseChange = () => {
+    // Le composable s'occupe de tout le reste automatiquement via le watch.
 };
 
 // Handle matiere selection to auto-fill coefficient

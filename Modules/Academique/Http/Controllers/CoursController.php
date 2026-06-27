@@ -60,9 +60,20 @@ class CoursController extends Controller
             $matieres = $matieres->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])->toArray();
 
             \Log::info('🏫 Récupération des classes...');
-            $classes = Classe::select('id', 'nom')->get();
+            $classes = Classe::select('id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')->get();
             \Log::info('✅ Classes trouvées: ' . $classes->count());
-            $classes = $classes->map(fn($c) => ['id' => $c->id, 'nom' => $c->nom ?? 'Sans nom'])->toArray();
+            $classes = $classes->map(fn($c) => [
+                'id' => $c->id,
+                'nom' => $c->libelle_affichage ?: ($c->libelle ?: ($c->nom ?: 'Sans nom')),
+                'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                'code' => $c->code,
+                'ecole_id' => $c->ecole_id,
+                'campus_id' => $c->campus_id,
+                'niveau_id' => $c->niveau_id,
+                'section_id' => $c->section_id,
+                'cycle_id' => $c->cycle_id,
+                'annee_scolaire_id' => $c->annee_scolaire_id,
+            ])->toArray();
 
             \Log::info('👨‍🏫 Récupération des enseignants...');
             $enseignants = Enseignant::with('user')->get();

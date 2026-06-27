@@ -54,8 +54,8 @@ class CommuneController extends Controller
 
             $communes = $query->paginate(10)->withQueryString();
 
-            $departements = Departement::select('id', 'libelle')->get();
-            $regions = Region::select('id', 'libelle')->get();
+            $departements = Departement::select('id', 'libelle', 'region_id', 'pays_id')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Communes/Index', [
@@ -74,8 +74,8 @@ class CommuneController extends Controller
     public function create()
     {
         try {
-            $departements = Departement::select('id', 'libelle')->get();
-            $regions = Region::select('id', 'libelle')->get();
+            $departements = Departement::select('id', 'libelle', 'region_id', 'pays_id')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Communes/Create', [
@@ -150,8 +150,8 @@ class CommuneController extends Controller
     public function show(Commune $commune)
     {
         try {
-            $departements = Departement::select('id', 'libelle')->get();
-            $regions = Region::select('id', 'libelle')->get();
+            $departements = Departement::select('id', 'libelle', 'region_id', 'pays_id')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Communes/Show', [
@@ -169,8 +169,8 @@ class CommuneController extends Controller
     public function edit(Commune $commune)
     {
         try {
-            $departements = Departement::select('id', 'libelle')->get();
-            $regions = Region::select('id', 'libelle')->get();
+            $departements = Departement::select('id', 'libelle', 'region_id', 'pays_id')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Communes/Edit', [

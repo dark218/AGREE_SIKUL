@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 
@@ -23,6 +23,18 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+// HÉRITAGE : quand on sélectionne une École, le Pays se remplit
+// automatiquement depuis le pays_id de l'école (lecture seule ensuite).
+const paysHerite = computed(() => !!props.form.ecole_id);
+
+watch(() => props.form.ecole_id, (newEcoleId) => {
+    if (!newEcoleId || isReadOnly.value) return;
+    const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
+    if (ecole?.pays_id) {
+        props.form.pays_id = ecole.pays_id;
+    }
+});
 </script>
 
 <template>
@@ -101,14 +113,17 @@ const statusOptions = [
         </div>
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.pays') || 'Pays' }} <span class="text-danger">*</span></label>
+                <label>{{ t('fields.pays') || 'Pays' }}
+                    <span v-if="paysHerite" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">hérité de l'école</span>
+                    <span class="text-danger">*</span>
+                </label>
                 <SearchableSelect
                     v-model.number="form.pays_id"
                     :options="pays"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                    :disabled="isReadOnly || paysHerite"
                 />
                 <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
             </div>

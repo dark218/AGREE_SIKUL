@@ -202,18 +202,64 @@ class HandleInertiaRequests extends Middleware
     private function getTitle(Request $request): string
     {
         $path = $request->path();
-        if ($path === '/' || $path === 'home') return 'home';
+        $locale = app()->getLocale();
 
-        $segments = explode('/', trim($path, '/'));
-        $firstSegment = $segments[0] ?? '';
+        if ($path === '/' || $path === 'home') {
+            return $locale === 'en' ? 'Home' : 'Accueil';
+        }
 
-        // Cache le title par path pour éviter la requête Feature à chaque page
-        return Cache::remember("title_{$firstSegment}", 600, function () use ($path, $firstSegment) {
-            $feature = Feature::where('menu_url', $path)
-                ->orWhere('menu_url', $firstSegment)
-                ->first();
-            $locale = app()->getLocale();
-            return $feature ? ($locale === 'fr' ? $feature->libelle : $feature->libelle_en) : $firstSegment;
+        $route = $request->route();
+        $routeName = $route ? $route->getName() : null; // ex: parametrage.cycles_enseignement.index
+
+        // Cache par route/path complet (et non plus par 1er segment) + locale :
+        // sinon toutes les pages d'un même module partagent le même titre.
+        $cacheKey = 'title_' . ($routeName ?: $path) . '_' . $locale;
+
+        return Cache::remember($cacheKey, 600, function () use ($path, $routeName, $locale) {
+            // Construit une liste de clés candidates, de la plus précise à la plus large.
+            $candidates = [];
+
+            if ($routeName) {
+                $parts = explode('.', $routeName);
+                $actions = ['index', 'create', 'store', 'show', 'edit', 'update', 'destroy', 'statut', 'activate'];
+                if (in_array(end($parts), $actions, true)) {
+                    array_pop($parts);
+                }
+                $key = end($parts); // ex: cycles_enseignement
+                if ($key) {
+                    $candidates[] = $key;
+                }
+            }
+
+            $segments = array_values(array_filter(explode('/', trim($path, '/'))));
+            if (!empty($segments)) {
+                $candidates[] = end($segments); // dernier segment d'URL
+            }
+            $candidates[] = $path; // chemin complet
+
+            // Normalise pour absorber les variations - / _ et pluriels (-s)
+            $norm = fn($s) => preg_replace('/s$/', '', str_replace(['-', '_'], '', strtolower((string) $s)));
+
+            // 1) Correspondance exacte sur menu_url
+            $feature = Feature::whereIn('menu_url', array_unique($candidates))->first();
+
+            // 2) Correspondance "souple" (normalisée) si rien trouvé
+            if (!$feature) {
+                $normCandidates = array_map($norm, $candidates);
+                $feature = Feature::all()->first(
+                    fn($f) => in_array($norm($f->menu_url), $normCandidates, true)
+                );
+            }
+
+            if ($feature) {
+                return $locale === 'fr'
+                    ? $feature->libelle
+                    : ($feature->libelle_en ?: $feature->libelle);
+            }
+
+            // 3) Repli : on humanise la clé canonique (route name) ou le dernier segment.
+            $base = $candidates[0] ?? (end($segments) ?: $path);
+            return ucwords(str_replace(['-', '_'], ' ', $base));
         });
     }
 

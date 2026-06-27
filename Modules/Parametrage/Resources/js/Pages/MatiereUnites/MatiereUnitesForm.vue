@@ -25,14 +25,14 @@ const statusOptions = [
     { id: 'inactif', libelle: 'Inactif' },
 ];
 
-// Auto-fill Institution depuis École : quand on choisit une école,
-// son institution se remplit automatiquement
+// HÉRITAGE depuis École : quand on choisit une école, son institution
+// et son pays se remplissent automatiquement.
 watch(() => props.form.ecole_id, (newEcoleId) => {
     if (!newEcoleId || isReadOnly.value) return;
     const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
-    if (ecole?.institution_id) {
-        props.form.institution_id = ecole.institution_id;
-    }
+    if (!ecole) return;
+    if (ecole.institution_id) props.form.institution_id = ecole.institution_id;
+    if (ecole.pays_id) props.form.pays_id = ecole.pays_id;
 });
 </script>
 

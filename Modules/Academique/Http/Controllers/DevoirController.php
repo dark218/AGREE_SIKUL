@@ -63,9 +63,21 @@ class DevoirController extends Controller
                 ->toArray();
             \Log::info('✅ Matieres loaded: ' . count($matieres));
 
-            // Get classes with proper formatting
-            $classes = ParametrageClasse::select('id', 'nom')->get()
-                ->map(fn($c) => ['id' => $c->id, 'nom' => $c->nom ?? 'Sans nom'])
+            // Get classes with full FK chain for cascade (École, Campus, Niveau, Section, Cycle)
+            $classes = ParametrageClasse::select('id', 'nom', 'libelle', 'libelle_affichage', 'code', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
+                ->get()
+                ->map(fn($c) => [
+                    'id' => $c->id,
+                    'nom' => $c->libelle_affichage ?: ($c->libelle ?: ($c->nom ?: 'Sans nom')),
+                    'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'code' => $c->code,
+                    'ecole_id' => $c->ecole_id,
+                    'campus_id' => $c->campus_id,
+                    'niveau_id' => $c->niveau_id,
+                    'section_id' => $c->section_id,
+                    'cycle_id' => $c->cycle_id,
+                    'annee_scolaire_id' => $c->annee_scolaire_id,
+                ])
                 ->toArray();
             \Log::info('✅ Classes loaded: ' . count($classes));
 

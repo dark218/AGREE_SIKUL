@@ -51,7 +51,7 @@ class DepartementController extends Controller
             $departements = $query->paginate(10)->withQueryString();
 
             // Get all regions and pays for filter dropdowns
-            $regions = Region::select('id', 'libelle')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Departements/Index', [
@@ -69,7 +69,7 @@ class DepartementController extends Controller
     public function create()
     {
         try {
-            $regions = Region::select('id', 'libelle')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
 
             $pays = Pays::select('id', 'libelle')->get();
 
@@ -115,7 +115,7 @@ class DepartementController extends Controller
         try {
             $departement->load(['region', 'pays']);
 
-            $regions = Region::select('id', 'libelle')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
 
             $pays = Pays::select('id', 'libelle')->get();
 
@@ -133,7 +133,7 @@ class DepartementController extends Controller
     public function edit(Departement $departement)
     {
         try {
-            $regions = Region::select('id', 'libelle')->get();
+            $regions = Region::select('id', 'libelle', 'pays_id')->get();
             $pays = Pays::select('id', 'libelle')->get();
 
             return Inertia::render('Parametrage::Departements/Edit', [

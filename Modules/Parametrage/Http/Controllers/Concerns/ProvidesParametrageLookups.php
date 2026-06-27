@@ -12,7 +12,6 @@ use Modules\Parametrage\Entities\Departement;
 use Modules\Parametrage\Entities\Devises;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Institution;
-use Modules\Parametrage\Entities\Niveau;
 use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Pays;
 use Modules\Parametrage\Entities\Quartier;
@@ -46,9 +45,9 @@ trait ProvidesParametrageLookups
         return Cache::remember('parametrage.lookups.localisation', self::CACHE_TTL_LONG, function () {
             return [
                 'paysList' => Pays::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-                'regions' => Region::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-                'departements' => Departement::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
-                'communes' => Commune::orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+                'regions' => Region::orderBy('libelle')->get(['id', 'libelle', 'code', 'pays_id'])->toArray(),
+                'departements' => Departement::orderBy('libelle')->get(['id', 'libelle', 'code', 'region_id', 'pays_id'])->toArray(),
+                'communes' => Commune::orderBy('libelle')->get(['id', 'libelle', 'code', 'departement_id'])->toArray(),
                 'quartiers' => Quartier::with(['commune:id,departement_id', 'commune.departement:id,region_id', 'commune.departement.region:id,pays_id'])
                     ->orderBy('libelle')
                     ->get(['id', 'libelle', 'code', 'commune_id'])

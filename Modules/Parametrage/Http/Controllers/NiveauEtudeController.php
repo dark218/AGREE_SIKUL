@@ -80,7 +80,7 @@ class NiveauEtudeController extends Controller
                 ];
             });
 
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle']);
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'pays_id', 'institution_id', 'campus_id']);
             $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
 
             return Inertia::render('Parametrage::NiveauxÉtude/Create', [
@@ -150,7 +150,7 @@ class NiveauEtudeController extends Controller
                 ];
             });
 
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle']);
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'pays_id', 'institution_id', 'campus_id']);
             $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
 
             return Inertia::render('Parametrage::NiveauxÉtude/Show', [
@@ -191,7 +191,7 @@ class NiveauEtudeController extends Controller
                 ];
             });
 
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle']);
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'pays_id', 'institution_id', 'campus_id']);
             $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
 
             return Inertia::render('Parametrage::NiveauxÉtude/Edit', [

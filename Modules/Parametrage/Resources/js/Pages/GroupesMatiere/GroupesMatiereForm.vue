@@ -27,13 +27,13 @@ const statusOptions = [
     { id: 'inactif', libelle: 'Inactif' },
 ];
 
-// Auto-fill Institution depuis École
+// HÉRITAGE depuis École : Institution + Pays remontent automatiquement
 watch(() => props.form.ecole_id, (newEcoleId) => {
     if (!newEcoleId || isReadOnly.value) return;
     const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
-    if (ecole?.institution_id) {
-        props.form.institution_id = ecole.institution_id;
-    }
+    if (!ecole) return;
+    if (ecole.institution_id) props.form.institution_id = ecole.institution_id;
+    if (ecole.pays_id) props.form.pays_id = ecole.pays_id;
 });
 
 const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -196,14 +196,16 @@ const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         </div>
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.pays') || 'Pays' }}</label>
+                <label>{{ t('fields.pays') || 'Pays' }}
+                    <span v-if="form.ecole_id" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">hérité de l'école</span>
+                </label>
                 <SearchableSelect
                     v-model.number="form.pays_id"
                     :options="pays"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                    :disabled="isReadOnly || !!form.ecole_id"
                 />
                 <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
             </div>

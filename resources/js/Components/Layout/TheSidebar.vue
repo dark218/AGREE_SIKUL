@@ -240,11 +240,61 @@ const DEFAULT_MENU_CONFIG = [
 ];
 
 // ============================================================================
+// SOUS-GROUPES (sous-modules) DU PARAMÉTRAGE
+// ============================================================================
+
+/**
+ * Regroupe les nombreuses fonctionnalités du module Paramétrage en sous-modules
+ * pour faciliter la navigation. Les clés correspondent aux menu_url (forme
+ * canonique) ; la correspondance est faite de façon souple (- / _ / pluriel).
+ */
+const PARAMETRAGE_GROUPS = [
+    { id: 'org-academique', libelle: 'Organisation Académique', libelle_en: 'Academic Organization', icone: 'fas fa-sitemap',
+      items: ['annees_scolaires', 'periodes_colaires', 'niveaux', 'niveaux_etude', 'cycles_enseignement', 'classes', 'sections'] },
+    { id: 'enseignement', libelle: 'Enseignement & Cours', libelle_en: 'Teaching & Courses', icone: 'fas fa-chalkboard-teacher',
+      items: ['types_cours', 'types_enseignement', 'groupes_matiere', 'matiere_unites'] },
+    { id: 'examens', libelle: 'Examens & Évaluations', libelle_en: 'Exams & Assessments', icone: 'fas fa-pen-to-square',
+      items: ['natures_examens', 'types_examens'] },
+    { id: 'acteurs', libelle: 'Apprenants & Enseignants', libelle_en: 'Students & Teachers', icone: 'fas fa-users',
+      items: ['types_apprenants', 'categories_apprenant', 'categories_enseignant'] },
+    { id: 'institutions', libelle: 'Institutions', libelle_en: 'Institutions', icone: 'fas fa-school',
+      items: ['campuses', 'ecoles', 'institution', 'types_etablissements', 'types_etablissement_spe'] },
+    { id: 'structure', libelle: 'Structure Organisationnelle', libelle_en: 'Organizational Structure', icone: 'fas fa-object-group',
+      items: ['unite_organisationnelles', 'fonctions'] },
+    { id: 'contrats', libelle: 'Contrats & Ressources', libelle_en: 'Contracts & Resources', icone: 'fas fa-file-contract',
+      items: ['natures_contrat', 'types_ressource', 'fichiers'] },
+    { id: 'financier', libelle: 'Financier', libelle_en: 'Financial', icone: 'fas fa-money-bill',
+      items: ['devises'] },
+    { id: 'geographie', libelle: 'Géographie & Calendrier', libelle_en: 'Geography & Calendar', icone: 'fas fa-earth-africa',
+      items: ['pays', 'regions', 'departements', 'communes', 'quartiers', 'zones', 'jours_feries'] },
+    { id: 'personnes', libelle: 'Personnes & Événements', libelle_en: 'People & Events', icone: 'fas fa-user-tie',
+      items: ['titres_civilites', 'types_evenement'] },
+];
+
+// Map module -> groupes. Seul le paramétrage est groupé pour l'instant.
+const MENU_GROUPS = {
+    parametrage: PARAMETRAGE_GROUPS,
+};
+
+/**
+ * Normalise un identifiant de menu pour absorber les variations - / _ / pluriel.
+ */
+function normalizeKey(value) {
+    return String(value || '')
+        .toLowerCase()
+        .replace(/[-_]/g, '')
+        .replace(/s$/, '');
+}
+
+// ============================================================================
 // REACTIVE STATE
 // ============================================================================
 
 // Menus expandus (pour mode non-collapsed)
 const expandedMenus = ref([]);
+
+// Sous-groupes expandus (sous-modules, ex: Paramétrage)
+const expandedGroups = ref([]);
 
 // Position du sous-menu popup (pour mode collapsed)
 const submenuPosition = ref({ top: 0, left: 0 });
@@ -403,10 +453,116 @@ function isSubmenuVisible(menuId) {
 // ============================================================================
 
 /**
- * Vérifie si une feature est actuellement active (menu_url correspond à la route actuelle)
+ * Chemin actuel normalisé (sans query string, sans slash final), en minuscules.
+ * Source de vérité : l'URL réelle de la page Inertia.
  */
-function isActiveFeature(menuUrl) {
-    return currentMenu.value === menuUrl;
+const currentPath = computed(() => {
+    const raw = page.url || (typeof window !== 'undefined' ? window.location.pathname : '');
+    const path = String(raw).split('?')[0].replace(/\/+$/, '');
+    return ('/' + path.replace(/^\/+/, '')).toLowerCase();
+});
+
+/**
+ * Convertit un href (absolu ou relatif) en chemin normalisé comparable.
+ */
+function hrefToPath(href) {
+    try {
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+        const path = new URL(href, origin).pathname.replace(/\/+$/, '');
+        return ('/' + path.replace(/^\/+/, '')).toLowerCase();
+    } catch (e) {
+        const path = String(href).split('?')[0].replace(/\/+$/, '');
+        return ('/' + path.replace(/^\/+/, '')).toLowerCase();
+    }
+}
+
+/**
+ * Vérifie si une feature est active en comparant son href réel à l'URL actuelle.
+ * Gère aussi les sous-pages (create / edit / show) via le préfixe.
+ */
+function isActiveFeature(feature, menu) {
+    const target = hrefToPath(getFeatureHref(feature, menu));
+    if (target === '/' || target === '') {
+        return currentPath.value === '/' || currentPath.value === '';
+    }
+    return currentPath.value === target || currentPath.value.startsWith(target + '/');
+}
+
+/**
+ * Vérifie si un menu (parent) contient la feature actuellement active.
+ * Sert à mettre en évidence le menu parent dans la sidebar.
+ */
+function isMenuActive(menu) {
+    const features = menu.fonctionnalitesActives || menu.feature || [];
+    return features.some(feature => isActiveFeature(feature, menu));
+}
+
+// ============================================================================
+// SOUS-GROUPES (sous-modules)
+// ============================================================================
+
+/**
+ * Retourne les sous-groupes d'un module (ex: paramétrage), avec leurs features
+ * filtrées par permission, ou null si le module n'est pas groupé.
+ * Les features non rattachées à un groupe sont placées dans un groupe "Autres".
+ */
+function getMenuGroups(menu) {
+    const groupsDef = MENU_GROUPS[menu.id] || MENU_GROUPS[normalizeKey(menu.id)];
+    if (!groupsDef) return null;
+
+    const features = (menu.fonctionnalitesActives || menu.feature || [])
+        .filter(feature => canAccessFeature(feature));
+    if (features.length === 0) return [];
+
+    const used = new Set();
+    const groups = groupsDef.map(group => {
+        const wanted = group.items.map(normalizeKey);
+        const groupFeatures = features.filter(feature => {
+            const match = wanted.includes(normalizeKey(feature.menu_url));
+            if (match) used.add(feature.menu_url);
+            return match;
+        });
+        return { ...group, features: groupFeatures };
+    }).filter(group => group.features.length > 0);
+
+    // Features non classées -> groupe "Autres"
+    const leftovers = features.filter(feature => !used.has(feature.menu_url));
+    if (leftovers.length > 0) {
+        groups.push({
+            id: '__autres__',
+            libelle: 'Autres',
+            libelle_en: 'Others',
+            icone: 'fas fa-ellipsis',
+            features: leftovers,
+        });
+    }
+
+    return groups;
+}
+
+/**
+ * Un sous-groupe est ouvert s'il est dans la liste, contient la page active,
+ * ou si la sidebar est réduite (popup : tout est visible).
+ */
+function isGroupOpen(menu, group) {
+    if (props.isCollapsed) return true;
+    const key = `${menu.id}:${group.id}`;
+    return expandedGroups.value.includes(key) || isGroupActive(group, menu);
+}
+
+function isGroupActive(group, menu) {
+    return group.features.some(feature => isActiveFeature(feature, menu));
+}
+
+function toggleGroup(menu, group) {
+    if (props.isCollapsed) return;
+    const key = `${menu.id}:${group.id}`;
+    const index = expandedGroups.value.indexOf(key);
+    if (index > -1) {
+        expandedGroups.value.splice(index, 1);
+    } else {
+        expandedGroups.value.push(key);
+    }
 }
 
 /**
@@ -535,13 +691,19 @@ function handleLogout() {
  * Déplier automatiquement le menu parent de la feature actuellement active au chargement
  */
 onMounted(() => {
-    const currentMenuValue = currentMenu.value;
-
-    // Chercher le menu parent du menu actif
+    // Déplier le menu parent contenant la page active (et son sous-groupe).
     menuItems.value.forEach(menu => {
-        const features = menu.fonctionnalitesActives || menu.feature || [];
-        if (features.some(feature => feature.menu_url === currentMenuValue)) {
+        if (isMenuActive(menu)) {
             expandedMenus.value = [menu.id || menu.libelle];
+
+            const groups = getMenuGroups(menu);
+            if (groups) {
+                groups.forEach(group => {
+                    if (isGroupActive(group, menu)) {
+                        expandedGroups.value.push(`${menu.id}:${group.id}`);
+                    }
+                });
+            }
         }
     });
 });
@@ -586,12 +748,16 @@ onMounted(() => {
                         <li
                             v-if="canAccessMenu(menu)"
                             class="menu-item has-submenu"
-                            :class="{ 'open': isSubmenuVisible(menu.id || menu.libelle) }"
+                            :class="{
+                                'open': isSubmenuVisible(menu.id || menu.libelle),
+                                'is-active': isMenuActive(menu)
+                            }"
                             @mouseenter="handleMenuHover(menu.id || menu.libelle, $event)"
                             @mouseleave="handleMenuLeave"
                         >
                             <button
                                 class="menu-link"
+                                :class="{ 'active-parent': isMenuActive(menu) }"
                                 @click="toggleSubmenu(menu.id || menu.libelle)"
                             >
                                 <span class="menu-icon">
@@ -610,22 +776,65 @@ onMounted(() => {
                                     class="submenu"
                                     :style="isCollapsed ? { position: 'fixed', top: submenuPosition.top + 'px', left: submenuPosition.left + 'px' } : {}"
                                 >
-                                    <template v-for="feature in (menu.fonctionnalitesActives || menu.feature || [])" :key="feature.menu_url">
+                                    <!-- Module groupé en sous-modules (ex: Paramétrage) -->
+                                    <template v-if="getMenuGroups(menu)">
                                         <li
-                                            v-if="canAccessFeature(feature)"
-                                            class="submenu-item"
+                                            v-for="group in getMenuGroups(menu)"
+                                            :key="group.id"
+                                            class="submenu-group"
+                                            :class="{ 'open': isGroupOpen(menu, group), 'is-active': isGroupActive(group, menu) }"
                                         >
-                                            <Link
-                                                :href="getFeatureHref(feature, menu)"
-                                                class="submenu-link"
-                                                :class="{ 'active': isActiveFeature(feature.menu_url) }"
+                                            <button
+                                                class="submenu-group-header"
+                                                @click.stop="toggleGroup(menu, group)"
                                             >
-                                                <span class="submenu-icon">
-                                                    <i :class="feature.icone"></i>
-                                                </span>
-                                                <span class="submenu-title">{{ getMenuLabel(feature) }}</span>
-                                            </Link>
+                                                <span class="group-icon"><i :class="group.icone"></i></span>
+                                                <span class="group-title">{{ getMenuLabel(group) }}</span>
+                                                <span class="group-arrow"><i class="fas fa-chevron-down"></i></span>
+                                            </button>
+                                            <ul v-show="isGroupOpen(menu, group)" class="submenu-grouped">
+                                                <li
+                                                    v-for="feature in group.features"
+                                                    :key="feature.menu_url"
+                                                    class="submenu-item"
+                                                >
+                                                    <Link
+                                                        :href="getFeatureHref(feature, menu)"
+                                                        class="submenu-link"
+                                                        :class="{ 'active': isActiveFeature(feature, menu) }"
+                                                    >
+                                                        <span class="submenu-icon">
+                                                            <i :class="feature.icone"></i>
+                                                        </span>
+                                                        <span class="submenu-title">{{ getMenuLabel(feature) }}</span>
+                                                    </Link>
+                                                </li>
+                                            </ul>
                                         </li>
+                                    </template>
+
+                                    <!-- Module plat (sans sous-modules) -->
+                                    <template v-else>
+                                        <template
+                                            v-for="feature in (menu.fonctionnalitesActives || menu.feature || [])"
+                                            :key="feature.menu_url"
+                                        >
+                                            <li
+                                                v-if="canAccessFeature(feature)"
+                                                class="submenu-item"
+                                            >
+                                                <Link
+                                                    :href="getFeatureHref(feature, menu)"
+                                                    class="submenu-link"
+                                                    :class="{ 'active': isActiveFeature(feature, menu) }"
+                                                >
+                                                    <span class="submenu-icon">
+                                                        <i :class="feature.icone"></i>
+                                                    </span>
+                                                    <span class="submenu-title">{{ getMenuLabel(feature) }}</span>
+                                                </Link>
+                                            </li>
+                                        </template>
                                     </template>
                                 </ul>
                             </Transition>
@@ -922,6 +1131,120 @@ onMounted(() => {
 }
 
 .submenu-link.active .submenu-icon { opacity: 1; color: #E5590C; }
+
+/* Parent menu actif (focus : on sait dans quel menu on se trouve) */
+.menu-link.active-parent {
+    color: #fff;
+    background: rgba(229, 89, 12, 0.14);
+    font-weight: 600;
+}
+
+.menu-link.active-parent .menu-icon {
+    color: #E5590C;
+}
+
+/* Barre d'accent à gauche du menu actif */
+.menu-item.has-submenu.is-active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #E5590C;
+}
+
+/* ===== Sous-modules (groupes) ===== */
+.submenu-group {
+    margin: 0;
+    list-style: none;
+}
+
+.submenu-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px 8px 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    text-align: left;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+}
+
+.submenu-group-header:hover {
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.submenu-group.is-active > .submenu-group-header {
+    color: #E5590C;
+}
+
+.group-icon {
+    width: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #E5590C;
+    opacity: 0.8;
+    flex-shrink: 0;
+}
+
+.group-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.group-arrow {
+    font-size: 9px;
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.submenu-group.open > .submenu-group-header .group-arrow {
+    transform: rotate(180deg);
+}
+
+.submenu-grouped {
+    list-style: none;
+    margin: 0 0 4px 0;
+    padding: 0;
+}
+
+/* Indente un peu plus les liens à l'intérieur d'un sous-module */
+.submenu-grouped .submenu-link {
+    padding-left: 52px;
+}
+
+.submenu-grouped .submenu-link::before {
+    left: 34px;
+}
+
+/* En mode réduit (popup), les sous-modules restent lisibles */
+.sidebar.collapsed .submenu-group-header {
+    padding-left: 12px;
+}
+
+.sidebar.collapsed .submenu-grouped .submenu-link {
+    padding-left: 22px;
+}
+
+.sidebar.collapsed .submenu-grouped .submenu-link::before {
+    display: none;
+}
 
 /* Logout */
 .menu-item-logout {

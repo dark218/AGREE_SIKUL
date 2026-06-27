@@ -58,7 +58,7 @@ class MatiereUniteController extends Controller
             $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
             $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::MatiereUnites/Create', [
@@ -119,7 +119,7 @@ class MatiereUniteController extends Controller
             $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
             $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::MatiereUnites/Show', [
@@ -142,7 +142,7 @@ class MatiereUniteController extends Controller
             $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id'])->toArray();
+            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
             $institutions = Institution::orderBy('nom')->get(['id', 'nom as libelle'])->toArray();
 
             return Inertia::render('Parametrage::MatiereUnites/Edit', [
