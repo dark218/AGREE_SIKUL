@@ -40,6 +40,9 @@
     color: white;
     box-shadow: 0 4px 15px rgba(11, 86, 151, 0.2);
     min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .dashboard-header-wrapper .title {
@@ -48,7 +51,9 @@
     color: white;
     margin: 0;
     min-width: 0;
+    flex: 1 1 auto;
     word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .dashboard-btn-wrapper {
@@ -56,6 +61,13 @@
     gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+.dashboard-btn-wrapper .dashboard-btn,
+.dashboard-btn-wrapper .btn {
+    white-space: nowrap;
 }
 
 .dashboard-btn-wrapper .btn-primary {

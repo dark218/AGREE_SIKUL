@@ -55,6 +55,7 @@ const form = reactive({
     nationalite: page.props.apprenant?.nationalite || '',
     sexe: page.props.apprenant?.sexe || '',
     groupe_sanguin: page.props.apprenant?.groupe_sanguin || '',
+    photo: page.props.apprenant?.photo || null,
     classe_id: page.props.apprenant?.classe_id || '',
     section_id: page.props.apprenant?.section_id || '',
     cycle_id: page.props.apprenant?.cycle_id || '',

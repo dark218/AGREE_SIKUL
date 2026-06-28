@@ -126,6 +126,8 @@ onUnmounted(() => {
     flex-direction: column;
     margin-left: 250px;
     min-height: 100vh;
+    min-width: 0;
+    max-width: 100%;
     transition: margin-left 0.3s ease;
 }
 
@@ -136,8 +138,10 @@ onUnmounted(() => {
 .dashboard-content {
     flex: 1;
     padding: 24px;
- 
+    min-width: 0;
+    max-width: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 /* Overlay mobile */

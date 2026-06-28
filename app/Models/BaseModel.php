@@ -82,11 +82,33 @@ abstract class BaseModel extends Model
     }
 
     /**
+     * Ordre par défaut : DESC sur created_at (sauf si le modèle override
+     * via $defaultOrderBy = false ou via une colonne différente).
+     *
+     * Les controllers qui font un orderBy() explicite continueront à
+     * fonctionner — l'orderBy explicite passe AVANT ce scope global.
+     */
+    protected $defaultOrderBy = 'created_at';
+    protected $defaultOrderDir = 'desc';
+
+    /**
      * Boot du modèle
      */
     protected static function boot()
     {
         parent::boot();
+
+        // Global scope : ordonne automatiquement les listes par created_at DESC
+        // pour que les enregistrements récents apparaissent en premier partout.
+        static::addGlobalScope('defaultOrder', function ($builder) {
+            $model = $builder->getModel();
+            $column = $model->defaultOrderBy ?? null;
+            if (!$column) return;
+            $table = $model->getTable();
+            if (\Illuminate\Support\Facades\Schema::hasColumn($table, $column)) {
+                $builder->orderBy($table . '.' . $column, $model->defaultOrderDir ?? 'desc');
+            }
+        });
 
         static::creating(function ($model) {
             $table = $model->getTable();
