@@ -397,9 +397,10 @@ select.search-input:focus {
 }
 
 .custom-table {
-    width: max-content !important;
+    width: 100%;
     min-width: 100%;
     border-collapse: collapse;
+    table-layout: auto;
 }
 
 .custom-table thead {
@@ -419,7 +420,10 @@ select.search-input:focus {
     padding: 15px;
     border-bottom: 1px solid #e2e8f0;
     vertical-align: middle;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 320px;
 }
 
 /* Colonne d'actions - largeur fixe */
@@ -1297,8 +1301,8 @@ textarea:disabled {
     .custom-table {
         display: table !important;
         width: 100% !important;
-        min-width: 600px !important;
-        white-space: nowrap !important;
+        min-width: 0 !important;
+        white-space: normal !important;
         table-layout: auto !important;
     }
 
@@ -1392,7 +1396,7 @@ textarea:disabled {
     }
 
     .custom-table {
-        min-width: 500px !important;
+        min-width: 0 !important;
     }
 
     .custom-table thead th,
@@ -1434,21 +1438,12 @@ textarea:disabled {
     -webkit-overflow-scrolling: touch;
 }
 
-/* 3) Colonne d'actions sticky à droite : reste collée pendant le scroll
-      horizontal pour qu'on puisse toujours cliquer voir/éditer/supprimer. */
+/* 3) Colonne d'actions : largeur minimale, pas de wrap des boutons. */
 .custom-table th.fit,
 .custom-table td.fit {
-    position: sticky;
-    right: 0;
-    background: #fff;
-    z-index: 2;
-    box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.12);
-}
-.custom-table thead th.fit {
-    background: #f1f5f9;
-}
-.custom-table tbody tr:hover td.fit {
-    background: #f8f9fc;
+    width: 1%;
+    white-space: nowrap;
+    max-width: none;
 }
 
 /* 4) Header (titre + bouton "Ajouter") : wrap au lieu de pousser hors écran. */

@@ -141,7 +141,7 @@ onUnmounted(() => {
     min-width: 0;
     max-width: 100%;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 /* Overlay mobile */
