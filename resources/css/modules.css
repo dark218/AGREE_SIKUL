@@ -1374,3 +1374,100 @@ textarea:disabled {
         font-size: 12px !important;
     }
 }
+
+/* ==========================================
+   ✅ RESPONSIVE TABLES — FIX GLOBAL
+   ==========================================
+   Patch global : tableaux scrollables horizontalement quand l'écran est trop
+   petit, header (titre + bouton "Ajouter") qui wrap au lieu de cacher le
+   bouton, colonne d'actions sticky à droite pour rester visible pendant le
+   scroll.
+*/
+
+/* 1) Les flex children doivent pouvoir rétrécir : sans min-width: 0, un
+      enfant en flex refuse de se compresser et fait déborder le parent. */
+.body-wrapper,
+.table-area,
+.table-area > .row,
+.table-area > .row > .col-12,
+.row.m-0,
+.card-body {
+    min-width: 0;
+}
+
+/* 2) Le wrapper de table doit toujours pouvoir scroller horizontalement.
+      .table-area a overflow: visible donc on isole le scroll au wrapper. */
+.table-area .table-wrapper,
+.table-area .table-responsive,
+.table-area .card-body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 3) Colonne d'actions sticky à droite : reste collée pendant le scroll
+      horizontal pour qu'on puisse toujours cliquer voir/éditer/supprimer. */
+.custom-table th.fit,
+.custom-table td.fit {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    z-index: 2;
+    box-shadow: -6px 0 8px -6px rgba(0, 0, 0, 0.12);
+}
+.custom-table thead th.fit {
+    background: #f1f5f9;
+}
+.custom-table tbody tr:hover td.fit {
+    background: #f8f9fc;
+}
+
+/* 4) Header (titre + bouton "Ajouter") : wrap au lieu de pousser hors écran. */
+.dashboard-header-wrapper {
+    flex-wrap: wrap;
+    gap: 12px;
+    row-gap: 12px;
+}
+.dashboard-btn-wrapper {
+    flex-wrap: wrap;
+}
+
+/* 5) Boutons d'actions plus compacts sur les petits écrans pour éviter
+      de saturer la dernière colonne. */
+@media (max-width: 768px) {
+    .action-buttons {
+        gap: 3px;
+    }
+    .action-buttons .btn {
+        padding: 3px 6px;
+        min-width: 26px;
+        height: 26px;
+        font-size: 11px;
+    }
+    .action-buttons .btn i {
+        font-size: 10px;
+    }
+    /* Sticky désactivé sur très petit écran : sinon ça grignote trop
+       l'espace de lecture des autres colonnes. */
+    .custom-table th.fit,
+    .custom-table td.fit {
+        position: static;
+        box-shadow: none;
+    }
+}
+
+/* 6) Sur très petit écran : bouton "Ajouter" en pleine largeur pour rester
+      proprement et reste accessible. */
+@media (max-width: 576px) {
+    .dashboard-header-wrapper .dashboard-btn-wrapper,
+    .dashboard-header-wrapper .dashboard-btn,
+    .dashboard-btn-wrapper .btn-primary {
+        width: 100%;
+    }
+    .dashboard-btn-wrapper .btn-primary {
+        justify-content: center;
+        display: flex;
+    }
+}
