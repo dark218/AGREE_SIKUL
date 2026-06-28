@@ -40,7 +40,7 @@ class AbsenceEnseignant extends BaseModel
 
     public function matiere(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Parametrage\Entities\Matiere::class, 'matiere_id');
+        return $this->belongsTo(\Modules\Academique\Entities\Matiere::class, 'matiere_id');
     }
 
     public function classe(): BelongsTo

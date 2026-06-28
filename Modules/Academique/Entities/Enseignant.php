@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, Matiere, Niveau, CycleEnseignement, Classe};
+use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, Niveau, CycleEnseignement, Classe};
+use Modules\Academique\Entities\Matiere;
 
 class Enseignant extends BaseModel
 {
