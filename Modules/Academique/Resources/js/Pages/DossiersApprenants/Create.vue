@@ -17,16 +17,14 @@ const toggleCollapse = () => {
 const props = defineProps({
     title: String,
     apprenants: Array,
-});
-
-console.log('🔍 DossierApprenantCreate - Props:', {
-    title: props.title,
-    apprenants_count: props.apprenants?.length || 0,
-    apprenants_sample: props.apprenants?.slice(0, 3),
+    prefill: {
+        type: Object,
+        default: null,
+    },
 });
 
 const form = useForm({
-    apprenant_id: null,
+    apprenant_id: props.prefill?.id ?? null,
     extrait_naissance: null,
     certificat_residence: null,
     carnet_sante: null,
@@ -65,6 +63,12 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
+                            <div v-if="prefill" class="alert alert-info d-flex align-items-center mb-3">
+                                <i class="fa fa-info-circle me-2"></i>
+                                <div>
+                                    <strong>Apprenant pré-sélectionné&nbsp;:</strong> {{ prefill.libelle }}
+                                </div>
+                            </div>
                             <form @submit.prevent="submitForm">
                                 <DossierApprenantForm
                                     :form="form"

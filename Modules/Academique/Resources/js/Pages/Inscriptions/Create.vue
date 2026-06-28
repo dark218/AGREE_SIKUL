@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -40,15 +40,19 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    prefill: {
+        type: Object,
+        default: null,
+    },
 });
 const form = useForm({
-    apprenant_id: null,
-    classe_id: null,
+    apprenant_id: props.prefill?.id ?? null,
+    classe_id: props.prefill?.classe_id ?? null,
     annee_scolaire_id: null,
-    ecole_id: null,
-    campus_id: null,
+    ecole_id: props.prefill?.ecole_id ?? null,
+    campus_id: props.prefill?.campus_id ?? null,
     institution_id: null,
-    numero_inscription: '',
+    numero_inscription: props.prefill?.numero_inscription ?? '',
     date_inscription: '',
     type_inscription: 'nouveau',
     statut: 'en_attente',
@@ -101,6 +105,13 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
+                            <div v-if="prefill" class="alert alert-info d-flex align-items-center mb-3">
+                                <i class="fa fa-info-circle me-2"></i>
+                                <div>
+                                    <strong>Apprenant pré-sélectionné&nbsp;:</strong> {{ prefill.libelle }}
+                                    — les champs liés à sa scolarité ont été pré-remplis.
+                                </div>
+                            </div>
                             <form @submit.prevent="submitForm">
                                 <InscriptionForm
                                     :form="form"

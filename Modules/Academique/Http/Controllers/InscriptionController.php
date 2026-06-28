@@ -70,7 +70,7 @@ class InscriptionController extends Controller
         }
     }
 
-    public function create()
+    public function create(Request $request)
     {
         try {
             \Log::info('InscriptionController::create - Starting');
@@ -130,6 +130,13 @@ class InscriptionController extends Controller
 
             \Log::info('InscriptionController::create - Rendering Create page');
 
+            // Préfill depuis ?apprenant_id=X (provenance: liste apprenants ou bouton "Enregistrer et inscrire")
+            $prefill = null;
+            if ($request->filled('apprenant_id')) {
+                $aid = (int) $request->input('apprenant_id');
+                $prefill = collect($apprenants)->firstWhere('id', $aid);
+            }
+
             return Inertia::render('Academique::Inscriptions/Create', [
                 'title' => __('actions.create'),
                 'apprenants' => $apprenants,
@@ -138,6 +145,7 @@ class InscriptionController extends Controller
                 'ecoles' => $ecoles,
                 'campuses' => $campuses,
                 'institutions' => $institutions,
+                'prefill' => $prefill,
             ]);
         } catch (\Throwable $th) {
             \Log::error('InscriptionController::create ERROR: ' . $th->getMessage());

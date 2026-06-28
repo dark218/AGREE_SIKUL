@@ -140,6 +140,17 @@ class ApprenantController extends Controller
             $apprenant = Apprenant::create($validated);
             \Log::info('Apprenant created successfully!', ['apprenant_id' => $apprenant->id]);
 
+            // Redirection conditionnelle selon le bouton cliqué
+            $next = $request->input('next_action');
+            if ($next === 'inscription') {
+                return redirect()->route('academique.inscriptions.create', ['apprenant_id' => $apprenant->id])
+                    ->with('success', __('messages.created_successfully') . ' — ' . ($apprenant->prenoms . ' ' . $apprenant->nom) . ' : passez à l\'inscription.');
+            }
+            if ($next === 'dossier') {
+                return redirect()->route('academique.dossiers_apprenants.create', ['apprenant_id' => $apprenant->id])
+                    ->with('success', __('messages.created_successfully') . ' — ' . ($apprenant->prenoms . ' ' . $apprenant->nom) . ' : complétez son dossier.');
+            }
+
             return redirect()->route('academique.apprenants.index')
                 ->with('success', __('messages.created_successfully'));
 

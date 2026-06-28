@@ -199,6 +199,20 @@ watch(
                                                     <Link :href="route('academique.apprenants.edit', item.id)" class="btn btn-primary" :title="t('actions.edit')">
                                                         <span class="fa fa-edit"></span>
                                                     </Link>
+                                                    <Link
+                                                        :href="route('academique.inscriptions.create', { apprenant_id: item.id })"
+                                                        class="btn btn-success"
+                                                        title="Inscrire cet apprenant"
+                                                    >
+                                                        <span class="fa fa-user-check"></span>
+                                                    </Link>
+                                                    <Link
+                                                        :href="route('academique.dossiers_apprenants.create', { apprenant_id: item.id })"
+                                                        class="btn btn-info text-white"
+                                                        title="Dossier de l'apprenant"
+                                                    >
+                                                        <span class="fa fa-folder-open"></span>
+                                                    </Link>
                                                     <button @click="confirmDelete(item)" class="btn btn-danger" :title="t('actions.delete')">
                                                         <span class="fa fa-trash"></span>
                                                     </button>
@@ -249,6 +263,20 @@ watch(
                                             </Link>
                                             <Link :href="route('academique.apprenants.edit', item.id)" class="btn btn-primary btn-sm" :title="t('actions.edit')">
                                                 <span class="fa fa-edit"></span>
+                                            </Link>
+                                            <Link
+                                                :href="route('academique.inscriptions.create', { apprenant_id: item.id })"
+                                                class="btn btn-success btn-sm"
+                                                title="Inscrire"
+                                            >
+                                                <span class="fa fa-user-check"></span>
+                                            </Link>
+                                            <Link
+                                                :href="route('academique.dossiers_apprenants.create', { apprenant_id: item.id })"
+                                                class="btn btn-info text-white btn-sm"
+                                                title="Dossier"
+                                            >
+                                                <span class="fa fa-folder-open"></span>
                                             </Link>
                                             <button @click="confirmDelete(item)" class="btn btn-danger btn-sm" :title="t('actions.delete')">
                                                 <span class="fa fa-trash"></span>

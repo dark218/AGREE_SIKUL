@@ -72,7 +72,7 @@ class DossierApprenantController extends Controller
         }
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $apprenants = Apprenant::with('user')
             ->get(['id', 'user_id', 'matricule', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id'])
@@ -94,14 +94,17 @@ class DossierApprenantController extends Controller
                 ];
             })->values()->toArray();
 
-        \Log::info('DEBUG DossierApprenant::create - Apprenants:', [
-            'count' => count($apprenants),
-            'sample' => array_slice($apprenants, 0, 3),
-        ]);
+        // Préfill depuis ?apprenant_id=X
+        $prefill = null;
+        if ($request->filled('apprenant_id')) {
+            $aid = (int) $request->input('apprenant_id');
+            $prefill = collect($apprenants)->firstWhere('id', $aid);
+        }
 
         return Inertia::render('Academique::DossiersApprenants/Create', [
             'title' => 'Nouveau Dossier Apprenant',
             'apprenants' => $apprenants,
+            'prefill' => $prefill,
         ]);
     }
 

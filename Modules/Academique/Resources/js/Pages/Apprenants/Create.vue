@@ -133,48 +133,35 @@ const form = useForm({
     motif_depart_ecole: '',
     // Section 8: Statut
     statut: 'actif',
+    // Action après save : null | 'inscription' | 'dossier'
+    next_action: null,
 });
 
-const submitForm = () => {
-    console.log('=== CREATE FORM SUBMIT ===');
-    console.log('Form data:', form.data());
-
+const submitForm = (nextAction = null) => {
     // Validation stricte des champs obligatoires
     if (!form.nom || !form.nom.trim()) {
         alert('❌ Le nom est obligatoire!');
-        console.error('Validation failed: nom is required');
         return;
     }
     if (!form.prenoms || !form.prenoms.trim()) {
         alert('❌ Les prénoms sont obligatoires!');
-        console.error('Validation failed: prenoms is required');
         return;
     }
     if (!form.matricule || !form.matricule.trim()) {
         alert('❌ Le matricule est obligatoire!');
-        console.error('Validation failed: matricule is required');
         return;
     }
 
+    form.next_action = nextAction;
+
     showStoreLoader();
     form.post(route('academique.apprenants.store'), {
-        onStart: () => {
-            console.log('[FORM] Request started');
+        onSuccess: () => {
+            setTimeout(() => hideLoader(), 500);
         },
-        onSuccess: (response) => {
-            console.log('[FORM] Success!', response);
-            setTimeout(() => {
-                hideLoader();
-            }, 500);
-        },
-        onError: (errors) => {
-            console.error('[FORM] Error!', errors);
-            console.error('[FORM] Form errors:', form.errors);
+        onError: () => {
             hideLoader();
         },
-        onFinish: () => {
-            console.log('[FORM] Request finished');
-        }
     });
 };
 </script>
@@ -198,7 +185,7 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <form @submit.prevent="submitForm()">
                                 <ApprenantForm
                                     :form="form"
                                     :classes="classes"
@@ -219,7 +206,7 @@ const submitForm = () => {
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
+                                        <div class="text-end d-flex flex-wrap gap-2 justify-content-end">
                                             <Link :href="route('academique.apprenants.index')" class="btn btn-danger">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
@@ -227,9 +214,30 @@ const submitForm = () => {
                                                 type="submit"
                                                 class="btn btn-primary"
                                                 :disabled="form.processing"
+                                                title="Enregistrer et retourner à la liste"
                                             >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
+                                                <span v-if="form.processing && form.next_action === null" class="spinner-border spinner-border-sm me-2"></span>
                                                 <i class="fa fa-save"></i> {{ t('actions.validate') }}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-success"
+                                                :disabled="form.processing"
+                                                title="Enregistrer puis passer directement à l'inscription"
+                                                @click="submitForm('inscription')"
+                                            >
+                                                <span v-if="form.processing && form.next_action === 'inscription'" class="spinner-border spinner-border-sm me-2"></span>
+                                                <i class="fa fa-user-check"></i> Enregistrer et inscrire
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="btn btn-info text-white"
+                                                :disabled="form.processing"
+                                                title="Enregistrer puis remplir le dossier de l'apprenant"
+                                                @click="submitForm('dossier')"
+                                            >
+                                                <span v-if="form.processing && form.next_action === 'dossier'" class="spinner-border spinner-border-sm me-2"></span>
+                                                <i class="fa fa-folder-open"></i> Enregistrer et dossier
                                             </button>
                                         </div>
                                     </div>
