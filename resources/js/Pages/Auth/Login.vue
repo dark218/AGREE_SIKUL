@@ -27,7 +27,7 @@ const { t } = useI18n();
 const phoneInput = ref(null);
 const passwordInput = ref(null);
 
-const currentStep = ref(0); // 0 = portal, 1 = phone, 2 = password
+const currentStep = ref(0); // 0 = portal, 1 = formulaire complet (pays + tel + mot de passe)
 const showPassword = ref(false);
 const localError = ref(null);
 const fcmToken = ref(null);
@@ -157,35 +157,6 @@ function selectPortal(portal) {
     });
 }
 
-function goToStep2() {
-    if (!form.country_code.trim()) {
-        localError.value = 'Veuillez sélectionner un pays';
-        return;
-    }
-
-    if (!form.full_login.trim()) {
-        localError.value = 'Veuillez renseigner votre numéro de téléphone';
-        return;
-    }
-
-    localError.value = null;
-    currentStep.value = 2;
-
-    nextTick(() => {
-        passwordInput.value?.focus();
-    });
-}
-
-function goToStep1() {
-    currentStep.value = 1;
-    localError.value = null;
-    form.clearErrors();
-
-    nextTick(() => {
-        phoneInput.value?.focus();
-    });
-}
-
 function goToPortals() {
     currentStep.value = 0;
     localError.value = null;
@@ -195,6 +166,14 @@ function goToPortals() {
 }
 
 function handleSubmit() {
+    if (!form.country_code.trim()) {
+        localError.value = 'Veuillez sélectionner un pays';
+        return;
+    }
+    if (!form.full_login.trim()) {
+        localError.value = 'Veuillez renseigner votre numéro de téléphone';
+        return;
+    }
     if (!form.password.trim()) {
         localError.value = 'Veuillez renseigner votre mot de passe';
         return;
@@ -371,8 +350,8 @@ onMounted(() => {
                     </transition>
 
                     <form @submit.prevent="handleSubmit" class="login-form">
-                        <!-- STEP 1: PHONE -->
-                        <div v-show="currentStep === 1" class="form-step">
+                        <div class="form-step">
+                            <!-- Pays -->
                             <div class="form-group">
                                 <label><i class="bx bx-globe me-1"></i> Pays</label>
                                 <SearchableSelect
@@ -386,6 +365,7 @@ onMounted(() => {
                                 />
                             </div>
 
+                            <!-- Téléphone -->
                             <div class="form-group">
                                 <label><i class="bx bx-phone me-1"></i> Numéro de téléphone</label>
                                 <input
@@ -400,18 +380,7 @@ onMounted(() => {
                                 <small class="form-helper">Numéro sans l'indicatif pays</small>
                             </div>
 
-                            <button type="button" @click="goToStep2" class="btn-login" :style="{ background: selectedPortal?.gradient }">
-                                <span>Continuer</span>
-                                <i class="bx bx-right-arrow-alt"></i>
-                            </button>
-                        </div>
-
-                        <!-- STEP 2: PASSWORD -->
-                        <div v-show="currentStep === 2" class="form-step">
-                            <button type="button" @click="goToStep1" class="btn-back">
-                                <i class="bx bx-arrow-back"></i> Retour
-                            </button>
-
+                            <!-- Mot de passe -->
                             <div class="form-group">
                                 <label><i class="bx bx-lock-alt me-1"></i> Mot de passe</label>
                                 <div class="password-wrapper">
