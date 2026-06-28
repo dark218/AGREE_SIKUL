@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Academique\Entities\Enseignant;
 use App\Models\User;
-use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, Matiere, Niveau, CycleEnseignement, Classe};
+use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, Niveau, CycleEnseignement, Classe};
+use Modules\Academique\Entities\Matiere;
 
 class EnseignantController extends Controller
 {

@@ -75,7 +75,7 @@ class DossierApprenantController extends Controller
     public function create()
     {
         $apprenants = Apprenant::with('user')
-            ->get(['id', 'user_id', 'matricule', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id'])
+            ->get(['id', 'user_id', 'matricule', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id'])
             ->map(function ($apprenant) {
                 if ($apprenant->user) {
                     $name = $apprenant->user->prenoms . ' ' . $apprenant->user->nom;
@@ -88,10 +88,9 @@ class DossierApprenantController extends Controller
                     'classe_id' => $apprenant->classe_id,
                     'ecole_id' => $apprenant->ecole_id,
                     'campus_id' => $apprenant->campus_id,
-                    'niveau_id' => $apprenant->niveau_id,
                     'section_id' => $apprenant->section_id,
                     'cycle_id' => $apprenant->cycle_id,
-                    'pays_id' => $apprenant->pays_id,
+                    'pays_id' => $apprenant->pays_residence_id,
                 ];
             })->values()->toArray();
 

@@ -78,7 +78,7 @@ class NoteController extends Controller
             \Log::info('🔍 NoteController::create() called');
 
             $apprenants = Apprenant::with('user')->whereNull('deleted_at')
-                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->user
@@ -87,10 +87,9 @@ class NoteController extends Controller
                 'classe_id' => $a->classe_id,
                 'ecole_id' => $a->ecole_id,
                 'campus_id' => $a->campus_id,
-                'niveau_id' => $a->niveau_id,
                 'section_id' => $a->section_id,
                 'cycle_id' => $a->cycle_id,
-                'pays_id' => $a->pays_id,
+                'pays_id' => $a->pays_residence_id,
             ])->toArray();
 
             $evaluations = Evaluation::whereNull('deleted_at')->select('id', 'titre')->get()->map(fn($e) => [
@@ -234,7 +233,7 @@ class NoteController extends Controller
             $note->load('evaluation', 'apprenant.user', 'anneeScolaire', 'section', 'cycle', 'classe', 'ecole', 'campus', 'periode', 'natureExamen', 'typeExamen', 'matiere', 'groupe', 'enseignant.user');
 
             $apprenants = Apprenant::with('user')->whereNull('deleted_at')
-                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->user
@@ -243,10 +242,9 @@ class NoteController extends Controller
                 'classe_id' => $a->classe_id,
                 'ecole_id' => $a->ecole_id,
                 'campus_id' => $a->campus_id,
-                'niveau_id' => $a->niveau_id,
                 'section_id' => $a->section_id,
                 'cycle_id' => $a->cycle_id,
-                'pays_id' => $a->pays_id,
+                'pays_id' => $a->pays_residence_id,
             ])->toArray();
 
             $evaluations = Evaluation::whereNull('deleted_at')->select('id', 'titre')->get()->map(fn($e) => [
@@ -340,7 +338,7 @@ class NoteController extends Controller
     {
         try {
             $apprenants = Apprenant::with('user')->whereNull('deleted_at')
-                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'matricule', 'user_id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->user
@@ -349,10 +347,9 @@ class NoteController extends Controller
                 'classe_id' => $a->classe_id,
                 'ecole_id' => $a->ecole_id,
                 'campus_id' => $a->campus_id,
-                'niveau_id' => $a->niveau_id,
                 'section_id' => $a->section_id,
                 'cycle_id' => $a->cycle_id,
-                'pays_id' => $a->pays_id,
+                'pays_id' => $a->pays_residence_id,
             ])->toArray();
 
             $evaluations = Evaluation::whereNull('deleted_at')->select('id', 'titre')->get()->map(fn($e) => [

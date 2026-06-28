@@ -53,13 +53,13 @@ class PresencesController extends Controller
     {
         try {
             $apprenants = Apprenant::whereNull('deleted_at')->with('user')
-                ->select('id', 'user_id', 'matricule', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'user_id', 'matricule', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()
                 ->map(fn($a) => [
                     'id' => $a->id,
                     'libelle' => ($a->user?->prenoms ?? '') . ' ' . ($a->user?->nom ?? '') . ' (' . $a->matricule . ')',
                     'classe_id' => $a->classe_id, 'ecole_id' => $a->ecole_id, 'campus_id' => $a->campus_id,
-                    'niveau_id' => $a->niveau_id, 'section_id' => $a->section_id, 'cycle_id' => $a->cycle_id, 'pays_id' => $a->pays_id,
+                    'section_id' => $a->section_id, 'cycle_id' => $a->cycle_id, 'pays_id' => $a->pays_residence_id,
                 ])->toArray();
 
             $seances = Seance::whereNull('deleted_at')->with('cours:id,titre')
@@ -109,13 +109,13 @@ class PresencesController extends Controller
             $presence->load('apprenant.user', 'seance.cours');
 
             $apprenants = Apprenant::whereNull('deleted_at')->with('user')
-                ->select('id', 'user_id', 'matricule', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'user_id', 'matricule', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()
                 ->map(fn($a) => [
                     'id' => $a->id,
                     'libelle' => ($a->user?->prenoms ?? '') . ' ' . ($a->user?->nom ?? '') . ' (' . $a->matricule . ')',
                     'classe_id' => $a->classe_id, 'ecole_id' => $a->ecole_id, 'campus_id' => $a->campus_id,
-                    'niveau_id' => $a->niveau_id, 'section_id' => $a->section_id, 'cycle_id' => $a->cycle_id, 'pays_id' => $a->pays_id,
+                    'section_id' => $a->section_id, 'cycle_id' => $a->cycle_id, 'pays_id' => $a->pays_residence_id,
                 ])->toArray();
 
             $seances = Seance::whereNull('deleted_at')->with('cours:id,titre')
@@ -144,13 +144,13 @@ class PresencesController extends Controller
             $presence->load('apprenant.user', 'seance.cours');
 
             $apprenants = Apprenant::whereNull('deleted_at')->with('user')
-                ->select('id', 'user_id', 'matricule', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'user_id', 'matricule', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()
                 ->map(fn($a) => [
                     'id' => $a->id,
                     'libelle' => ($a->user?->prenoms ?? '') . ' ' . ($a->user?->nom ?? '') . ' (' . $a->matricule . ')',
                     'classe_id' => $a->classe_id, 'ecole_id' => $a->ecole_id, 'campus_id' => $a->campus_id,
-                    'niveau_id' => $a->niveau_id, 'section_id' => $a->section_id, 'cycle_id' => $a->cycle_id, 'pays_id' => $a->pays_id,
+                    'section_id' => $a->section_id, 'cycle_id' => $a->cycle_id, 'pays_id' => $a->pays_residence_id,
                 ])->toArray();
 
             $seances = Seance::whereNull('deleted_at')->with('cours:id,titre')

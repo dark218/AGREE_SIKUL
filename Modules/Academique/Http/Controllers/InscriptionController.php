@@ -76,7 +76,7 @@ class InscriptionController extends Controller
             \Log::info('InscriptionController::create - Starting');
 
             $apprenants = Apprenant::with('user')
-                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()
                 ->map(function ($apprenant) {
                     if ($apprenant->user) {
@@ -92,10 +92,9 @@ class InscriptionController extends Controller
                         'classe_id' => $apprenant->classe_id,
                         'ecole_id' => $apprenant->ecole_id,
                         'campus_id' => $apprenant->campus_id,
-                        'niveau_id' => $apprenant->niveau_id,
                         'section_id' => $apprenant->section_id,
                         'cycle_id' => $apprenant->cycle_id,
-                        'pays_id' => $apprenant->pays_id,
+                        'pays_id' => $apprenant->pays_residence_id,
                     ];
                 })->values()->toArray();
 
@@ -210,7 +209,7 @@ class InscriptionController extends Controller
             ]);
 
             $apprenants = Apprenant::with('user')
-                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()
                 ->map(function ($apprenant) {
                     if ($apprenant->user) {
@@ -226,10 +225,9 @@ class InscriptionController extends Controller
                         'classe_id' => $apprenant->classe_id,
                         'ecole_id' => $apprenant->ecole_id,
                         'campus_id' => $apprenant->campus_id,
-                        'niveau_id' => $apprenant->niveau_id,
                         'section_id' => $apprenant->section_id,
                         'cycle_id' => $apprenant->cycle_id,
-                        'pays_id' => $apprenant->pays_id,
+                        'pays_id' => $apprenant->pays_residence_id,
                     ];
                 })->values()->toArray();
 
@@ -277,7 +275,7 @@ class InscriptionController extends Controller
             ]);
 
             $apprenants = Apprenant::with('user')
-                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'pays_id')
+                ->select('id', 'user_id', 'matricule', 'numero_inscription', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'pays_residence_id')
                 ->get()
                 ->map(function ($apprenant) {
                     if ($apprenant->user) {
@@ -293,10 +291,9 @@ class InscriptionController extends Controller
                         'classe_id' => $apprenant->classe_id,
                         'ecole_id' => $apprenant->ecole_id,
                         'campus_id' => $apprenant->campus_id,
-                        'niveau_id' => $apprenant->niveau_id,
                         'section_id' => $apprenant->section_id,
                         'cycle_id' => $apprenant->cycle_id,
-                        'pays_id' => $apprenant->pays_id,
+                        'pays_id' => $apprenant->pays_residence_id,
                     ];
                 })->values()->toArray();
 
