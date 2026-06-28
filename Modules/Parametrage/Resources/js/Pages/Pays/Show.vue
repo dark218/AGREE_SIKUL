@@ -81,7 +81,7 @@ const { title, pays } = defineProps({
                         </div>
 
                         <div class="card-footer bg-light">
-                            <Link href="#" @click.prevent="$router.back()" class="btn btn-secondary">
+                            <Link :href="route('parametrage.pays.index')" class="btn btn-secondary">
                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') || 'Retour' }}
                             </Link>
                             <Link :href="route('parametrage.pays.edit', pays.id)" class="btn btn-primary">

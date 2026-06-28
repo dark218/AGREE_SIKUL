@@ -81,9 +81,11 @@ const form = useForm({
 
 const submitForm = () => {
     showStoreLoader(t('common.saving'));
+    // Method spoofing : Laravel/Inertia ne supporte pas PUT en multipart →
+    // on passe par POST avec _method = 'put' sur le form lui-même.
+    form._method = 'put';
     form.post(route('academique.enseignants.update', props.enseignant.id), {
-        _method: 'put',
-        multipart: true,
+        forceFormData: true,
         onSuccess: () => hideLoader(),
         onError: () => hideLoader(),
     });
