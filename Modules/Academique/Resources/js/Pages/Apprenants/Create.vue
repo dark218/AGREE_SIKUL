@@ -88,6 +88,7 @@ const form = useForm({
     nationalite: '',
     sexe: '',
     groupe_sanguin: '',
+    photo: null,
     // Section 2: Scolarité
     classe_id: '',
     section_id: '',
@@ -156,6 +157,7 @@ const submitForm = (nextAction = null) => {
 
     showStoreLoader();
     form.post(route('academique.apprenants.store'), {
+        forceFormData: true,
         onSuccess: () => {
             setTimeout(() => hideLoader(), 500);
         },

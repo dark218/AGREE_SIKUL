@@ -5,8 +5,44 @@ import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
 import { useClasseAutoFill } from '../../composables/useClasseAutoFill';
 import { useGeoCascade } from '@/Composables/useGeoCascade';
+import { ref } from 'vue';
 
 const { t } = useI18n();
+
+const photoPreview = ref(null);
+const photoInputRef = ref(null);
+
+const onPhotoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        alert('Veuillez sélectionner une image (JPG, PNG, etc.)');
+        e.target.value = '';
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        alert('La photo ne doit pas dépasser 5 Mo.');
+        e.target.value = '';
+        return;
+    }
+    props.form.photo = file;
+    const reader = new FileReader();
+    reader.onload = (ev) => { photoPreview.value = ev.target.result; };
+    reader.readAsDataURL(file);
+};
+
+const clearPhoto = () => {
+    props.form.photo = null;
+    photoPreview.value = null;
+    if (photoInputRef.value) photoInputRef.value.value = '';
+};
+
+const photoUrl = (path) => {
+    if (!path) return null;
+    if (typeof path !== 'string') return null;
+    if (path.startsWith('http')) return path;
+    return '/storage/' + path.replace(/^\/+/, '');
+};
 
 const props = defineProps({
     form: {
@@ -133,6 +169,50 @@ const age = computed(() => {
         <!-- SECTION 1: IDENTITÉ -->
         <div class="col-12">
             <h5 class="section-title">{{ t('fields.identity') || 'Identité' }}</h5>
+        </div>
+
+        <!-- Photo de l'apprenant -->
+        <div class="col-12">
+            <div class="mb-3 photo-upload-block">
+                <label class="d-block fw-medium mb-2">
+                    <i class="fa fa-camera me-1 text-primary"></i>
+                    {{ t('fields.photo') || 'Photo de l\'apprenant' }}
+                    <small class="text-muted ms-2">(utilisée pour les cartes apprenant et certificats de scolarité)</small>
+                </label>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Aperçu -->
+                    <div class="photo-preview">
+                        <img v-if="photoPreview" :src="photoPreview" alt="Aperçu" />
+                        <img v-else-if="typeof form.photo === 'string' && form.photo" :src="photoUrl(form.photo)" alt="Photo actuelle" />
+                        <div v-else class="photo-placeholder">
+                            <i class="fa fa-user"></i>
+                        </div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="d-flex flex-column gap-2">
+                        <input
+                            ref="photoInputRef"
+                            type="file"
+                            accept="image/*"
+                            class="form-control"
+                            :disabled="isReadOnly"
+                            @change="onPhotoChange"
+                        />
+                        <small class="text-muted">JPG, PNG ou WEBP — max 5 Mo</small>
+                        <button
+                            v-if="(photoPreview || (typeof form.photo === 'string' && form.photo)) && !isReadOnly"
+                            type="button"
+                            class="btn btn-sm btn-outline-danger align-self-start"
+                            @click="clearPhoto"
+                        >
+                            <i class="fa fa-times"></i> Retirer la photo
+                        </button>
+                    </div>
+                </div>
+                <span v-if="form.errors?.photo" class="text-danger d-block mt-1">
+                    <strong>{{ form.errors.photo }}</strong>
+                </span>
+            </div>
         </div>
 
         <!-- Nom -->
@@ -1068,5 +1148,34 @@ const age = computed(() => {
     color: #333;
     border-bottom: 2px solid #007bff;
     padding-bottom: 0.5rem;
+}
+
+.photo-upload-block {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 16px 18px;
+}
+
+.photo-preview {
+    width: 110px;
+    height: 130px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.photo-placeholder {
+    color: #cbd5e1;
+    font-size: 42px;
 }
 </style>

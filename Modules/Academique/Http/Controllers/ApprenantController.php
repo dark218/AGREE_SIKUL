@@ -96,6 +96,7 @@ class ApprenantController extends Controller
                 'sexe' => 'nullable|in:M,F',
                 'nationalite' => 'nullable|string|max:100',
                 'groupe_sanguin' => 'nullable|string|max:10',
+                'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
                 'adresse' => 'nullable|string|max:255',
                 'classe_id' => 'nullable|exists:classes,id',
                 'section_id' => 'nullable|exists:sections,id',
@@ -136,6 +137,13 @@ class ApprenantController extends Controller
             ]);
 
             \Log::info('Validation passed!', ['validated_data' => $validated]);
+
+            // Upload de la photo si présent
+            if ($request->hasFile('photo')) {
+                $validated['photo'] = $request->file('photo')->store('apprenants/photos', 'public');
+            } else {
+                unset($validated['photo']);
+            }
 
             $apprenant = Apprenant::create($validated);
             \Log::info('Apprenant created successfully!', ['apprenant_id' => $apprenant->id]);
@@ -256,6 +264,7 @@ class ApprenantController extends Controller
                 'sexe' => 'nullable|in:M,F',
                 'nationalite' => 'nullable|string|max:100',
                 'groupe_sanguin' => 'nullable|string|max:10',
+                'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
                 'adresse' => 'nullable|string|max:255',
                 'classe_id' => 'nullable|exists:classes,id',
                 'section_id' => 'nullable|exists:sections,id',
@@ -294,6 +303,17 @@ class ApprenantController extends Controller
                 'motif_depart_ecole' => 'nullable|string|max:500',
                 'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne',
             ]);
+
+            // Upload de la nouvelle photo : remplace l'ancienne et supprime le fichier
+            if ($request->hasFile('photo')) {
+                if ($apprenant->photo && \Storage::disk('public')->exists($apprenant->photo)) {
+                    \Storage::disk('public')->delete($apprenant->photo);
+                }
+                $validated['photo'] = $request->file('photo')->store('apprenants/photos', 'public');
+            } else {
+                // Pas de nouveau fichier → on ne touche pas au champ photo existant
+                unset($validated['photo']);
+            }
 
             $apprenant->update($validated);
 

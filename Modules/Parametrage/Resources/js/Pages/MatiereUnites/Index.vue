@@ -181,6 +181,8 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
+                                        <th>{{ t('fields.niveau') || 'Niveau' }}</th>
+                                        <th>{{ t('fields.ecole') || 'École' }}</th>
                                         <th>{{ t('fields.coefficient') || 'Coef' }}</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
@@ -191,6 +193,8 @@ watch(
                                         <tr v-for="matiereUnite in matiereUnites?.data" :key="matiereUnite.id">
                                             <td>{{ matiereUnite.code || '' }}</td>
                                             <td>{{ matiereUnite.libelle || '' }}</td>
+                                            <td>{{ matiereUnite.niveau?.libelle || '-' }}</td>
+                                            <td>{{ matiereUnite.ecole?.nom || '-' }}</td>
                                             <td>{{ matiereUnite.coefficient || '-' }}</td>
                                             <td><span class="badge" :class="matiereUnite.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + matiereUnite.etat) }}</span></td>
                                             <td class="fit">
@@ -215,7 +219,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="5" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="7" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -232,6 +236,14 @@ watch(
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.label') || 'Libellé' }}</span>
                                             <span class="mobile-card-value">{{ matiereUnite.libelle || '-' }}</span>
+                                        </div>
+                                        <div class="mobile-card-row">
+                                            <span class="mobile-card-label">{{ t('fields.niveau') || 'Niveau' }}</span>
+                                            <span class="mobile-card-value">{{ matiereUnite.niveau?.libelle || '-' }}</span>
+                                        </div>
+                                        <div class="mobile-card-row">
+                                            <span class="mobile-card-label">{{ t('fields.ecole') || 'École' }}</span>
+                                            <span class="mobile-card-value">{{ matiereUnite.ecole?.nom || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.coefficient') || 'Coef' }}</span>

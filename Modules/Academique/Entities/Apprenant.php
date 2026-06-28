@@ -31,6 +31,7 @@ class Apprenant extends BaseModel
         'sexe',
         'nationalite',
         'groupe_sanguin',
+        'photo',
         'adresse',
         'classe_id',
         'section_id',
