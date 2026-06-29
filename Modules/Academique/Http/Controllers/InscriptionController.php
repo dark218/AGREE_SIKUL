@@ -158,6 +158,13 @@ class InscriptionController extends Controller
     public function store(Request $request)
     {
         try {
+            // Auto-générer numero_inscription si non fourni (format: INS-YYYY-XXXXX)
+            if (!$request->filled('numero_inscription')) {
+                $request->merge([
+                    'numero_inscription' => $this->generateNumeroInscription(),
+                ]);
+            }
+
             $validated = $request->validate([
                 'apprenant_id'           => 'required|exists:apprenants,id',
                 'classe_id'              => 'required|exists:classes,id',
@@ -166,7 +173,7 @@ class InscriptionController extends Controller
                 'campus_id'              => 'nullable|exists:campuses,id',
                 'institution_id'         => 'nullable|exists:institutions,id',
                 'date_inscription'       => 'required|date',
-                'numero_inscription'     => 'required|string|max:100|unique:inscriptions,numero_inscription',
+                'numero_inscription'     => 'nullable|string|max:100|unique:inscriptions,numero_inscription',
                 'type_inscription'       => 'required|in:nouveau,redoublement,transfert,reprise',
                 'statut'                 => 'required|in:en_attente,validee,rejetee,suspendue',
                 'premiere_inscription'   => 'boolean',
@@ -358,7 +365,7 @@ class InscriptionController extends Controller
                 'campus_id'              => 'nullable|exists:campuses,id',
                 'institution_id'         => 'nullable|exists:institutions,id',
                 'date_inscription'       => 'required|date',
-                'numero_inscription'     => 'required|string|max:100|unique:inscriptions,numero_inscription,' . $inscription->id,
+                'numero_inscription'     => 'nullable|string|max:100|unique:inscriptions,numero_inscription,' . $inscription->id,
                 'type_inscription'       => 'required|in:nouveau,redoublement,transfert,reprise',
                 'statut'                 => 'required|in:en_attente,validee,rejetee,suspendue',
                 'premiere_inscription'   => 'boolean',
@@ -427,5 +434,29 @@ class InscriptionController extends Controller
             log_error("Academique", "InscriptionController::statut", $th->getMessage());
             return back()->withErrors(['_error' => $th->getMessage()]);
         }
+    }
+
+    /**
+     * Génère un numéro d'inscription unique au format INS-YYYY-NNNNN
+     * où NNNNN est un compteur séquentiel de l'année.
+     */
+    private function generateNumeroInscription(): string
+    {
+        $year = date('Y');
+        $prefix = 'INS-' . $year . '-';
+
+        // Compteur basé sur le dernier numéro de l'année
+        $lastNumero = Inscription::withoutGlobalScopes()
+            ->where('numero_inscription', 'like', $prefix . '%')
+            ->orderByDesc('numero_inscription')
+            ->value('numero_inscription');
+
+        if ($lastNumero && preg_match('/-(\d+)$/', $lastNumero, $matches)) {
+            $nextSeq = (int) $matches[1] + 1;
+        } else {
+            $nextSeq = 1;
+        }
+
+        return $prefix . str_pad($nextSeq, 5, '0', STR_PAD_LEFT);
     }
 }

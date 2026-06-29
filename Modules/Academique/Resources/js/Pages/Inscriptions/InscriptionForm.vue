@@ -267,9 +267,16 @@ const selectedFiles = computed(() => {
             </div>
             <div class="col-sm-6">
                 <div class="mb-3">
-                    <label>{{ t('fields.numero_inscription') || 'Numéro Inscription' }} <span class="text-muted">(Auto-rempli)</span></label>
-                    <input type="text" v-model="form.numero_inscription" class="form-control" :disabled="true" />
-                    <small class="text-muted">Rempli automatiquement depuis l'apprenant</small>
+                    <label>{{ t('fields.numero_inscription') || 'Numéro Inscription' }} <span class="text-muted">(facultatif)</span></label>
+                    <input
+                        type="text"
+                        v-model="form.numero_inscription"
+                        class="form-control"
+                        placeholder="Laisser vide pour génération auto"
+                    />
+                    <small class="text-muted">
+                        Si laissé vide, le système génère automatiquement un numéro unique (format <code>INS-2026-00001</code>).
+                    </small>
                     <span v-if="form.errors?.numero_inscription" class="text-danger"><strong>{{ form.errors.numero_inscription }}</strong></span>
                 </div>
             </div>

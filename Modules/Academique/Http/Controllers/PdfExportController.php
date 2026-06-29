@@ -22,7 +22,12 @@ class PdfExportController extends Controller
     public function listeApprenants(Request $request)
     {
         $classeId = $request->input('classe_id');
-        $query = Apprenant::query()->orderBy('nom');
+        // Exclut explicitement les apprenants soft-deleted (deleted_at IS NOT NULL)
+        // ET les apprenants suspendus/exclus/diplômés/abandonnés.
+        $query = Apprenant::query()
+            ->whereNull('deleted_at')
+            ->where('statut', 'actif')
+            ->orderBy('nom');
 
         if ($classeId) {
             $query->where('classe_id', $classeId);

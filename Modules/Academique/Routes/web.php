@@ -57,8 +57,9 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::get('/api/calculate-moyennes', [ApprenantController::class, 'calculateMoyennes'])->name('api_calculate_moyennes');
         Route::get('/{apprenant}', [ApprenantController::class, 'show'])->name('show');
         Route::get('/{apprenant}/edit', [ApprenantController::class, 'edit'])->name('edit');
-        Route::put('/{apprenant}', [ApprenantController::class, 'update'])->name('update');
-        Route::put('/{apprenant}/statut', [ApprenantController::class, 'statut'])->name('statut');
+        // Accepte PUT et POST (Inertia + photo multipart envoie POST + _method=put)
+        Route::match(['put', 'post'], '/{apprenant}', [ApprenantController::class, 'update'])->name('update');
+        Route::match(['put', 'post'], '/{apprenant}/statut', [ApprenantController::class, 'statut'])->name('statut');
         Route::delete('/{apprenant}', [ApprenantController::class, 'destroy'])->name('destroy');
         Route::get('/{apprenant}/api-show', [ApprenantController::class, 'apiShow'])->name('api_show');
     });
@@ -70,8 +71,9 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::post('/', [EnseignantController::class, 'store'])->name('store');
         Route::get('/{enseignant}', [EnseignantController::class, 'show'])->name('show');
         Route::get('/{enseignant}/edit', [EnseignantController::class, 'edit'])->name('edit');
-        Route::put('/{enseignant}', [EnseignantController::class, 'update'])->name('update');
-        Route::put('/{enseignant}/statut', [EnseignantController::class, 'activate'])->name('statut');
+        // Accepte PUT et POST (Inertia + photo multipart envoie POST + _method=put)
+        Route::match(['put', 'post'], '/{enseignant}', [EnseignantController::class, 'update'])->name('update');
+        Route::match(['put', 'post'], '/{enseignant}/statut', [EnseignantController::class, 'activate'])->name('statut');
         Route::delete('/{enseignant}', [EnseignantController::class, 'destroy'])->name('destroy');
     });
 
