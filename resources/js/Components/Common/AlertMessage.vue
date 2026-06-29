@@ -34,6 +34,35 @@ watch(() => page.props.flash, (flash) => {
     }
 }, { deep: true, immediate: true });
 
+// Surveiller les erreurs de validation Inertia : si on a des erreurs sur des
+// champs après un submit, on affiche une alerte en haut pour que l'utilisateur
+// sache où chercher (les <span text-danger> sous chaque champ peuvent être
+// hors vue).
+watch(() => page.props.errors, (errors) => {
+    if (!errors) return;
+    const errorKeys = Object.keys(errors).filter(k => errors[k]);
+    if (errorKeys.length === 0) return;
+
+    // Cas spécial : si une seule erreur "_error" ou "error" générique → on l'affiche telle quelle
+    if (errorKeys.length === 1 && (errorKeys[0] === '_error' || errorKeys[0] === 'error')) {
+        currentType.value = 'error';
+        currentMessage.value = errors[errorKeys[0]];
+        visible.value = true;
+        return;
+    }
+
+    // Multi-erreurs : on liste les 3 premières + compte total
+    const firstThree = errorKeys.slice(0, 3).map(k => {
+        const val = errors[k];
+        const msg = Array.isArray(val) ? val[0] : val;
+        return `• ${msg}`;
+    }).join('\n');
+    const more = errorKeys.length > 3 ? `\n… et ${errorKeys.length - 3} autre(s)` : '';
+    currentType.value = 'error';
+    currentMessage.value = `Le formulaire contient ${errorKeys.length} erreur(s) :\n${firstThree}${more}`;
+    visible.value = true;
+}, { deep: true, immediate: true });
+
 const alertClass = computed(() => `alert-${currentType.value}`);
 
 const iconPath = computed(() => {
@@ -63,7 +92,7 @@ function autoHide() {
             <svg class="alert-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path :d="iconPath" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span class="alert-message">{{ currentMessage }}</span>
+            <span class="alert-message" style="white-space: pre-line;">{{ currentMessage }}</span>
             <button
                 class="alert-close"
                 @click="dismiss"
