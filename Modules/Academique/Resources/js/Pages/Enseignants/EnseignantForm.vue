@@ -241,10 +241,6 @@ const age = computed(() => {
                 <label class="mb-10">{{ t('fields.telephone') }}</label>
                 <input v-model="form.telephone" type="text" class="form-control" :disabled="isReadOnly" />
             </div>
-            <div class="col-md-6 mb-20">
-                <label class="mb-10">{{ t('fields.teacher_category') }}</label>
-                <input v-model="form.teacher_category" type="text" class="form-control" :disabled="isReadOnly" />
-            </div>
         </div>
 
         <!-- Section 4: Domaines d'Enseignement -->

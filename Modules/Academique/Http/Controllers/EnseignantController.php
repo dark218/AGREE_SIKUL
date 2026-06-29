@@ -7,8 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Academique\Entities\Enseignant;
 use App\Models\User;
-use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, Niveau, CycleEnseignement, Classe};
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, CycleEnseignement, Classe};
 
 class EnseignantController extends Controller
 {
@@ -57,9 +56,9 @@ class EnseignantController extends Controller
             'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get()->toArray(),
             'pays' => Pays::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
             'categoriesEnseignant' => CategorieEnseignant::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-            'matieres' => Matiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+            'matieres' => \Modules\Parametrage\Entities\MatiereUnite::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-            'niveaux' => Niveau::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+            'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
         ]);
     }
@@ -96,19 +95,19 @@ class EnseignantController extends Controller
                 'telephone' => 'nullable|string|max:20',
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'statut' => 'required|in:actif,suspendu,conge,retraite,demission',
-                'matiere_1_id' => 'nullable|exists:matieres,id',
-                'matiere_2_id' => 'nullable|exists:matieres,id',
-                'matiere_3_id' => 'nullable|exists:matieres,id',
-                'matiere_4_id' => 'nullable|exists:matieres,id',
-                'matiere_5_id' => 'nullable|exists:matieres,id',
-                'matiere_6_id' => 'nullable|exists:matieres,id',
-                'matiere_7_id' => 'nullable|exists:matieres,id',
+                'matiere_1_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_2_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_3_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_4_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_5_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_6_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_7_id' => 'nullable|exists:matieres_unites,id',
                 'cycle_1_id' => 'nullable|exists:cycles_enseignement,id',
                 'cycle_2_id' => 'nullable|exists:cycles_enseignement,id',
-                'niveau_1_id' => 'nullable|exists:niveaux,id',
-                'niveau_2_id' => 'nullable|exists:niveaux,id',
-                'niveau_3_id' => 'nullable|exists:niveaux,id',
-                'niveau_4_id' => 'nullable|exists:niveaux,id',
+                'niveau_1_id' => 'nullable|exists:niveaux_etudes,id',
+                'niveau_2_id' => 'nullable|exists:niveaux_etudes,id',
+                'niveau_3_id' => 'nullable|exists:niveaux_etudes,id',
+                'niveau_4_id' => 'nullable|exists:niveaux_etudes,id',
                 'classe_1_id' => 'nullable|exists:classes,id',
                 'classe_2_id' => 'nullable|exists:classes,id',
                 'classe_3_id' => 'nullable|exists:classes,id',
@@ -171,9 +170,9 @@ class EnseignantController extends Controller
             'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get()->toArray(),
             'pays' => Pays::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
             'categoriesEnseignant' => CategorieEnseignant::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-            'matieres' => Matiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+            'matieres' => \Modules\Parametrage\Entities\MatiereUnite::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-            'niveaux' => Niveau::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+            'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
         ]);
     }
@@ -198,9 +197,9 @@ class EnseignantController extends Controller
             'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get()->toArray(),
             'pays' => Pays::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
             'categoriesEnseignant' => CategorieEnseignant::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-            'matieres' => Matiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+            'matieres' => \Modules\Parametrage\Entities\MatiereUnite::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-            'niveaux' => Niveau::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+            'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
         ]);
     }
@@ -242,19 +241,19 @@ class EnseignantController extends Controller
                 'telephone' => 'nullable|string|max:20',
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'statut' => 'required|in:actif,suspendu,conge,retraite,demission',
-                'matiere_1_id' => 'nullable|exists:matieres,id',
-                'matiere_2_id' => 'nullable|exists:matieres,id',
-                'matiere_3_id' => 'nullable|exists:matieres,id',
-                'matiere_4_id' => 'nullable|exists:matieres,id',
-                'matiere_5_id' => 'nullable|exists:matieres,id',
-                'matiere_6_id' => 'nullable|exists:matieres,id',
-                'matiere_7_id' => 'nullable|exists:matieres,id',
+                'matiere_1_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_2_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_3_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_4_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_5_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_6_id' => 'nullable|exists:matieres_unites,id',
+                'matiere_7_id' => 'nullable|exists:matieres_unites,id',
                 'cycle_1_id' => 'nullable|exists:cycles_enseignement,id',
                 'cycle_2_id' => 'nullable|exists:cycles_enseignement,id',
-                'niveau_1_id' => 'nullable|exists:niveaux,id',
-                'niveau_2_id' => 'nullable|exists:niveaux,id',
-                'niveau_3_id' => 'nullable|exists:niveaux,id',
-                'niveau_4_id' => 'nullable|exists:niveaux,id',
+                'niveau_1_id' => 'nullable|exists:niveaux_etudes,id',
+                'niveau_2_id' => 'nullable|exists:niveaux_etudes,id',
+                'niveau_3_id' => 'nullable|exists:niveaux_etudes,id',
+                'niveau_4_id' => 'nullable|exists:niveaux_etudes,id',
                 'classe_1_id' => 'nullable|exists:classes,id',
                 'classe_2_id' => 'nullable|exists:classes,id',
                 'classe_3_id' => 'nullable|exists:classes,id',

@@ -9,8 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, Niveau, CycleEnseignement, Classe};
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, CycleEnseignement, Classe, MatiereUnite, NiveauEtude};
 
 class Enseignant extends BaseModel
 {
@@ -93,7 +92,8 @@ class Enseignant extends BaseModel
 
     public function matieres(): BelongsToMany
     {
-        return $this->belongsToMany(Matiere::class, 'enseignant_matieres');
+        // Pointe vers les MatiereUnite paramétrées (matieres_unites)
+        return $this->belongsToMany(MatiereUnite::class, 'enseignant_matieres', 'enseignant_id', 'matiere_id');
     }
 
     public function cycles(): BelongsToMany
@@ -103,7 +103,8 @@ class Enseignant extends BaseModel
 
     public function niveaux(): BelongsToMany
     {
-        return $this->belongsToMany(Niveau::class, 'enseignant_niveaux');
+        // Pointe vers les NiveauEtude paramétrés (niveaux_etudes)
+        return $this->belongsToMany(NiveauEtude::class, 'enseignant_niveaux', 'enseignant_id', 'niveau_id');
     }
 
     public function classes(): BelongsToMany

@@ -49,22 +49,20 @@ const form = useForm({
 });
 const submitForm = () => {
     showUpdateLoader();
-    // Quand on uploade un nouveau fichier (form.photo est un File), Laravel/Inertia
-    // ne supporte pas PUT avec multipart → on passe par POST + _method spoofing.
-    const hasNewPhotoFile = props.apprenant?.photo !== form.photo && form.photo instanceof File;
-    if (hasNewPhotoFile) {
-        form._method = 'put';
-        form.post(route('academique.apprenants.update', props.apprenant.id), {
-            forceFormData: true,
-            onError: (errors) => { console.error('Form validation errors:', errors); },
-            onFinish: () => { hideLoader(); }
-        });
-    } else {
-        form.put(route('academique.apprenants.update', props.apprenant.id), {
-            onError: (errors) => { console.error('Form validation errors:', errors); },
-            onFinish: () => { hideLoader(); }
-        });
-    }
+    // PUT + multipart n'est pas supporté en HTTP : on passe systématiquement
+    // par POST + method spoofing (`_method=put`), que la photo soit nouvelle
+    // ou non. Laravel routera vers la méthode update().
+    // Si form.photo est une string (path existant), on l'enlève du payload
+    // pour ne pas écraser la photo en base.
+    const wasString = typeof form.photo === 'string';
+    if (wasString) form.photo = null;
+
+    form._method = 'put';
+    form.post(route('academique.apprenants.update', props.apprenant.id), {
+        forceFormData: true,
+        onError: (errors) => { console.error('Form validation errors:', errors); },
+        onFinish: () => { hideLoader(); }
+    });
 };
 </script>
 <template>
