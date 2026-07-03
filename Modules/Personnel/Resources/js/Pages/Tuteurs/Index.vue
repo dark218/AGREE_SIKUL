@@ -9,6 +9,7 @@ import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
+import ApprenantsBadges from '@/Components/Common/ApprenantsBadges.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const { can } = usePermissions();
@@ -155,6 +156,7 @@ const tuteurs = props.tuteurs || page.props.tuteurs;
                                 <thead>
                                     <tr>
                                         <th>{{ t('common.nom') || 'Nom' }}</th>
+                                        <th>Apprenants</th>
                                         <th>{{ t('fields.relation') || 'Relation' }}</th>
                                         <th>{{ t('common.profession') || 'Profession' }}</th>
                                         <th>{{ t('common.employeur') || 'Employeur' }}</th>
@@ -167,6 +169,12 @@ const tuteurs = props.tuteurs || page.props.tuteurs;
                                     <template v-if="tuteurs?.data && tuteurs?.data.length > 0">
                                         <tr v-for="item in tuteurs?.data" :key="item.id">
                                             <td><strong>{{ item.nom || '-' }}</strong></td>
+                                            <td>
+                                                <ApprenantsBadges
+                                                    :apprenants="item.apprenants || (item.apprenant ? [item.apprenant] : [])"
+                                                    mode="inline"
+                                                />
+                                            </td>
                                             <td>{{ item.relation || '-' }}</td>
                                             <td>{{ item.profession || '-' }}</td>
                                             <td>{{ item.employeur || '-' }}</td>

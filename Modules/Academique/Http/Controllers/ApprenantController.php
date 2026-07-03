@@ -180,9 +180,17 @@ class ApprenantController extends Controller
 
     public function show(Apprenant $apprenant)
     {
-        $apprenant->load('user', 'classe', 'section', 'cycle', 'ecole', 'campus', 'anneeScolaire', 'typeApprenant', 'categorieApprenant', 'communeNaissance',
-                         'departementNaissance', 'regionNaissance', 'paysNaissance', 'quartier',
-                         'communeResidence', 'departementResidence', 'regionResidence', 'paysResidence');
+        $apprenant->load(
+            'user', 'classe', 'section', 'cycle', 'ecole', 'campus', 'anneeScolaire',
+            'typeApprenant', 'categorieApprenant', 'communeNaissance', 'departementNaissance',
+            'regionNaissance', 'paysNaissance', 'quartier', 'communeResidence',
+            'departementResidence', 'regionResidence', 'paysResidence',
+            // Contacts humains (parents, tuteurs, accompagnateurs) — récupérés en Show pour la nouvelle section
+            'parents:id,pere_nom,pere_prenoms,mere_nom,mere_prenoms,pere_telephone_1,mere_telephone_1,pere_email_1,mere_email_1',
+            'tuteurs:id,nom,prenoms,telephone,email,relation,profession',
+            'tuteurs.user:id,nom,prenoms,email',
+            'accompagnateurs:id,accompagnant1_nom,accompagnant1_prenoms,accompagnant2_nom,accompagnant2_prenoms,accompagnant3_nom,accompagnant3_prenoms',
+        );
 
         return Inertia::render('Academique::Apprenants/Show', [
             'title' => __('actions.view'),

@@ -28,6 +28,7 @@ class AccompagnateurController extends Controller
                 'ecole',
                 'institution',
                 'campus',
+                'apprenants:id,nom,prenoms,matricule',
             ])->whereNull('deleted_at');
 
             // Filter by search (accompagnant names)
@@ -79,10 +80,20 @@ class AccompagnateurController extends Controller
             $institutions = Institution::select('id', 'nom as libelle')->orderBy('nom')->get();
             $campuses = Campus::select('id', 'nom as libelle')->orderBy('nom')->get();
 
+            // Apprenants avec école pour le composant multi-select
+            $apprenants = \Modules\Academique\Entities\Apprenant::whereNull('deleted_at')
+                ->get(['id', 'nom', 'prenoms', 'matricule', 'ecole_id'])
+                ->map(fn($a) => [
+                    'id' => $a->id,
+                    'libelle' => trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')) . ' (' . ($a->matricule ?? '') . ')',
+                    'ecole_id' => $a->ecole_id,
+                ])->values();
+
             return Inertia::render('Personnel/Accompagnateurs/Create', [
                 'ecoles' => $ecoles,
                 'institutions' => $institutions,
                 'campuses' => $campuses,
+                'apprenants' => $apprenants,
             ]);
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::create", $th->getMessage());
@@ -126,9 +137,19 @@ class AccompagnateurController extends Controller
                 'accompagnant3_photo' => 'nullable|image|max:2048',
                 'accompagnant3_photo_id' => 'nullable',
 
+                // Apprenants rattachés (multi)
+                'apprenant_ids' => ['nullable', 'array'],
+                'apprenant_ids.*' => ['integer', 'exists:apprenants,id'],
+
                 // Audit
                 'etat' => 'required|in:actif,inactif',
             ]);
+
+            // Règle métier : tous les apprenants dans la même école
+            $apprenantIds = array_values(array_filter($request->input('apprenant_ids', [])));
+            (new \App\Rules\SameSchoolForApprenants())->validate('apprenant_ids', $apprenantIds, function ($msg) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['apprenant_ids' => $msg]);
+            });
 
             // Upload des photos
             for ($i = 1; $i <= 3; $i++) {
@@ -154,10 +175,26 @@ class AccompagnateurController extends Controller
                 unset($validated[$field]);
             }
 
-            Accompagnateur::create($validated);
+            // Retirer apprenant_ids du $validated (pas un champ de la table)
+            unset($validated['apprenant_ids']);
+
+            $accompagnateur = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $apprenantIds) {
+                $accompagnateur = Accompagnateur::create($validated);
+
+                $sync = [];
+                foreach ($apprenantIds as $i => $aid) {
+                    $sync[$aid] = ['est_principal' => $i === 0];
+                }
+                if (!empty($sync)) {
+                    $accompagnateur->apprenants()->sync($sync);
+                }
+                return $accompagnateur;
+            });
 
             return redirect()->route('accompagnateurs.index')
                 ->with('success', __('messages.created'));
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::store", $th->getMessage());
             return back()->withErrors(['_error' => $th->getMessage()]);
@@ -174,6 +211,7 @@ class AccompagnateurController extends Controller
                 'accompagnant1Photo',
                 'accompagnant2Photo',
                 'accompagnant3Photo',
+                'apprenants:id,nom,prenoms,matricule',
             ])->findOrFail($id);
 
             $ecoles = Ecole::select('id', 'nom as libelle')->orderBy('nom')->get();
@@ -209,23 +247,34 @@ class AccompagnateurController extends Controller
                 'accompagnant1Photo',
                 'accompagnant2Photo',
                 'accompagnant3Photo',
+                'apprenants:id',
             ])->findOrFail($id);
 
             $ecoles = Ecole::select('id', 'nom as libelle')->orderBy('nom')->get();
             $institutions = Institution::select('id', 'nom as libelle')->orderBy('nom')->get();
             $campuses = Campus::select('id', 'nom as libelle')->orderBy('nom')->get();
 
+            $apprenants = \Modules\Academique\Entities\Apprenant::whereNull('deleted_at')
+                ->get(['id', 'nom', 'prenoms', 'matricule', 'ecole_id'])
+                ->map(fn($a) => [
+                    'id' => $a->id,
+                    'libelle' => trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')) . ' (' . ($a->matricule ?? '') . ')',
+                    'ecole_id' => $a->ecole_id,
+                ])->values();
+
             $editData = $accompagnateur->toArray();
             for ($i = 1; $i <= 3; $i++) {
                 $photo = $accompagnateur->{"accompagnant{$i}Photo"};
                 $editData["accompagnant{$i}_photo_url"] = $photo ? asset($photo->chemin_fichier) : null;
             }
+            $editData['apprenant_ids'] = $accompagnateur->apprenants->pluck('id')->all();
 
             return Inertia::render('Personnel/Accompagnateurs/Edit', [
                 'accompagnateur' => $editData,
                 'ecoles' => $ecoles,
                 'institutions' => $institutions,
                 'campuses' => $campuses,
+                'apprenants' => $apprenants,
             ]);
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::edit", $th->getMessage());
@@ -271,9 +320,19 @@ class AccompagnateurController extends Controller
                 'accompagnant3_photo' => 'nullable|image|max:2048',
                 'accompagnant3_photo_id' => 'nullable',
 
+                // Apprenants rattachés (multi)
+                'apprenant_ids' => ['nullable', 'array'],
+                'apprenant_ids.*' => ['integer', 'exists:apprenants,id'],
+
                 // Audit
                 'etat' => 'required|in:actif,inactif',
             ]);
+
+            // Règle métier : tous les apprenants dans la même école
+            $apprenantIds = array_values(array_filter($request->input('apprenant_ids', [])));
+            (new \App\Rules\SameSchoolForApprenants())->validate('apprenant_ids', $apprenantIds, function ($msg) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['apprenant_ids' => $msg]);
+            });
 
             // Upload des photos
             for ($i = 1; $i <= 3; $i++) {
@@ -299,10 +358,22 @@ class AccompagnateurController extends Controller
                 unset($validated[$field]);
             }
 
-            $accompagnateur->update($validated);
+            unset($validated['apprenant_ids']);
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($accompagnateur, $validated, $apprenantIds) {
+                $accompagnateur->update($validated);
+
+                $sync = [];
+                foreach ($apprenantIds as $i => $aid) {
+                    $sync[$aid] = ['est_principal' => $i === 0];
+                }
+                $accompagnateur->apprenants()->sync($sync);
+            });
 
             return redirect()->route('accompagnateurs.index')
                 ->with('success', __('messages.updated'));
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::update", $th->getMessage());
             return back()->withErrors(['_error' => $th->getMessage()]);

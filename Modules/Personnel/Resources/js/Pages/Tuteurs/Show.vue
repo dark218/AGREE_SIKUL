@@ -6,6 +6,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import TuteurForm from './TuteurForm.vue';
+import ApprenantsBadges from '@/Components/Common/ApprenantsBadges.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
@@ -55,6 +56,20 @@ const deleteItem = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
+                            <!-- Apprenants suivis -->
+                            <div class="apprenants-section mb-4">
+                                <h5 class="section-header">
+                                    <i class="fa fa-users me-2"></i>
+                                    Apprenants suivis
+                                    <span class="badge bg-primary ms-2">{{ page.props.tuteur?.apprenants?.length || 0 }}</span>
+                                </h5>
+                                <ApprenantsBadges
+                                    :apprenants="page.props.tuteur?.apprenants || []"
+                                    mode="card"
+                                    empty-label="Aucun apprenant suivi par ce tuteur"
+                                />
+                            </div>
+
                             <TuteurForm
                                 :form="page.props.tuteur"
                                 mode="show"
@@ -94,3 +109,19 @@ const deleteItem = () => {
         :variant="loaderVariant"
     />
 </template>
+
+<style scoped>
+.apprenants-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid #e2e8f0;
+}
+.section-header {
+    color: #0b5697;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #0b5697;
+}
+</style>

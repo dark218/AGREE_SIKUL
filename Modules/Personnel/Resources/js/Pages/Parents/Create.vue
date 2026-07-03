@@ -51,6 +51,8 @@ const props = defineProps({
 
 const form = useForm({
     apprenant_id: '',
+    apprenant_ids: [],
+    lien_parente: [],
     classe_id: '',
     ecole_id: '',
     institution_id: '',

@@ -28,6 +28,7 @@ class ParentController extends Controller
         try {
             $query = StudentParent::with([
                 'apprenant',
+                'apprenants:id,nom,prenoms,matricule',
                 'classe',
                 'ecole',
             ])->whereNull('deleted_at');
@@ -116,7 +117,13 @@ class ParentController extends Controller
     {
         try {
             $validated = $request->validate([
+                // Legacy 1-1 (rétro-compat, sera retiré) — remplacé par apprenant_ids
                 'apprenant_id' => 'nullable|exists:apprenants,id',
+                // Nouveau : multi-apprenants (fratrie même école)
+                'apprenant_ids' => ['nullable', 'array'],
+                'apprenant_ids.*' => ['integer', 'exists:apprenants,id'],
+                'lien_parente' => ['nullable', 'array'],
+                'lien_parente.*' => ['nullable', 'string', 'in:pere,mere,tuteur_legal,autre'],
                 'classe_id' => 'nullable|exists:classes,id',
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'institution_id' => 'nullable|exists:institutions,id',
@@ -212,10 +219,34 @@ class ParentController extends Controller
                 'etat' => 'required|in:actif,inactif',
             ]);
 
-            StudentParent::create($validated);
+            // Règle métier : tous les apprenants dans la même école
+            $apprenantIds = array_values(array_filter($request->input('apprenant_ids', [])));
+            (new \App\Rules\SameSchoolForApprenants())->validate('apprenant_ids', $apprenantIds, function ($msg) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['apprenant_ids' => $msg]);
+            });
+
+            $parent = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request, $apprenantIds) {
+                $parent = StudentParent::create($validated);
+
+                // Sync du pivot avec métadonnées (lien_parente + est_principal sur le 1er)
+                $sync = [];
+                $lienList = $request->input('lien_parente', []);
+                foreach ($apprenantIds as $i => $aid) {
+                    $sync[$aid] = [
+                        'lien_parente' => $lienList[$i] ?? null,
+                        'est_principal' => $i === 0,
+                    ];
+                }
+                if (!empty($sync)) {
+                    $parent->apprenants()->sync($sync);
+                }
+                return $parent;
+            });
 
             return redirect()->route('parents.index')
                 ->with('success', __('messages.created'));
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve; // laisse remonter → Inertia gère les erreurs par champ
         } catch (\Throwable $th) {
             log_error("Personnel", "ParentController::store", $th->getMessage());
             return back()->withErrors(['_error' => $th->getMessage()]);
@@ -227,6 +258,7 @@ class ParentController extends Controller
         try {
             $parent = StudentParent::with([
                 'apprenant',
+                'apprenants:id,nom,prenoms,matricule',
                 'classe',
                 'ecole',
                 'institution',
@@ -262,11 +294,20 @@ class ParentController extends Controller
         try {
             $parent = StudentParent::with([
                 'apprenant',
+                'apprenants:id',      // nouveau : liste des apprenants liés
                 'classe',
                 'ecole',
                 'institution',
                 'campus',
             ])->findOrFail($id);
+
+            // Injecte les IDs + méta pivot au format attendu par le composant Vue
+            $parent->apprenant_ids = $parent->apprenants->pluck('id')->all();
+            $parent->apprenant_pivots = $parent->apprenants->map(fn($a) => [
+                'apprenant_id' => $a->id,
+                'lien_parente' => $a->pivot->lien_parente,
+                'est_principal' => (bool) $a->pivot->est_principal,
+            ])->values()->all();
 
             $apprenants = Apprenant::select('id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'institution_id', 'campus_id')
                 ->selectRaw("CONCAT(prenoms, ' ', nom) as libelle")
@@ -299,6 +340,10 @@ class ParentController extends Controller
 
             $validated = $request->validate([
                 'apprenant_id' => 'nullable|exists:apprenants,id',
+                'apprenant_ids' => ['nullable', 'array'],
+                'apprenant_ids.*' => ['integer', 'exists:apprenants,id'],
+                'lien_parente' => ['nullable', 'array'],
+                'lien_parente.*' => ['nullable', 'string', 'in:pere,mere,tuteur_legal,autre'],
                 'classe_id' => 'nullable|exists:classes,id',
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'institution_id' => 'nullable|exists:institutions,id',
@@ -394,10 +439,30 @@ class ParentController extends Controller
                 'etat' => 'required|in:actif,inactif',
             ]);
 
-            $parent->update($validated);
+            // Règle métier : tous les apprenants dans la même école
+            $apprenantIds = array_values(array_filter($request->input('apprenant_ids', [])));
+            (new \App\Rules\SameSchoolForApprenants())->validate('apprenant_ids', $apprenantIds, function ($msg) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['apprenant_ids' => $msg]);
+            });
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($parent, $validated, $request, $apprenantIds) {
+                $parent->update($validated);
+
+                $sync = [];
+                $lienList = $request->input('lien_parente', []);
+                foreach ($apprenantIds as $i => $aid) {
+                    $sync[$aid] = [
+                        'lien_parente' => $lienList[$i] ?? null,
+                        'est_principal' => $i === 0,
+                    ];
+                }
+                $parent->apprenants()->sync($sync);
+            });
 
             return redirect()->route('parents.index')
                 ->with('success', __('messages.updated'));
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Personnel", "ParentController::update", $th->getMessage());
             return back()->withErrors(['_error' => $th->getMessage()]);

@@ -53,8 +53,8 @@
     <table class="info-tbl">
         <tr><td class="lbl">Téléphone</td><td>{{ $apprenant->telephone ?? '-' }}</td><td class="lbl">Email</td><td>{{ $apprenant->email ?? '-' }}</td></tr>
         <tr><td class="lbl">Adresse</td><td colspan="3">{{ $apprenant->adresse ?? '-' }}</td></tr>
-        <tr><td class="lbl">Nom du père</td><td>{{ $apprenant->nom_pere ?? '-' }}</td><td class="lbl">Nom de la mère</td><td>{{ $apprenant->nom_mere ?? '-' }}</td></tr>
-        <tr><td class="lbl">Tuteur</td><td>{{ $apprenant->nom_tuteur ?? '-' }}</td><td class="lbl">Responsable légal</td><td>{{ $apprenant->nom_responsable_legal ?? '-' }}</td></tr>
+        <tr><td class="lbl">Nom du père</td><td>{{ $pere ?? '-' }}</td><td class="lbl">Nom de la mère</td><td>{{ $mere ?? '-' }}</td></tr>
+        <tr><td class="lbl">Tuteur</td><td>{{ $tuteur ?? '-' }}</td><td class="lbl">Responsable légal</td><td>{{ $responsable_legal ?? '-' }}</td></tr>
     </table>
     <div class="footer">AGREE SIKUL — Fiche Apprenant — Généré le {{ $date }}</div>
 </div>

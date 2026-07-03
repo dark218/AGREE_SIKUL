@@ -48,6 +48,8 @@ const props = defineProps({
 
 const form = useForm({
     apprenant_id: props.parent?.apprenant_id || '',
+    apprenant_ids: props.parent?.apprenant_ids || [],
+    lien_parente: (props.parent?.apprenant_pivots || []).map(p => p.lien_parente || null),
     classe_id: props.parent?.classe_id || '',
     ecole_id: props.parent?.ecole_id || '',
     institution_id: props.parent?.institution_id || '',

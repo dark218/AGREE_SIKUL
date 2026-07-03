@@ -85,6 +85,37 @@ class Apprenant extends BaseModel
         return $this->belongsTo(User::class);
     }
 
+    // Relations - Contacts humains (N-N)
+    public function parents(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \Modules\Personnel\Entities\StudentParent::class,
+            'apprenant_parent',
+            'apprenant_id',
+            'parent_id'
+        )->withPivot('lien_parente', 'est_principal')->withTimestamps();
+    }
+
+    public function tuteurs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            Tuteur::class,
+            'apprenant_tuteur',
+            'apprenant_id',
+            'tuteur_id'
+        )->withPivot('relation', 'est_principal')->withTimestamps();
+    }
+
+    public function accompagnateurs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \Modules\Personnel\Entities\Accompagnateur::class,
+            'apprenant_accompagnateur',
+            'apprenant_id',
+            'accompagnateur_id'
+        )->withPivot('est_principal')->withTimestamps();
+    }
+
     // Relations - Academic
     public function classe(): BelongsTo
     {

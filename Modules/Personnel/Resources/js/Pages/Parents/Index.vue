@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import ApprenantsBadges from '@/Components/Common/ApprenantsBadges.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -160,7 +161,7 @@ watch(
                             <table class="custom-table">
                                 <thead>
                                     <tr>
-                                        <th>Apprenant</th>
+                                        <th>Apprenants</th>
                                         <th>Père</th>
                                         <th>Mère</th>
                                         <th>{{ t('fields.ecole') || 'École' }}</th>
@@ -171,7 +172,12 @@ watch(
                                 <tbody>
                                     <template v-if="parents?.data && parents?.data.length > 0">
                                         <tr v-for="parent in parents?.data" :key="parent.id">
-                                            <td>{{ parent.apprenant?.nom }} {{ parent.apprenant?.prenoms }}</td>
+                                            <td>
+                                                <ApprenantsBadges
+                                                    :apprenants="parent.apprenants || (parent.apprenant ? [parent.apprenant] : [])"
+                                                    mode="inline"
+                                                />
+                                            </td>
                                             <td>{{ parent.pere_nom }} {{ parent.pere_prenoms }}</td>
                                             <td>{{ parent.mere_nom }} {{ parent.mere_prenoms }}</td>
                                             <td>{{ parent.ecole?.nom || '-' }}</td>

@@ -28,6 +28,7 @@ const form = useForm({
     email: '',
     adresse: '',
     apprenant_id: '',
+    apprenant_ids: [],
     relation: '',
     profession: '',
     employeur: '',

@@ -1,6 +1,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import ApprenantsPicker from '@/Components/Common/ApprenantsPicker.vue';
 const { t } = useI18n();
 const props = defineProps({
     form: { type: Object, required: true },
@@ -39,10 +40,18 @@ const isReadOnly = props.mode === 'show';
             <label class="form-label">Adresse</label>
             <input v-model="form.adresse" type="text" class="form-control form-control-sm" :disabled="isReadOnly" placeholder="Adresse" />
         </div>
-        <div class="col-sm-6">
-            <label class="form-label">Apprenant</label>
-            <SearchableSelect v-model="form.apprenant_id" :options="apprenants" optionValue="id" optionLabel="libelle" placeholder="Sélectionner un apprenant" class="form-control-sm" :disabled="isReadOnly" />
-            <div v-if="form.errors?.apprenant_id" class="text-danger small mt-1">{{ form.errors.apprenant_id }}</div>
+        <div class="col-12">
+            <label class="form-label fw-medium">
+                Apprenants suivis <small class="text-muted">— fratrie dans la même école</small>
+            </label>
+            <ApprenantsPicker
+                v-model="form.apprenant_ids"
+                :apprenants="apprenants"
+                :disabled="isReadOnly"
+            />
+            <div v-if="form.errors?.apprenant_ids" class="text-danger small mt-1">
+                {{ Array.isArray(form.errors.apprenant_ids) ? form.errors.apprenant_ids[0] : form.errors.apprenant_ids }}
+            </div>
         </div>
         <div class="col-sm-6">
             <label class="form-label">Relation</label>

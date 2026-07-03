@@ -21,6 +21,7 @@ const props = defineProps({
     ecoles: Array,
     institutions: Array,
     campuses: Array,
+    apprenants: { type: Array, default: () => [] },
 });
 
 const isCollapsed = ref(false);
@@ -34,6 +35,8 @@ const form = useForm({
     ecole_id: props.accompagnateur?.ecole_id || '',
     institution_id: props.accompagnateur?.institution_id || '',
     campus_id: props.accompagnateur?.campus_id || '',
+    // Apprenants rattachés (multi)
+    apprenant_ids: props.accompagnateur?.apprenant_ids || [],
     // Accompagnant 1
     accompagnant1_civilite: props.accompagnateur?.accompagnant1_civilite || '',
     accompagnant1_nom: props.accompagnateur?.accompagnant1_nom || '',
@@ -127,7 +130,7 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <AccompagnateurForm :form="form" :ecoles="ecoles" :institutions="institutions" :campuses="campuses" mode="edit" />
+                                <AccompagnateurForm :form="form" :ecoles="ecoles" :institutions="institutions" :campuses="campuses" :apprenants="apprenants" mode="edit" />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import ApprenantsPicker from '@/Components/Common/ApprenantsPicker.vue';
 
 const { t } = useI18n();
 
@@ -19,6 +20,10 @@ const props = defineProps({
         default: () => [],
     },
     campuses: {
+        type: Array,
+        default: () => [],
+    },
+    apprenants: {
         type: Array,
         default: () => [],
     },
@@ -111,6 +116,22 @@ const etatOptions = [
                     <label class="form-label">{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
                     <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
                 </div>
+            </div>
+        </div>
+
+        <!-- Section : Apprenants rattachés (multi) -->
+        <div class="form-section">
+            <h5 class="section-title">
+                <i class="fa fa-users me-2"></i>Apprenants rattachés
+                <small class="text-muted fs-6">— fratrie dans la même école</small>
+            </h5>
+            <ApprenantsPicker
+                v-model="form.apprenant_ids"
+                :apprenants="apprenants"
+                :disabled="isReadOnly"
+            />
+            <div v-if="form.errors?.apprenant_ids" class="text-danger small mt-1">
+                {{ Array.isArray(form.errors.apprenant_ids) ? form.errors.apprenant_ids[0] : form.errors.apprenant_ids }}
             </div>
         </div>
 

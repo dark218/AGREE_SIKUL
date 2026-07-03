@@ -31,8 +31,21 @@ class Tuteur extends BaseModel
         return $this->belongsTo(\App\Models\User::class);
     }
 
+    /**
+     * @deprecated Utilisez `apprenants()` (N-N via pivot `apprenant_tuteur`).
+     */
     public function apprenant()
     {
         return $this->belongsTo(Apprenant::class);
+    }
+
+    /**
+     * Relation canonique — un tuteur suit N apprenants d'une même école.
+     */
+    public function apprenants(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Apprenant::class, 'apprenant_tuteur', 'tuteur_id', 'apprenant_id')
+            ->withPivot('relation', 'est_principal')
+            ->withTimestamps();
     }
 }

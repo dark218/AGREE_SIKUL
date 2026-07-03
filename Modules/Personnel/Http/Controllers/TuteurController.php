@@ -38,7 +38,7 @@ class TuteurController extends Controller
             'cousine' => 'Cousine', 'autre' => 'Autre',
         ];
 
-        $tuteurs = $query->with(['user', 'apprenant'])->paginate(10)->withQueryString()
+        $tuteurs = $query->with(['user', 'apprenant', 'apprenants:id,nom,prenoms,matricule'])->paginate(10)->withQueryString()
             ->through(function ($tuteur) use ($relationLabels) {
                 return [
                     'id' => $tuteur->id,
@@ -65,11 +65,12 @@ class TuteurController extends Controller
     {
         try {
             $apprenants = Apprenant::whereNull('deleted_at')
-                ->get(['id', 'nom', 'prenoms', 'matricule', 'user_id'])
+                ->get(['id', 'nom', 'prenoms', 'matricule', 'user_id', 'ecole_id'])
                 ->map(function ($apprenant) {
                     return [
                         'id' => $apprenant->id,
                         'libelle' => $apprenant->prenoms . ' ' . $apprenant->nom . ' (' . $apprenant->matricule . ')',
+                        'ecole_id' => $apprenant->ecole_id,
                     ];
                 })->toArray();
 
@@ -95,7 +96,11 @@ class TuteurController extends Controller
         try {
             $validated = $request->validate([
                 'user_id' => 'nullable|exists:users,id',
+                // Legacy 1-1 conservé pour rétro-compat
                 'apprenant_id' => 'nullable|exists:apprenants,id',
+                // Nouveau : multi-apprenants
+                'apprenant_ids' => ['nullable', 'array'],
+                'apprenant_ids.*' => ['integer', 'exists:apprenants,id'],
                 'nom' => 'required|string|max:255',
                 'prenoms' => 'nullable|string|max:255',
                 'telephone' => 'nullable|string|max:20',
@@ -107,34 +112,55 @@ class TuteurController extends Controller
                 'numero_urgence' => 'nullable|string|max:20',
             ]);
 
-            // Créer ou trouver le user associé au tuteur
-            $userId = $validated['user_id'] ?? null;
-            if (!$userId) {
-                $userId = \App\Models\User::create([
-                    'nom'       => $validated['nom'],
-                    'prenoms'   => $validated['prenoms'] ?? null,
-                    'email'     => $validated['email'] ?? null,
-                    'login'     => $validated['telephone'] ?? $validated['email'] ?? 'tuteur-' . time(),
-                    'full_login'=> $validated['telephone'] ?? $validated['email'] ?? 'tuteur-' . time(),
-                    'password'  => bcrypt('password123'),
-                    'role'      => 'parent',
-                    'statut'    => 'actif',
-                ])->id;
-            }
+            // Règle métier : tous les apprenants dans la même école
+            $apprenantIds = array_values(array_filter($request->input('apprenant_ids', [])));
+            (new \App\Rules\SameSchoolForApprenants())->validate('apprenant_ids', $apprenantIds, function ($msg) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['apprenant_ids' => $msg]);
+            });
 
-            // Créer le tuteur avec uniquement les colonnes de la table tuteurs
-            Tuteur::create([
-                'user_id'          => $userId,
-                'apprenant_id'     => $validated['apprenant_id'] ?? null,
-                'relation'         => $validated['relation'] ?? null,
-                'profession'       => $validated['profession'] ?? null,
-                'employeur'        => $validated['employeur'] ?? null,
-                'numero_urgence'   => $validated['numero_urgence'] ?? null,
-            ]);
+            \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request, $apprenantIds) {
+                // Créer ou trouver le user associé au tuteur
+                $userId = $validated['user_id'] ?? null;
+                if (!$userId) {
+                    $userId = \App\Models\User::create([
+                        'nom'       => $validated['nom'],
+                        'prenoms'   => $validated['prenoms'] ?? null,
+                        'email'     => $validated['email'] ?? null,
+                        'login'     => $validated['telephone'] ?? $validated['email'] ?? 'tuteur-' . time(),
+                        'full_login'=> $validated['telephone'] ?? $validated['email'] ?? 'tuteur-' . time(),
+                        'password'  => bcrypt('password123'),
+                        'role'      => 'parent',
+                        'statut'    => 'actif',
+                    ])->id;
+                }
+
+                $tuteur = Tuteur::create([
+                    'user_id'          => $userId,
+                    'apprenant_id'     => $validated['apprenant_id'] ?? null,
+                    'relation'         => $validated['relation'] ?? null,
+                    'profession'       => $validated['profession'] ?? null,
+                    'employeur'        => $validated['employeur'] ?? null,
+                    'numero_urgence'   => $validated['numero_urgence'] ?? null,
+                ]);
+
+                // Sync pivot multi-apprenants
+                $sync = [];
+                foreach ($apprenantIds as $i => $aid) {
+                    $sync[$aid] = [
+                        'relation' => $validated['relation'] ?? null,
+                        'est_principal' => $i === 0,
+                    ];
+                }
+                if (!empty($sync)) {
+                    $tuteur->apprenants()->sync($sync);
+                }
+            });
 
             return redirect()->route('tuteurs.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Personnel", "TuteurController::store", $th->getMessage());
             return back()->with('error', __('messages.error_occurred') . ': ' . $th->getMessage());
@@ -143,7 +169,7 @@ class TuteurController extends Controller
 
     public function show(Tuteur $tuteur)
     {
-        $tuteur->load(['user', 'apprenant']);
+        $tuteur->load(['user', 'apprenant', 'apprenants:id,nom,prenoms,matricule']);
 
         $apprenants = Apprenant::whereNull('deleted_at')
             ->get(['id', 'nom', 'prenoms', 'matricule'])
@@ -161,16 +187,21 @@ class TuteurController extends Controller
 
     public function edit(Tuteur $tuteur)
     {
+        // Ajoute l'école à la liste d'apprenants pour le filtre "même école"
         $apprenants = Apprenant::whereNull('deleted_at')
-            ->get(['id', 'nom', 'prenoms', 'matricule'])
+            ->get(['id', 'nom', 'prenoms', 'matricule', 'ecole_id'])
             ->map(fn($a) => [
                 'id' => $a->id,
                 'libelle' => $a->prenoms . ' ' . $a->nom . ' (' . $a->matricule . ')',
+                'ecole_id' => $a->ecole_id,
             ])->toArray();
+
+        $tuteur->load(['user', 'apprenant', 'apprenants:id']);
+        $tuteur->apprenant_ids = $tuteur->apprenants->pluck('id')->all();
 
         return Inertia::render('Personnel::Tuteurs/Edit', [
             'title' => __('actions.edit'),
-            'tuteur' => $tuteur->load(['user', 'apprenant']),
+            'tuteur' => $tuteur,
             'apprenants' => $apprenants,
         ]);
     }
@@ -181,6 +212,8 @@ class TuteurController extends Controller
             $validated = $request->validate([
                 'user_id' => 'nullable|exists:users,id',
                 'apprenant_id' => 'nullable|exists:apprenants,id',
+                'apprenant_ids' => ['nullable', 'array'],
+                'apprenant_ids.*' => ['integer', 'exists:apprenants,id'],
                 'nom' => 'required|string|max:255',
                 'prenoms' => 'nullable|string|max:255',
                 'telephone' => 'nullable|string|max:20',
@@ -201,18 +234,36 @@ class TuteurController extends Controller
                 ]));
             }
 
-            // Mettre à jour le tuteur
-            $tuteur->update([
-                'apprenant_id'   => $validated['apprenant_id'] ?? $tuteur->apprenant_id,
-                'relation'       => $validated['relation'] ?? $tuteur->relation,
-                'profession'     => $validated['profession'] ?? $tuteur->profession,
-                'employeur'      => $validated['employeur'] ?? $tuteur->employeur,
-                'numero_urgence' => $validated['numero_urgence'] ?? $tuteur->numero_urgence,
-            ]);
+            // Règle métier : tous les apprenants dans la même école
+            $apprenantIds = array_values(array_filter($request->input('apprenant_ids', [])));
+            (new \App\Rules\SameSchoolForApprenants())->validate('apprenant_ids', $apprenantIds, function ($msg) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['apprenant_ids' => $msg]);
+            });
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($tuteur, $validated, $apprenantIds) {
+                $tuteur->update([
+                    'apprenant_id'   => $validated['apprenant_id'] ?? $tuteur->apprenant_id,
+                    'relation'       => $validated['relation'] ?? $tuteur->relation,
+                    'profession'     => $validated['profession'] ?? $tuteur->profession,
+                    'employeur'      => $validated['employeur'] ?? $tuteur->employeur,
+                    'numero_urgence' => $validated['numero_urgence'] ?? $tuteur->numero_urgence,
+                ]);
+
+                $sync = [];
+                foreach ($apprenantIds as $i => $aid) {
+                    $sync[$aid] = [
+                        'relation' => $validated['relation'] ?? null,
+                        'est_principal' => $i === 0,
+                    ];
+                }
+                $tuteur->apprenants()->sync($sync);
+            });
 
             return redirect()->route('tuteurs.index')
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Personnel", "TuteurController::update", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));

@@ -82,6 +82,19 @@ class Accompagnateur extends BaseModel
         return $this->belongsTo('Modules\Parametrage\Entities\Fichier', 'accompagnant3_photo_id');
     }
 
+    /**
+     * Apprenants suivis/transportés par cet accompagnateur (N-N).
+     */
+    public function apprenants(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \Modules\Academique\Entities\Apprenant::class,
+            'apprenant_accompagnateur',
+            'accompagnateur_id',
+            'apprenant_id'
+        )->withPivot('est_principal')->withTimestamps();
+    }
+
     // Scopes
     public function scopeActif($query)
     {

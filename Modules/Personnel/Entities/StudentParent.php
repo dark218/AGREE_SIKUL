@@ -55,9 +55,26 @@ class StudentParent extends BaseModel
     ];
 
     // Relationships
+    /**
+     * @deprecated Utilisez `apprenants()` (relation N-N via pivot `apprenant_parent`).
+     * Cette relation legacy est conservée pour compatibilité avec l'ancien
+     * code qui référence encore `parents.apprenant_id`. À supprimer une
+     * fois tout le code porté.
+     */
     public function apprenant()
     {
         return $this->belongsTo(Apprenant::class, 'apprenant_id');
+    }
+
+    /**
+     * Nouvelle relation canonique — un parent est lié à N apprenants
+     * d'une même école (fratrie).
+     */
+    public function apprenants(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Apprenant::class, 'apprenant_parent', 'parent_id', 'apprenant_id')
+            ->withPivot('lien_parente', 'est_principal')
+            ->withTimestamps();
     }
 
     public function classe()

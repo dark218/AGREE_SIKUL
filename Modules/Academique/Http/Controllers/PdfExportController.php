@@ -66,7 +66,37 @@ class PdfExportController extends Controller
      */
     public function ficheApprenant(Apprenant $apprenant)
     {
-        $apprenant->load(['classe.ecole']);
+        // Charge la classe + les contacts humains via les nouvelles relations pivot
+        $apprenant->load([
+            'classe.ecole',
+            'parents:id,pere_nom,pere_prenoms,mere_nom,mere_prenoms,pere_telephone_1,mere_telephone_1',
+            'tuteurs:id,nom,prenoms,telephone,relation',
+            'tuteurs.user:id,nom,prenoms',
+            'accompagnateurs:id,accompagnant1_nom,accompagnant1_prenoms,accompagnant2_nom,accompagnant2_prenoms,accompagnant3_nom,accompagnant3_prenoms',
+        ]);
+
+        // Aplatir les parents en père/mère (le premier parent principal fait référence)
+        $pere = null;
+        $mere = null;
+        foreach ($apprenant->parents as $p) {
+            if (!$pere && ($p->pere_nom || $p->pere_prenoms)) {
+                $pere = trim(($p->pere_prenoms ?? '') . ' ' . ($p->pere_nom ?? ''));
+            }
+            if (!$mere && ($p->mere_nom || $p->mere_prenoms)) {
+                $mere = trim(($p->mere_prenoms ?? '') . ' ' . ($p->mere_nom ?? ''));
+            }
+            if ($pere && $mere) break;
+        }
+
+        // Tuteur principal (marqué est_principal=true, sinon premier)
+        $principal = $apprenant->tuteurs->firstWhere('pivot.est_principal', true) ?? $apprenant->tuteurs->first();
+        $tuteur = null;
+        if ($principal) {
+            $tuteur = trim(
+                ($principal->prenoms ?? $principal->user?->prenoms ?? '') . ' ' .
+                ($principal->nom ?? $principal->user?->nom ?? '')
+            );
+        }
 
         $data = [
             'apprenant' => $apprenant,
@@ -75,6 +105,11 @@ class PdfExportController extends Controller
             'adresse' => $apprenant->classe?->ecole?->adresse,
             'annee' => '-',
             'date' => now()->format('d/m/Y'),
+            // Contacts issus des vraies relations (remplace les champs texte legacy)
+            'pere' => $pere ?: ($apprenant->nom_pere ?: '-'),
+            'mere' => $mere ?: ($apprenant->nom_mere ?: '-'),
+            'tuteur' => $tuteur ?: ($apprenant->nom_tuteur ?: '-'),
+            'responsable_legal' => $apprenant->nom_responsable_legal ?: '-',
         ];
 
         $pdf = Pdf::loadView('academique::pdf.fiche-apprenant', $data);

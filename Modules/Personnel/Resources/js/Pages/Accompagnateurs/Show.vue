@@ -4,6 +4,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AccompagnateurForm from './AccompagnateurForm.vue';
+import ApprenantsBadges from '@/Components/Common/ApprenantsBadges.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -88,6 +89,20 @@ const form = useForm({
                             </button>
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
+                            <!-- Apprenants transportés/accompagnés -->
+                            <div class="apprenants-section mb-4">
+                                <h5 class="section-header">
+                                    <i class="fa fa-users me-2"></i>
+                                    Apprenants accompagnés
+                                    <span class="badge bg-primary ms-2">{{ accompagnateur?.apprenants?.length || 0 }}</span>
+                                </h5>
+                                <ApprenantsBadges
+                                    :apprenants="accompagnateur?.apprenants || []"
+                                    mode="card"
+                                    empty-label="Aucun apprenant rattaché à cet accompagnateur"
+                                />
+                            </div>
+
                             <AccompagnateurForm
                                 :form="form"
                                 :ecoles="ecoles"
@@ -112,3 +127,19 @@ const form = useForm({
         </div>
     </div>
 </template>
+
+<style scoped>
+.apprenants-section {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid #e2e8f0;
+}
+.section-header {
+    color: #0b5697;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #0b5697;
+}
+</style>

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ApprenantForm from './ApprenantForm.vue';
+import ApprenantContactsSection from '@/Components/Common/ApprenantContactsSection.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const page = usePage();
@@ -122,6 +123,14 @@ console.log('[Form date_depart_ecole]:', form.date_depart_ecole);
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
+
+                            <!-- Contacts humains liés à l'apprenant : parents, tuteurs, accompagnateurs -->
+                            <ApprenantContactsSection
+                                :parents="apprenant?.parents || []"
+                                :tuteurs="apprenant?.tuteurs || []"
+                                :accompagnateurs="apprenant?.accompagnateurs || []"
+                            />
+
                             <ApprenantForm :form="form" :classes="classes" :sections="sections" :cycles="cycles" :ecoles="ecoles" :campuses="campuses" :communes="communes" :departements="departements" :regions="regions" :pays="pays" :quartiers="quartiers" :anneesScolaires="anneesScolaires" :typesApprenant="typesApprenant" :categoriesApprenant="categoriesApprenant" mode="show" />
                             <div class="row mt-3">
                                 <div class="col">

@@ -30,6 +30,7 @@ const form = useForm({
     email: page.props.tuteur?.email || '',
     adresse: page.props.tuteur?.adresse || '',
     apprenant_id: page.props.tuteur?.apprenant_id || '',
+    apprenant_ids: page.props.tuteur?.apprenant_ids || [],
     relation: page.props.tuteur?.relation || '',
     profession: page.props.tuteur?.profession || '',
     employeur: page.props.tuteur?.employeur || '',

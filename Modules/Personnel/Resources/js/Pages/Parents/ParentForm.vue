@@ -2,6 +2,7 @@
 import { computed, defineProps, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import ApprenantsPicker from '@/Components/Common/ApprenantsPicker.vue';
 
 const { t } = useI18n();
 
@@ -66,27 +67,21 @@ const etatOptions = [
     { id: 'inactif', libelle: 'Inactif' },
 ];
 
-// Auto-fill classe, ecole, institution, campus when apprenant is selected
-watch(() => props.form.apprenant_id, (newApprenantId) => {
-    if (newApprenantId) {
-        const selectedApprenant = props.apprenants.find(a => a.id === newApprenantId);
-        if (selectedApprenant) {
-            console.log('✓ Apprenant selected, auto-filling fields:', selectedApprenant);
-            if (selectedApprenant.classe_id) {
-                props.form.classe_id = selectedApprenant.classe_id;
-            }
-            if (selectedApprenant.ecole_id) {
-                props.form.ecole_id = selectedApprenant.ecole_id;
-            }
-            if (selectedApprenant.institution_id) {
-                props.form.institution_id = selectedApprenant.institution_id;
-            }
-            if (selectedApprenant.campus_id) {
-                props.form.campus_id = selectedApprenant.campus_id;
-            }
-        }
+// Init des listes si absentes du form
+if (!props.form.apprenant_ids) props.form.apprenant_ids = [];
+if (!props.form.lien_parente) props.form.lien_parente = [];
+
+// Auto-fill classe, ecole, institution, campus depuis le 1er apprenant sélectionné
+watch(() => props.form.apprenant_ids, (ids) => {
+    if (!ids || ids.length === 0) return;
+    const firstApprenant = props.apprenants.find(a => String(a.id) === String(ids[0]));
+    if (firstApprenant) {
+        if (firstApprenant.classe_id) props.form.classe_id = firstApprenant.classe_id;
+        if (firstApprenant.ecole_id) props.form.ecole_id = firstApprenant.ecole_id;
+        if (firstApprenant.institution_id) props.form.institution_id = firstApprenant.institution_id;
+        if (firstApprenant.campus_id) props.form.campus_id = firstApprenant.campus_id;
     }
-});
+}, { deep: true, immediate: true });
 </script>
 
 <template>
@@ -96,19 +91,21 @@ watch(() => props.form.apprenant_id, (newApprenantId) => {
             <h5 class="section-title mb-3 mt-0">{{ t('common.student_information') || 'Informations de l\'apprenant' }}</h5>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-12">
             <div class="mb-3">
-                <label>{{ t('fields.apprenant') || 'Apprenant' }}</label>
-                <SearchableSelect
-                    v-model="form.apprenant_id"
-                    :options="apprenants"
+                <label class="fw-medium">
+                    {{ t('fields.apprenants') || 'Apprenants rattachés' }}
+                    <small class="text-muted">— fratrie dans la même école</small>
+                </label>
+                <ApprenantsPicker
+                    v-model="form.apprenant_ids"
+                    v-model:lien-parente="form.lien_parente"
+                    :apprenants="apprenants"
+                    :show-lien="true"
                     :disabled="isReadOnly"
-                    option-value="id"
-                    :option-label="(opt) => `${opt.nom} ${opt.prenoms}`"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                 />
-                <span v-if="form.errors?.apprenant_id" class="text-danger">
-                    <strong>{{ form.errors.apprenant_id }}</strong>
+                <span v-if="form.errors?.apprenant_ids" class="text-danger d-block mt-1">
+                    <strong>{{ Array.isArray(form.errors.apprenant_ids) ? form.errors.apprenant_ids[0] : form.errors.apprenant_ids }}</strong>
                 </span>
             </div>
         </div>

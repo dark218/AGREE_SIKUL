@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import ApprenantsBadges from '@/Components/Common/ApprenantsBadges.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -207,7 +208,7 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.ecole') || 'École' }}</th>
                                         <th>{{ t('fields.accompagnant1') || 'Accompagnant 1' }}</th>
-                                        <th>{{ t('fields.accompagnant2') || 'Accompagnant 2' }}</th>
+                                        <th>Apprenants</th>
                                         <th>{{ t('fields.status') || 'État' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -217,7 +218,12 @@ watch(
                                         <tr v-for="accompagnateur in accompagnateurs?.data" :key="accompagnateur.id">
                                             <td>{{ accompagnateur.ecole?.nom || '-' }}</td>
                                             <td>{{ accompagnateur.accompagnant1_nom || '-' }} {{ accompagnateur.accompagnant1_prenoms || '' }}</td>
-                                            <td>{{ accompagnateur.accompagnant2_nom || '-' }} {{ accompagnateur.accompagnant2_prenoms || '' }}</td>
+                                            <td>
+                                                <ApprenantsBadges
+                                                    :apprenants="accompagnateur.apprenants || []"
+                                                    mode="inline"
+                                                />
+                                            </td>
                                             <td><span class="badge" :class="accompagnateur.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + accompagnateur.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
