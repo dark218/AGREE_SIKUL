@@ -13,4 +13,5 @@ class StatutApprenant extends BaseModel
     protected $table = 'statuts_apprenants';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

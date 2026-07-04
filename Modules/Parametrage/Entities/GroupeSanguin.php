@@ -13,4 +13,5 @@ class GroupeSanguin extends BaseModel
     protected $table = 'groupes_sanguins';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

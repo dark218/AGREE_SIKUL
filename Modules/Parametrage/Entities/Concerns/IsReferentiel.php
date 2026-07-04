@@ -11,17 +11,13 @@ namespace Modules\Parametrage\Entities\Concerns;
  */
 trait IsReferentiel
 {
-    // Note : $defaultOrderBy et $defaultOrderDir sont définis DIRECTEMENT
-    // sur chaque entity concrète (surcharge de la valeur de BaseModel).
-    // PHP interdit qu'un trait redéfinisse une propriété héritée avec une
-    // valeur par défaut différente — donc on force la surcharge à la classe.
-
-    protected $fillable = [
-        'code',
-        'libelle',
-        'ordre',
-        'etat',
-    ];
+    // ⚠️ PHP interdit qu'un trait redéfinisse une propriété héritée
+    // avec une valeur par défaut différente. Toutes les propriétés
+    // ($defaultOrderBy, $defaultOrderDir, $fillable) sont donc
+    // définies DIRECTEMENT sur chaque entity concrète pour ne pas
+    // entrer en collision avec BaseModel.
+    //
+    // Ce trait n'expose plus qu'un comportement partagé (scope actif).
 
     public function scopeActif($query)
     {

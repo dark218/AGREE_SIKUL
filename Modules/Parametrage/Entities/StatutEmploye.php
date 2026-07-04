@@ -13,4 +13,5 @@ class StatutEmploye extends BaseModel
     protected $table = 'statuts_employes';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

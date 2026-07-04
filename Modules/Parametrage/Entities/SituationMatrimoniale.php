@@ -13,4 +13,5 @@ class SituationMatrimoniale extends BaseModel
     protected $table = 'situations_matrimoniales';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

@@ -13,4 +13,5 @@ class LienParente extends BaseModel
     protected $table = 'liens_parente';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

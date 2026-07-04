@@ -13,4 +13,5 @@ class Langue extends BaseModel
     protected $table = 'langues';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

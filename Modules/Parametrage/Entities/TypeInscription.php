@@ -13,4 +13,5 @@ class TypeInscription extends BaseModel
     protected $table = 'types_inscriptions';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

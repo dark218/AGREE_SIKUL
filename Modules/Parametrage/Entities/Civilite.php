@@ -13,4 +13,5 @@ class Civilite extends BaseModel
     protected $table = 'civilites';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }

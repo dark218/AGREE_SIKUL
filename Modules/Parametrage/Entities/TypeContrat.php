@@ -13,4 +13,5 @@ class TypeContrat extends BaseModel
     protected $table = 'types_contrats';
     protected $defaultOrderBy = 'ordre';
     protected $defaultOrderDir = 'asc';
+    protected $fillable = ['code', 'libelle', 'ordre', 'etat'];
 }
