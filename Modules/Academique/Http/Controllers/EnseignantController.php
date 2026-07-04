@@ -67,10 +67,12 @@ class EnseignantController extends Controller
     {
         try {
             $validated = $request->validate([
-                'user_id' => 'required|exists:users,id|unique:enseignants',
+                // user_id est désormais optionnel : si absent, un User sera auto-créé
+                // à partir du nom/prénom/email/téléphone saisis dans le formulaire.
+                'user_id' => 'nullable|exists:users,id|unique:enseignants',
                 'matricule' => 'nullable|unique:enseignants',
-                'nom' => 'nullable|string|max:100',
-                'prenoms' => 'nullable|string|max:100',
+                'nom' => 'required|string|max:100',
+                'prenoms' => 'required|string|max:100',
                 'nom_restituer' => 'nullable|string|max:100',
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
@@ -119,6 +121,21 @@ class EnseignantController extends Controller
             if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
                 $photoPath = $request->file('photo')->store('enseignants', 'public');
                 $validated['photo'] = $photoPath;
+            }
+
+            // Auto-création d'un User si non fourni (comme pour Tuteur)
+            if (empty($validated['user_id'])) {
+                $login = $validated['telephone'] ?? $validated['email'] ?? 'enseignant-' . time();
+                $validated['user_id'] = \App\Models\User::create([
+                    'nom'        => $validated['nom'],
+                    'prenoms'    => $validated['prenoms'] ?? null,
+                    'email'      => $validated['email'] ?? null,
+                    'login'      => $login,
+                    'full_login' => $login,
+                    'password'   => bcrypt('password123'),
+                    'role'       => 'enseignant',
+                    'statut'     => 'actif',
+                ])->id;
             }
 
             $enseignant = Enseignant::create($validated);
