@@ -26,21 +26,37 @@ class EnseignantController extends Controller
         // Filtres
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('nom', 'like', "%$search%")
-                  ->orWhere('prenoms', 'like', "%$search%");
-            })->orWhere('matricule', 'like', "%$search%");
+            // Regroupé dans une closure pour ne pas casser les autres filtres (AND/OR).
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($u) use ($search) {
+                    $u->where('nom', 'like', "%$search%")
+                      ->orWhere('prenoms', 'like', "%$search%");
+                })
+                ->orWhere('matricule', 'like', "%$search%")
+                ->orWhere('email', 'like', "%$search%");
+            });
         }
 
         if ($request->filled('statut')) {
             $query->where('statut', $request->input('statut'));
         }
 
+        if ($request->filled('categorie_enseignant_id')) {
+            $query->where('categorie_enseignant_id', $request->input('categorie_enseignant_id'));
+        }
+
+        if ($request->filled('nature_contrat_id')) {
+            $query->where('nature_contrat_id', $request->input('nature_contrat_id'));
+        }
+
         $enseignants = $query->with('user')->paginate(10)->withQueryString();
 
         return Inertia::render('Academique::Enseignants/Index', [
             'enseignants' => $enseignants,
-            'filters' => $request->only(['search', 'statut']),
+            'filters' => $request->only(['search', 'statut', 'categorie_enseignant_id', 'nature_contrat_id']),
+            // Listes d'options pour les filtres (petites tables de référence)
+            'categoriesFilter' => CategorieEnseignant::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'naturesContratFilter' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
         ]);
     }
 

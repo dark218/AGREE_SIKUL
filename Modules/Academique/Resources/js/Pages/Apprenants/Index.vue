@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePermissions } from '@/Composables/usePermissions';
@@ -20,6 +20,10 @@ const props = defineProps({
     title: String,
     apprenants: Object,
     filters: Object,
+    classesFilter: { type: Array, default: () => [] },
+    ecolesFilter: { type: Array, default: () => [] },
+    cyclesFilter: { type: Array, default: () => [] },
+    anneesFilter: { type: Array, default: () => [] },
 });
 const deleteMode = ref(false);
 const deactivateMode = ref(false);
@@ -27,16 +31,23 @@ const activateMode = ref(false);
 const searchFilters = ref({
     search: props.filters?.search || '',
     statut: props.filters?.statut || '',
+    classe_id: props.filters?.classe_id || '',
+    ecole_id: props.filters?.ecole_id || '',
+    cycle_id: props.filters?.cycle_id || '',
+    annee_scolaire_id: props.filters?.annee_scolaire_id || '',
 });
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
 const filterFields = [
-    { key: 'search', type: 'text', placeholder: 'Rechercher un apprenant…', icon: 'fa-search', width: '260px' },
-    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'search', type: 'text', placeholder: 'Rechercher un apprenant…', icon: 'fa-search', width: '240px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '160px' },
+    { key: 'classe_id', type: 'select', placeholder: 'Classe', options: props.classesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
+    { key: 'ecole_id', type: 'select', placeholder: 'École', options: props.ecolesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
+    { key: 'cycle_id', type: 'select', placeholder: 'Cycle', options: props.cyclesFilter, optionValue: 'id', optionLabel: 'libelle', width: '170px' },
+    { key: 'annee_scolaire_id', type: 'select', placeholder: 'Année scolaire', options: props.anneesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
 ];
-let searchTimeout;
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 const search = () => {
@@ -112,16 +123,6 @@ const closeModal = () => {
     deactivateMode.value = false;
     activateMode.value = false;
 };
-watch(
-  () => searchFilters.value,
-  () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      search();
-    }, 500);
-  },
-  { deep: true }
-);
 </script>
 <template>
     <Head :title="page.props.title" />

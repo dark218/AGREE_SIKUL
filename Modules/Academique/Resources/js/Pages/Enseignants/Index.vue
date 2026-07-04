@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePermissions } from '@/Composables/usePermissions';
@@ -21,6 +21,8 @@ const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showDeleteLoa
 const props = defineProps({
     enseignants: Object,
     filters: Object,
+    categoriesFilter: { type: Array, default: () => [] },
+    naturesContratFilter: { type: Array, default: () => [] },
 });
 const deleteMode = ref(false);
 const deactivateMode = ref(false);
@@ -28,6 +30,8 @@ const activateMode = ref(false);
 const searchFilters = ref({
     search: props.filters?.search || '',
     statut: props.filters?.statut || '',
+    categorie_enseignant_id: props.filters?.categorie_enseignant_id || '',
+    nature_contrat_id: props.filters?.nature_contrat_id || '',
 });
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
@@ -35,9 +39,10 @@ const statusOptions = [
 ];
 const filterFields = [
     { key: 'search', type: 'text', placeholder: 'Rechercher', icon: 'fa-search', width: '220px' },
-    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '160px' },
+    { key: 'categorie_enseignant_id', type: 'select', placeholder: 'Catégorie', options: props.categoriesFilter, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'nature_contrat_id', type: 'select', placeholder: 'Nature du contrat', options: props.naturesContratFilter, optionValue: 'id', optionLabel: 'libelle', width: '200px' },
 ];
-let searchTimeout;
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 const search = () => {
@@ -113,16 +118,6 @@ const closeModal = () => {
     deactivateMode.value = false;
     activateMode.value = false;
 };
-watch(
-  () => searchFilters.value,
-  () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      search();
-    }, 500);
-  },
-  { deep: true }
-);
 </script>
 <template>
     <Head :title="page.props.title" />

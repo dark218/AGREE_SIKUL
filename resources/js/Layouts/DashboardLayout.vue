@@ -5,7 +5,6 @@ import TheSidebar from '@/Components/Layout/TheSidebar.vue';
 import TheNavbar from '@/Components/Layout/TheNavbar.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import NotificationManager from '@/Components/NotificationManager.vue';
-import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 
 defineProps({
     title: {
@@ -19,12 +18,6 @@ const isSidebarCollapsed = ref(false);
 const isMobileSidebarOpen = ref(false);
 const showLogoutModal = ref(false);
 const page = usePage();
-
-// Indicateur de navigation Inertia (évite l'impression d'écran "figé")
-const isNavigating = ref(false);
-let navDelayTimer = null;
-let removeStartListener = null;
-let removeFinishListener = null;
 
 // Provide logout function pour les enfants
 provide('openLogoutModal', () => {
@@ -68,30 +61,10 @@ onMounted(() => {
     }
     window.addEventListener('resize', handleResize);
     handleResize();
-
-    // Écoute les navigations Inertia pour afficher le loader plein écran.
-    // - Uniquement sur les visites GET (navigation entre pages). Les POST/PUT/DELETE
-    //   (soumissions de formulaire) ont déjà leur propre loader via useLoader.
-    // - Un délai de 200ms évite tout clignotement sur les pages rapides.
-    removeStartListener = router.on('start', (event) => {
-        const method = event?.detail?.visit?.method?.toLowerCase();
-        if (method && method !== 'get') return;
-        navDelayTimer = setTimeout(() => {
-            isNavigating.value = true;
-        }, 200);
-    });
-
-    removeFinishListener = router.on('finish', () => {
-        clearTimeout(navDelayTimer);
-        isNavigating.value = false;
-    });
 });
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
-    clearTimeout(navDelayTimer);
-    if (removeStartListener) removeStartListener();
-    if (removeFinishListener) removeFinishListener();
 });
 </script>
 
@@ -122,14 +95,6 @@ onUnmounted(() => {
                 <slot />
             </main>
         </div>
-
-        <!-- Loader plein écran pendant la navigation Inertia -->
-        <FullPageLoader
-            :show="isNavigating"
-            message="Chargement en cours..."
-            sub-message="Veuillez patienter"
-            variant="primary"
-        />
 
         <!-- Modal de confirmation de déconnexion -->
         <ConfirmModal

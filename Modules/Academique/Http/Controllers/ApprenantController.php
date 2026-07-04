@@ -25,20 +25,47 @@ class ApprenantController extends Controller
         // Filtres
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where('nom', 'like', "%$search%")
+            // Regroupé dans une closure pour ne pas casser les autres filtres (AND/OR).
+            $query->where(function ($q) use ($search) {
+                $q->where('nom', 'like', "%$search%")
                   ->orWhere('prenoms', 'like', "%$search%")
                   ->orWhere('matricule', 'like', "%$search%");
+            });
         }
 
         if ($request->filled('statut')) {
             $query->where('statut', $request->input('statut'));
         }
 
+        if ($request->filled('classe_id')) {
+            $query->where('classe_id', $request->input('classe_id'));
+        }
+
+        if ($request->filled('ecole_id')) {
+            $query->where('ecole_id', $request->input('ecole_id'));
+        }
+
+        if ($request->filled('cycle_id')) {
+            $query->where('cycle_id', $request->input('cycle_id'));
+        }
+
+        if ($request->filled('annee_scolaire_id')) {
+            $query->where('annee_scolaire_id', $request->input('annee_scolaire_id'));
+        }
+
         $apprenants = $query->with('user', 'classe', 'section', 'cycle', 'ecole', 'campus')->paginate(10)->withQueryString();
 
         return Inertia::render('Academique::Apprenants/Index', [
             'apprenants' => $apprenants,
-            'filters' => $request->only(['search', 'statut']),
+            'filters' => $request->only(['search', 'statut', 'classe_id', 'ecole_id', 'cycle_id', 'annee_scolaire_id']),
+            // Listes d'options pour les filtres (petites tables de référence)
+            'classesFilter' => Classe::whereNull('deleted_at')
+                ->orderBy('nom')
+                ->get(['id', 'nom', 'libelle', 'libelle_affichage'])
+                ->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle_affichage ?: ($c->libelle ?: $c->nom)]),
+            'ecolesFilter' => Ecole::whereNull('deleted_at')->orderBy('nom')->get(['id', 'nom as libelle']),
+            'cyclesFilter' => CycleEnseignement::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'anneesFilter' => AnneeScolaire::whereNull('deleted_at')->orderBy('libelle', 'desc')->get(['id', 'libelle']),
         ]);
     }
 
