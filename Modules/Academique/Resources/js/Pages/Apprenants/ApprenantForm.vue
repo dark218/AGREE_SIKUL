@@ -110,6 +110,8 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    statutsApprenants: { type: Array, default: () => [] },
+    groupesSanguins: { type: Array, default: () => [] },
 });
 
 const isReadOnly = props.mode === 'show';
@@ -136,13 +138,21 @@ const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_i
 // Auto-fill classe → ecole, campus, section, cycle, annee_scolaire
 useClasseAutoFill(props.form);
 
-const statusOptions = [
+// Fallback si Paramétrage/StatutsApprenants pas encore alimenté
+const defaultStatusApprenants = [
     { id: 'actif', libelle: t('common.active') || 'Actif' },
     { id: 'suspendu', libelle: t('common.suspended') || 'Suspendu' },
     { id: 'exclu', libelle: 'Exclu' },
     { id: 'diplome', libelle: 'Diplômé' },
     { id: 'abandonne', libelle: 'Abandonné' },
 ];
+const statusOptions = computed(() => {
+    if (props.statutsApprenants?.length > 0) {
+        // On expose `code` en `id` pour rester compat avec la validation existante
+        return props.statutsApprenants.map(s => ({ id: s.code, libelle: s.libelle }));
+    }
+    return defaultStatusApprenants;
+});
 
 const sexeOptions = [
     { id: 'M', libelle: 'Masculin' },
@@ -451,14 +461,15 @@ const age = computed(() => {
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.groupe_sanguin') || 'Groupe sanguin' }}</label>
-                <input
+                <SearchableSelect
                     v-model="form.groupe_sanguin"
-                    type="text"
-                    class="form-control"
-                    maxlength="10"
-                    :placeholder="t('fields.groupe_sanguin') || 'Groupe sanguin (ex: O+, AB-)'"
+                    :options="groupesSanguins"
+                    optionValue="libelle"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
+                <small class="text-muted">Paramétrable depuis Paramétrage → Groupes sanguins</small>
                 <span v-if="form.errors?.groupe_sanguin" class="text-danger">
                     <strong>{{ form.errors.groupe_sanguin }}</strong>
                 </span>

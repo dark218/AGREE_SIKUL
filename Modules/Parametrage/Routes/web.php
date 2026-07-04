@@ -37,6 +37,17 @@ use Modules\Parametrage\Http\Controllers\ClasseController;
 use Modules\Parametrage\Http\Controllers\FichierController;
 use Modules\Parametrage\Http\Controllers\TypeEtablissementSpeController;
 use Modules\Parametrage\Http\Controllers\LookupController;
+// Nouveaux référentiels métier factorisés (2026-07-04)
+use Modules\Parametrage\Http\Controllers\GenreController;
+use Modules\Parametrage\Http\Controllers\TypeContratController;
+use Modules\Parametrage\Http\Controllers\StatutEmployeController;
+use Modules\Parametrage\Http\Controllers\SituationMatrimonialeController;
+use Modules\Parametrage\Http\Controllers\LienParenteController;
+use Modules\Parametrage\Http\Controllers\CiviliteController;
+use Modules\Parametrage\Http\Controllers\StatutApprenantController;
+use Modules\Parametrage\Http\Controllers\TypeInscriptionController;
+use Modules\Parametrage\Http\Controllers\GroupeSanguinController;
+use Modules\Parametrage\Http\Controllers\LangueController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -318,6 +329,33 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::match(['put', 'post'], '/{genre}/statut', [GenreController::class, 'statut'])->name('statut');
         Route::delete('/{genre}', [GenreController::class, 'destroy'])->name('destroy');
     });
+
+    // ================================================================
+    // 9 référentiels métier factorisés (AbstractReferentielController)
+    // ================================================================
+    $referentiels = [
+        'types-contrats'            => ['type_contrat',            TypeContratController::class,          'types_contrats'],
+        'statuts-employes'          => ['statut_employe',          StatutEmployeController::class,        'statuts_employes'],
+        'situations-matrimoniales'  => ['situation_matrimoniale',  SituationMatrimonialeController::class,'situations_matrimoniales'],
+        'liens-parente'             => ['lien_parente',            LienParenteController::class,          'liens_parente'],
+        'civilites'                 => ['civilite',                CiviliteController::class,             'civilites'],
+        'statuts-apprenants'        => ['statut_apprenant',        StatutApprenantController::class,      'statuts_apprenants'],
+        'types-inscriptions'        => ['type_inscription',        TypeInscriptionController::class,      'types_inscriptions'],
+        'groupes-sanguins'          => ['groupe_sanguin',          GroupeSanguinController::class,        'groupes_sanguins'],
+        'langues'                   => ['langue',                  LangueController::class,               'langues'],
+    ];
+    foreach ($referentiels as $prefix => [$param, $ctrl, $routeName]) {
+        Route::prefix($prefix)->name($routeName . '.')->group(function () use ($param, $ctrl) {
+            Route::get('/', [$ctrl, 'index'])->name('index');
+            Route::get('/create', [$ctrl, 'create'])->name('create');
+            Route::post('/', [$ctrl, 'store'])->name('store');
+            Route::get("/{{$param}}", [$ctrl, 'show'])->name('show');
+            Route::get("/{{$param}}/edit", [$ctrl, 'edit'])->name('edit');
+            Route::match(['put', 'post'], "/{{$param}}", [$ctrl, 'update'])->name('update');
+            Route::match(['put', 'post'], "/{{$param}}/statut", [$ctrl, 'statut'])->name('statut');
+            Route::delete("/{{$param}}", [$ctrl, 'destroy'])->name('destroy');
+        });
+    }
 
     // ============================================
     // CALENDRIER

@@ -18,6 +18,7 @@ const props = defineProps({
     institutions: Array,
     campuses: Array,
     apprenants: { type: Array, default: () => [] },
+    civilites: { type: Array, default: () => [] },
 });
 
 const isCollapsed = ref(false);
@@ -96,7 +97,7 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <AccompagnateurForm :form="form" :ecoles="ecoles" :institutions="institutions" :campuses="campuses" :apprenants="apprenants" mode="create" />
+                                <AccompagnateurForm :form="form" :ecoles="ecoles" :institutions="institutions" :campuses="campuses" :apprenants="apprenants" :civilites="civilites" mode="create" />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

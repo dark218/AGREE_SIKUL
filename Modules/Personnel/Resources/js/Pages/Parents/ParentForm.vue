@@ -129,16 +129,13 @@ const onApprenantSelected = ({ apprenant, isFirst }) => {
     }
 };
 
-// Auto-fill classe, ecole, institution, campus depuis le 1er apprenant sélectionné
+// Auto-fill de l'ecole seulement (la classe/campus n'ont plus de sens
+// puisqu'un parent peut avoir plusieurs enfants dans des classes différentes).
+// On garde ecole_id pour le filtre + rattachement métier.
 watch(() => props.form.apprenant_ids, (ids) => {
     if (!ids || ids.length === 0) return;
     const firstApprenant = props.apprenants.find(a => String(a.id) === String(ids[0]));
-    if (firstApprenant) {
-        if (firstApprenant.classe_id) props.form.classe_id = firstApprenant.classe_id;
-        if (firstApprenant.ecole_id) props.form.ecole_id = firstApprenant.ecole_id;
-        if (firstApprenant.institution_id) props.form.institution_id = firstApprenant.institution_id;
-        if (firstApprenant.campus_id) props.form.campus_id = firstApprenant.campus_id;
-    }
+    if (firstApprenant?.ecole_id) props.form.ecole_id = firstApprenant.ecole_id;
 }, { deep: true, immediate: true });
 </script>
 
@@ -169,33 +166,12 @@ watch(() => props.form.apprenant_ids, (ids) => {
             </div>
         </div>
 
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.classe') || 'Classe' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="classeLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ecole') || 'Ecole' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="ecoleLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.institution') || 'Institution' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="institutionLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
+        <!-- Bloc classe/école/institution/campus retiré :
+             un parent pouvant avoir des enfants dans des classes/campus
+             différents (mais dans la même école — cf. règle métier),
+             il n'y a plus de sens à dupliquer ces infos sur la fiche
+             Parent. L'école commune est déjà visible dans le badge
+             du composant <ApprenantsPicker> ci-dessus. -->
 
         <!-- SECTION 2: INFORMATIONS DU PÈRE -->
         <div class="col-12">

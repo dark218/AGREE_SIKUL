@@ -16,6 +16,7 @@ const toggleCollapse = () => {
 };
 const props = defineProps({
     title: String,
+    liensParente: { type: Array, default: () => [] },
     apprenants: {
         type: Array,
         default: () => [],
@@ -75,6 +76,7 @@ const submitForm = () => {
                                     :form="form"
                                     mode="create"
                                     :apprenants="apprenants"
+                                    :liensParente="liensParente"
                                 />
                                 <div class="row mt-3">
                                     <div class="col">

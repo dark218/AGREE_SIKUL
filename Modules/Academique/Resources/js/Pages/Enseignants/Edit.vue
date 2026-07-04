@@ -29,6 +29,10 @@ const props = defineProps({
     niveaux: Array,
     classes: Array,
     genres: { type: Array, default: () => [] },
+    naturesContrat: { type: Array, default: () => [] },
+    situationsMatrimoniales: { type: Array, default: () => [] },
+    langues: { type: Array, default: () => [] },
+    statutsEmployes: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -40,6 +44,7 @@ const form = useForm({
     nom_jeune_fille: props.enseignant?.nom_jeune_fille || '',
     gender: props.enseignant?.gender || '',
     genre_id: props.enseignant?.genre_id || '',
+    nature_contrat_id: props.enseignant?.nature_contrat_id || '',
     marital_status: props.enseignant?.marital_status || '',
     date_of_birth: props.enseignant?.date_of_birth || '',
     place_of_birth: props.enseignant?.place_of_birth || '',
@@ -126,6 +131,10 @@ const submitForm = () => {
                                     :niveaux="niveaux"
                                     :classes="classes"
                                     :genres="genres"
+                                    :naturesContrat="naturesContrat"
+                                    :situationsMatrimoniales="situationsMatrimoniales"
+                                    :langues="langues"
+                                    :statutsEmployes="statutsEmployes"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

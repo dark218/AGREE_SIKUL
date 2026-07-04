@@ -22,6 +22,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    liensParente: { type: Array, default: () => [] },
 });
 const form = useForm({
     nom: page.props.tuteur?.nom || '',
@@ -72,6 +73,7 @@ const submitForm = () => {
                                     :form="form"
                                     mode="edit"
                                     :apprenants="apprenants"
+                                    :liensParente="liensParente"
                                 />
                                 <div class="row mt-3">
                                     <div class="col">

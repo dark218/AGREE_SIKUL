@@ -42,6 +42,8 @@ const props = defineProps({
     typesApprenant: { type: Array, default: () => [], },
     categoriesApprenant: { type: Array, default: () => [], },
     genres: { type: Array, default: () => [] },
+    statutsApprenants: { type: Array, default: () => [] },
+    groupesSanguins: { type: Array, default: () => [] },
 });
 const form = reactive({
     nom: page.props.apprenant?.nom || '',
@@ -133,7 +135,7 @@ console.log('[Form date_depart_ecole]:', form.date_depart_ecole);
                                 :accompagnateurs="apprenant?.accompagnateurs || []"
                             />
 
-                            <ApprenantForm :form="form" :classes="classes" :sections="sections" :cycles="cycles" :ecoles="ecoles" :campuses="campuses" :communes="communes" :departements="departements" :regions="regions" :pays="pays" :quartiers="quartiers" :anneesScolaires="anneesScolaires" :typesApprenant="typesApprenant" :categoriesApprenant="categoriesApprenant" :genres="genres" mode="show" />
+                            <ApprenantForm :form="form" :classes="classes" :sections="sections" :cycles="cycles" :ecoles="ecoles" :campuses="campuses" :communes="communes" :departements="departements" :regions="regions" :pays="pays" :quartiers="quartiers" :anneesScolaires="anneesScolaires" :typesApprenant="typesApprenant" :categoriesApprenant="categoriesApprenant" :genres="genres" :statutsApprenants="statutsApprenants" :groupesSanguins="groupesSanguins" mode="show" />
                             <div class="row mt-3">
                                 <div class="col">
                                     <div class="text-end">

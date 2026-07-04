@@ -66,6 +66,8 @@ class ApprenantController extends Controller
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
+            'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle', 'departement_id')->get(),
             'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle', 'region_id', 'pays_id')->get(),
             'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get(),
@@ -135,7 +137,8 @@ class ApprenantController extends Controller
                 'date_entree_ecole' => 'nullable|date',
                 'date_depart_ecole' => 'nullable|date',
                 'motif_depart_ecole' => 'nullable|string|max:500',
-                'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne',
+                // Accepte codes majuscules du référentiel + valeurs legacy minuscules
+                'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne,ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
             ]);
 
             \Log::info('Validation passed!', ['validated_data' => $validated]);
@@ -218,6 +221,8 @@ class ApprenantController extends Controller
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
+            'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle', 'departement_id')->get(),
             'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle', 'region_id', 'pays_id')->get(),
             'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get(),
@@ -251,6 +256,8 @@ class ApprenantController extends Controller
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
+            'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'communes' => Commune::whereNull('deleted_at')->select('id', 'libelle', 'departement_id')->get(),
             'departements' => Departement::whereNull('deleted_at')->select('id', 'libelle', 'region_id', 'pays_id')->get(),
             'regions' => Region::whereNull('deleted_at')->select('id', 'libelle', 'pays_id')->get(),
@@ -315,7 +322,8 @@ class ApprenantController extends Controller
                 'date_entree_ecole' => 'nullable|date',
                 'date_depart_ecole' => 'nullable|date',
                 'motif_depart_ecole' => 'nullable|string|max:500',
-                'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne',
+                // Accepte codes majuscules du référentiel + valeurs legacy minuscules
+                'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne,ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
             ]);
 
             // Upload de la nouvelle photo : remplace l'ancienne et supprime le fichier

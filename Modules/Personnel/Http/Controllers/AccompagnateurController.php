@@ -92,6 +92,7 @@ class AccompagnateurController extends Controller
                     'libelle' => trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')) . ' (' . ($a->matricule ?? '') . ')',
                     'ecole_id' => $a->ecole_id,
                     'nom_pere' => $a->nom_pere,
+                    // Le patch civilites est renvoyé par une clé séparée, ce champ reste intact.
                     'nom_mere' => $a->nom_mere,
                     'nom_tuteur' => $a->nom_tuteur,
                     'nom_responsable_legal' => $a->nom_responsable_legal,
@@ -104,6 +105,7 @@ class AccompagnateurController extends Controller
                 'institutions' => $institutions,
                 'campuses' => $campuses,
                 'apprenants' => $apprenants,
+                'civilites' => \Modules\Parametrage\Entities\Civilite::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::create", $th->getMessage());
@@ -189,6 +191,13 @@ class AccompagnateurController extends Controller
             unset($validated['apprenant_ids']);
 
             $accompagnateur = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $apprenantIds) {
+                // Auto-création du User associé — identité prise sur accompagnant1
+                $validated['user_id'] = \App\Services\AutoUserCreator::forProfile([
+                    'nom'     => $validated['accompagnant1_nom'] ?? 'Accompagnateur',
+                    'prenoms' => $validated['accompagnant1_prenoms'] ?? null,
+                    'role'    => 'accompagnateur',
+                ]);
+
                 $accompagnateur = Accompagnateur::create($validated);
 
                 $sync = [];
@@ -275,6 +284,7 @@ class AccompagnateurController extends Controller
                     'libelle' => trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')) . ' (' . ($a->matricule ?? '') . ')',
                     'ecole_id' => $a->ecole_id,
                     'nom_pere' => $a->nom_pere,
+                    // Le patch civilites est renvoyé par une clé séparée, ce champ reste intact.
                     'nom_mere' => $a->nom_mere,
                     'nom_tuteur' => $a->nom_tuteur,
                     'nom_responsable_legal' => $a->nom_responsable_legal,
@@ -295,6 +305,7 @@ class AccompagnateurController extends Controller
                 'institutions' => $institutions,
                 'campuses' => $campuses,
                 'apprenants' => $apprenants,
+                'civilites' => \Modules\Parametrage\Entities\Civilite::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::edit", $th->getMessage());

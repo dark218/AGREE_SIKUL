@@ -12,6 +12,8 @@ class Accompagnateur extends BaseModel
     protected $table = 'accompagnateurs';
 
     protected $fillable = [
+        // Compte utilisateur associé (auto-créé à la saisie du profil)
+        'user_id',
         // School Information
         'ecole_id',
         'institution_id',
@@ -52,6 +54,11 @@ class Accompagnateur extends BaseModel
     ];
 
     // Relationships
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
     public function ecole()
     {
         return $this->belongsTo('Modules\Parametrage\Entities\Ecole', 'ecole_id');

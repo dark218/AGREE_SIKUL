@@ -26,7 +26,7 @@ class VersementController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Versement::with(['apprenant', 'classe', 'ecole', 'anneeScolaire', 'niveau']);
+            $query = Versement::with(['apprenant.user', 'classe', 'ecole', 'anneeScolaire', 'niveau']);
 
             // Filtre apprenant (search sur nom + prenoms)
             if ($request->filled('apprenant')) {

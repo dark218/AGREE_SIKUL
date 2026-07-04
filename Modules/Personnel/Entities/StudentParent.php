@@ -17,6 +17,8 @@ class StudentParent extends BaseModel
     protected $table = 'parents';
 
     protected $fillable = [
+        // Compte utilisateur associé (auto-créé à la saisie du profil parent)
+        'user_id',
         // Informations de l'apprenant
         'apprenant_id', 'classe_id', 'ecole_id', 'institution_id', 'campus_id',
         // Père
@@ -55,6 +57,11 @@ class StudentParent extends BaseModel
     ];
 
     // Relationships
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
     /**
      * @deprecated Utilisez `apprenants()` (relation N-N via pivot `apprenant_parent`).
      * Cette relation legacy est conservée pour compatibilité avec l'ancien

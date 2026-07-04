@@ -19,6 +19,10 @@ const props = defineProps({
     niveaux: Array,
     classes: Array,
     genres: { type: Array, default: () => [] },
+    naturesContrat: { type: Array, default: () => [] },
+    situationsMatrimoniales: { type: Array, default: () => [] },
+    langues: { type: Array, default: () => [] },
+    statutsEmployes: { type: Array, default: () => [] },
 });
 
 const photoPreview = ref(null);
@@ -99,13 +103,15 @@ const age = computed(() => {
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.marital_status') }}</label>
-                <select v-model="form.marital_status" class="form-control" :disabled="isReadOnly">
-                    <option value="">{{ t('actions.select') }}</option>
-                    <option value="celibataire">Célibataire</option>
-                    <option value="marie">Marié</option>
-                    <option value="divorce">Divorcé</option>
-                    <option value="veuf">Veuf</option>
-                </select>
+                <SearchableSelect
+                    v-model="form.marital_status"
+                    :options="situationsMatrimoniales"
+                    optionValue="code"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <small class="text-muted">Paramétrable depuis Paramétrage → Situations matrimoniales</small>
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.date_of_birth') }}</label>
@@ -186,14 +192,10 @@ const age = computed(() => {
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.languages') }}</label>
-                <select v-model="form.languages" multiple class="form-control" :disabled="isReadOnly">
-                    <option value="Français">Français</option>
-                    <option value="Anglais">Anglais</option>
-                    <option value="Arabe">Arabe</option>
-                    <option value="Portugais">Portugais</option>
-                    <option value="Espagnol">Espagnol</option>
-                    <option value="Autre">Autre</option>
+                <select v-model="form.languages" multiple class="form-control" :disabled="isReadOnly" size="5">
+                    <option v-for="l in langues" :key="l.code" :value="l.libelle">{{ l.libelle }}</option>
                 </select>
+                <small class="text-muted">Ctrl/⌘ + clic pour multi-sélection · Paramétrable depuis Paramétrage → Langues</small>
             </div>
             <div class="col-md-12 mb-20">
                 <label class="mb-10">{{ t('fields.teaching_speciality') }}</label>
@@ -214,13 +216,15 @@ const age = computed(() => {
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.type_contrat') }}</label>
-                <select v-model="form.type_contrat" class="form-control" :disabled="isReadOnly">
-                    <option value="">{{ t('actions.select') }}</option>
-                    <option value="cdi">CDI</option>
-                    <option value="cdd">CDD</option>
-                    <option value="vacataire">Vacataire</option>
-                    <option value="autre">Autre</option>
-                </select>
+                <SearchableSelect
+                    v-model="form.nature_contrat_id"
+                    :options="naturesContrat"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <small class="text-muted">Paramétrable depuis Paramétrage → Natures de contrat</small>
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.date_embauche') }}</label>
@@ -375,14 +379,15 @@ const age = computed(() => {
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.statut') }} *</label>
-                <select v-model="form.statut" class="form-control" :disabled="isReadOnly">
-                    <option value="">{{ t('actions.select') }}</option>
-                    <option value="actif">{{ t('common.active') }}</option>
-                    <option value="suspendu">{{ t('common.suspended') }}</option>
-                    <option value="conge">Congé</option>
-                    <option value="retraite">Retraite</option>
-                    <option value="demission">Démission</option>
-                </select>
+                <SearchableSelect
+                    v-model="form.statut"
+                    :options="statutsEmployes"
+                    optionValue="code"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <small class="text-muted">Paramétrable depuis Paramétrage → Statuts employé</small>
             </div>
         </div>
     </div>

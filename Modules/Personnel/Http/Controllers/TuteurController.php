@@ -77,6 +77,7 @@ class TuteurController extends Controller
             return Inertia::render('Personnel::Tuteurs/Create', [
                 'title' => __('actions.create'),
                 'apprenants' => $apprenants,
+                'liensParente' => \Modules\Parametrage\Entities\LienParente::actif()->orderBy('ordre')->get(['id', 'code as id_code', 'libelle'])->map(fn($l) => ['id' => strtolower($l->id_code), 'libelle' => $l->libelle])->toArray(),
             ]);
         } catch (\Throwable $th) {
             \Log::error('❌ TuteurController::create - ERROR', [
@@ -119,20 +120,14 @@ class TuteurController extends Controller
             });
 
             \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request, $apprenantIds) {
-                // Créer ou trouver le user associé au tuteur
-                $userId = $validated['user_id'] ?? null;
-                if (!$userId) {
-                    $userId = \App\Models\User::create([
-                        'nom'       => $validated['nom'],
-                        'prenoms'   => $validated['prenoms'] ?? null,
-                        'email'     => $validated['email'] ?? null,
-                        'login'     => $validated['telephone'] ?? $validated['email'] ?? 'tuteur-' . time(),
-                        'full_login'=> $validated['telephone'] ?? $validated['email'] ?? 'tuteur-' . time(),
-                        'password'  => bcrypt('password123'),
-                        'role'      => 'parent',
-                        'statut'    => 'actif',
-                    ])->id;
-                }
+                // Créer ou trouver le user associé au tuteur — via service unique
+                $userId = $validated['user_id'] ?? \App\Services\AutoUserCreator::forProfile([
+                    'nom'       => $validated['nom'],
+                    'prenoms'   => $validated['prenoms'] ?? null,
+                    'email'     => $validated['email'] ?? null,
+                    'telephone' => $validated['telephone'] ?? null,
+                    'role'      => 'tuteur',
+                ]);
 
                 $tuteur = Tuteur::create([
                     'user_id'          => $userId,
@@ -213,6 +208,7 @@ class TuteurController extends Controller
             'title' => __('actions.edit'),
             'tuteur' => $tuteur,
             'apprenants' => $apprenants,
+            'liensParente' => \Modules\Parametrage\Entities\LienParente::actif()->orderBy('ordre')->get(['code', 'libelle'])->map(fn($l) => ['id' => strtolower($l->code), 'libelle' => $l->libelle])->toArray(),
         ]);
     }
 

@@ -28,9 +28,6 @@ class ServiceTransportController extends Controller
     public function index(Request $request)
     {
         try {
-            \Log::info('🚀 ServiceTransportController@index - START');
-            \Log::info('User: ' . auth()->user()?->email);
-
             $filters = [
                 'zone' => $request->input('zone'),
                 'ligne' => $request->input('ligne'),
@@ -38,8 +35,6 @@ class ServiceTransportController extends Controller
                 'annee_scolaire_id' => $request->input('annee_scolaire_id'),
                 'etat' => $request->input('etat'),
             ];
-
-            \Log::info('Filters applied: ' . json_encode($filters));
 
             $query = ServicesTransport::query()
                 ->with(['anneeScolaire', 'ecole'])
@@ -69,19 +64,13 @@ class ServiceTransportController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get(['id', 'nom']);
             $anneesScolaires = AnneeScolaire::where('etat', 'actif')->get(['id', 'libelle']);
 
-            \Log::info('📊 Data loaded: ' . $transport->count() . ' transports, ' . $ecoles->count() . ' schools, ' . $anneesScolaires->count() . ' school years');
-            \Log::info('📝 Rendering: Services::ServicesTransports/Index');
-
-            $response = Inertia::render('Services::ServicesTransports/Index', [
+            return Inertia::render('Services::ServicesTransports/Index', [
                 'transport' => $transport,
                 'filters' => $filters,
                 'ecoles' => $ecoles,
                 'anneesScolaires' => $anneesScolaires,
                 'title' => 'Gestion des Transports',
             ]);
-
-            \Log::info('✅ Inertia::render completed successfully');
-            return $response;
         } catch (\Throwable $th) {
             \Log::error("❌ Error loading services transport: " . $th->getMessage());
             \Log::error("Stack trace: " . $th->getTraceAsString());

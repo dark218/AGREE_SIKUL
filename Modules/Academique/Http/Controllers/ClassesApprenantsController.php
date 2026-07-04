@@ -62,12 +62,8 @@ class ClassesApprenantsController extends Controller
                 $classes = $classes->where('id', $request->classe_id);
             }
 
-            \Log::info('🔍 After filtering - Classes count:', ['count' => $classes->count()]);
-            \Log::info('🔍 Classes data before serialization:', $classes->toArray());
-
             // Serialize for Inertia
             $classesData = $classes->map(function ($classe) {
-                \Log::info('🔄 Mapping classe:', ['id' => $classe->id, 'nom' => $classe->nom, 'apprenants_count' => $classe->apprenants ? $classe->apprenants->count() : 0]);
                 return [
                     'id' => $classe->id,
                     'nom' => $classe->nom,

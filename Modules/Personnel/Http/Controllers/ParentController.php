@@ -233,6 +233,16 @@ class ParentController extends Controller
             });
 
             $parent = \Illuminate\Support\Facades\DB::transaction(function () use ($validated, $request, $apprenantIds) {
+                // Auto-création du User associé — utilise le père en priorité,
+                // sinon la mère, sinon le tuteur 1 comme identité principale.
+                $validated['user_id'] = \App\Services\AutoUserCreator::forProfile([
+                    'nom'       => $validated['pere_nom'] ?? $validated['mere_nom'] ?? $validated['tuteur1_nom'] ?? 'Parent',
+                    'prenoms'   => $validated['pere_prenoms'] ?? $validated['mere_prenoms'] ?? $validated['tuteur1_prenoms'] ?? null,
+                    'email'     => $validated['pere_email_1'] ?? $validated['mere_email_1'] ?? $validated['tuteur1_email'] ?? null,
+                    'telephone' => $validated['pere_telephone_1'] ?? $validated['mere_telephone_1'] ?? $validated['tuteur1_telephone_1'] ?? null,
+                    'role'      => 'parent',
+                ]);
+
                 $parent = StudentParent::create($validated);
 
                 // Sync du pivot avec métadonnées (lien_parente + est_principal sur le 1er)

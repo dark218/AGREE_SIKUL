@@ -145,6 +145,7 @@ class InscriptionController extends Controller
                 'ecoles' => $ecoles,
                 'campuses' => $campuses,
                 'institutions' => $institutions,
+                'typesInscriptions' => \Modules\Parametrage\Entities\TypeInscription::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
                 'prefill' => $prefill,
             ]);
         } catch (\Throwable $th) {
@@ -274,6 +275,7 @@ class InscriptionController extends Controller
                 'ecoles' => $ecoles,
                 'campuses' => $campuses,
                 'institutions' => $institutions,
+                'typesInscriptions' => \Modules\Parametrage\Entities\TypeInscription::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Academique", "InscriptionController::show", $th->getMessage());
@@ -340,6 +342,7 @@ class InscriptionController extends Controller
                 'ecoles' => $ecoles,
                 'campuses' => $campuses,
                 'institutions' => $institutions,
+                'typesInscriptions' => \Modules\Parametrage\Entities\TypeInscription::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Academique", "InscriptionController::edit", $th->getMessage());

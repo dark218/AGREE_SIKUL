@@ -40,6 +40,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    typesInscriptions: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
@@ -153,13 +154,19 @@ const statutOptions = [
     { id: 'suspendue', libelle: t('common.suspendue') || 'Suspendue' },
 ];
 
-// Type inscription options
-const typeInscriptionOptions = [
+// Type inscription options — depuis Paramétrage/TypesInscriptions ou fallback legacy
+const defaultTypeInscriptions = [
     { id: 'nouveau', libelle: t('common.nouveau') || 'Nouveau' },
     { id: 'redoublement', libelle: t('common.redoublement') || 'Redoublement' },
     { id: 'transfert', libelle: t('common.transfert') || 'Transfert' },
     { id: 'reprise', libelle: t('common.reprise') || 'Reprise' },
 ];
+const typeInscriptionOptions = computed(() => {
+    if (props.typesInscriptions?.length > 0) {
+        return props.typesInscriptions.map(t => ({ id: t.code.toLowerCase(), libelle: t.libelle }));
+    }
+    return defaultTypeInscriptions;
+});
 
 // Computed fields for fee calculations
 const fraisDossierRestant = computed(() => Math.max(0, (Number(props.form.frais_dossier) || 0) - (Number(props.form.frais_dossier_paye) || 0)));

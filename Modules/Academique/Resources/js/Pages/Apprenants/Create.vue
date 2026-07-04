@@ -72,6 +72,8 @@ const props = defineProps({
         default: () => [],
     },
     genres: { type: Array, default: () => [] },
+    statutsApprenants: { type: Array, default: () => [] },
+    groupesSanguins: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -206,6 +208,8 @@ const submitForm = (nextAction = null) => {
                                     :typesApprenant="typesApprenant"
                                     :categoriesApprenant="categoriesApprenant"
                                     :genres="genres"
+                                    :statutsApprenants="statutsApprenants"
+                                    :groupesSanguins="groupesSanguins"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

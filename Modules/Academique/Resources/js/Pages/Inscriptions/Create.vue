@@ -44,6 +44,7 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    typesInscriptions: { type: Array, default: () => [] },
 });
 const form = useForm({
     apprenant_id: props.prefill?.id ?? null,
@@ -121,6 +122,7 @@ const submitForm = () => {
                                     :ecoles="ecoles"
                                     :campuses="campuses"
                                     :institutions="institutions"
+                                    :typesInscriptions="typesInscriptions"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

@@ -61,6 +61,10 @@ class EnseignantController extends Controller
             'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
+            'naturesContrat' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle'])->toArray(),
+            'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
         ]);
     }
 
@@ -78,6 +82,8 @@ class EnseignantController extends Controller
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
                 'genre_id' => 'nullable|exists:genres,id',
+                // Accepte à la fois les codes majuscules du référentiel (CELIBATAIRE, MARIE, ...)
+                // et les valeurs legacy en minuscules (celibataire, marie, ...) pour rétro-compat.
                 'marital_status' => 'nullable|string|max:50',
                 'date_of_birth' => 'nullable|date',
                 'place_of_birth' => 'nullable|string|max:100',
@@ -92,13 +98,16 @@ class EnseignantController extends Controller
                 'languages' => 'nullable|array',
                 'teaching_speciality' => 'nullable|string|max:255',
                 'type_contrat' => 'nullable|in:cdi,cdd,vacataire,autre',
+                'nature_contrat_id' => 'nullable|exists:natures_contrats,id',
                 'date_embauche' => 'nullable|date',
                 'teacher_category' => 'nullable|string|max:100',
                 'categorie_enseignant_id' => 'nullable|exists:categorie_enseignants,id',
                 'email' => 'nullable|email|max:100',
                 'telephone' => 'nullable|string|max:20',
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                'statut' => 'required|in:actif,suspendu,conge,retraite,demission',
+                // Accepte à la fois les codes majuscules (ACTIF, SUSPENDU, CONGE, RETRAITE, DEMISSION)
+                // et les valeurs legacy minuscules pour rétro-compat.
+                'statut' => 'required|in:actif,suspendu,conge,retraite,demission,ACTIF,SUSPENDU,CONGE,RETRAITE,DEMISSION',
                 'matiere_1_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_2_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_3_id' => 'nullable|exists:matieres_unites,id',
@@ -125,19 +134,16 @@ class EnseignantController extends Controller
                 $validated['photo'] = $photoPath;
             }
 
-            // Auto-création d'un User si non fourni (comme pour Tuteur)
+            // Auto-création d'un User si non fourni — via service unique
+            // (gère uuid, login canonique, idempotence)
             if (empty($validated['user_id'])) {
-                $login = $validated['telephone'] ?? $validated['email'] ?? 'enseignant-' . time();
-                $validated['user_id'] = \App\Models\User::create([
-                    'nom'        => $validated['nom'],
-                    'prenoms'    => $validated['prenoms'] ?? null,
-                    'email'      => $validated['email'] ?? null,
-                    'login'      => $login,
-                    'full_login' => $login,
-                    'password'   => bcrypt('password123'),
-                    'role'       => 'enseignant',
-                    'statut'     => 'actif',
-                ])->id;
+                $validated['user_id'] = \App\Services\AutoUserCreator::forProfile([
+                    'nom'       => $validated['nom'],
+                    'prenoms'   => $validated['prenoms'] ?? null,
+                    'email'     => $validated['email'] ?? null,
+                    'telephone' => $validated['telephone'] ?? null,
+                    'role'      => 'enseignant',
+                ]);
             }
 
             $enseignant = Enseignant::create($validated);
@@ -194,6 +200,10 @@ class EnseignantController extends Controller
             'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
+            'naturesContrat' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle'])->toArray(),
+            'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
         ]);
     }
 
@@ -222,6 +232,10 @@ class EnseignantController extends Controller
             'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
+            'naturesContrat' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle'])->toArray(),
+            'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
         ]);
     }
 
@@ -242,6 +256,8 @@ class EnseignantController extends Controller
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
                 'genre_id' => 'nullable|exists:genres,id',
+                // Accepte à la fois les codes majuscules du référentiel (CELIBATAIRE, MARIE, ...)
+                // et les valeurs legacy en minuscules (celibataire, marie, ...) pour rétro-compat.
                 'marital_status' => 'nullable|string|max:50',
                 'date_of_birth' => 'nullable|date',
                 'place_of_birth' => 'nullable|string|max:100',
@@ -256,13 +272,16 @@ class EnseignantController extends Controller
                 'languages' => 'nullable|array',
                 'teaching_speciality' => 'nullable|string|max:255',
                 'type_contrat' => 'nullable|in:cdi,cdd,vacataire,autre',
+                'nature_contrat_id' => 'nullable|exists:natures_contrats,id',
                 'date_embauche' => 'nullable|date',
                 'teacher_category' => 'nullable|string|max:100',
                 'categorie_enseignant_id' => 'nullable|exists:categorie_enseignants,id',
                 'email' => 'nullable|email|max:100',
                 'telephone' => 'nullable|string|max:20',
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-                'statut' => 'required|in:actif,suspendu,conge,retraite,demission',
+                // Accepte à la fois les codes majuscules (ACTIF, SUSPENDU, CONGE, RETRAITE, DEMISSION)
+                // et les valeurs legacy minuscules pour rétro-compat.
+                'statut' => 'required|in:actif,suspendu,conge,retraite,demission,ACTIF,SUSPENDU,CONGE,RETRAITE,DEMISSION',
                 'matiere_1_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_2_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_3_id' => 'nullable|exists:matieres_unites,id',

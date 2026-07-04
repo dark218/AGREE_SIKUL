@@ -32,7 +32,7 @@ class PaiementController extends Controller
                 $query->where('statut', $request->input('statut'));
             }
 
-            $paiements = $query->with(['frais', 'apprenant'])->paginate(10)->withQueryString();
+            $paiements = $query->with(['frais', 'apprenant.user'])->paginate(10)->withQueryString();
 
             return Inertia::render('Finances::Paiements/Index', [
                 'paiements' => $paiements,

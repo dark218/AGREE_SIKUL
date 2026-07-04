@@ -27,6 +27,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    civilites: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
@@ -104,11 +105,20 @@ const handlePhotoChange = (e, field) => {
     props.form[field] = file;
 };
 
-const civiliteOptions = [
+import { computed as vueComputed } from 'vue';
+// Fallback si Paramétrage/Civilites vide
+const defaultCivilites = [
     { id: 'mr', libelle: 'M.' },
     { id: 'mme', libelle: 'Mme' },
     { id: 'mlle', libelle: 'Mlle' },
 ];
+const civiliteOptions = vueComputed(() => {
+    if (props.civilites?.length > 0) {
+        // On garde des id en minuscules pour compat avec l'enum backend
+        return props.civilites.map(c => ({ id: c.code.toLowerCase(), libelle: c.libelle }));
+    }
+    return defaultCivilites;
+});
 
 const etatOptions = [
     { id: 'actif', libelle: 'Actif' },
@@ -445,14 +455,16 @@ const etatOptions = [
 </template>
 
 <style scoped>
+/* Aligné sur le style ParentForm / TuteurForm : couleur AGREE SIKUL bleue,
+   bordures inférieures nettes, espacement homogène. */
 .form-wrapper {
     padding: 0;
 }
 
 .form-section {
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid #e3e6f0;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .form-section:last-child {
@@ -461,15 +473,17 @@ const etatOptions = [
 
 .section-title {
     font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 15px;
-    font-size: 16px;
+    color: #0b5697;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #0b5697;
+    font-size: 1rem;
 }
 
 .form-label {
     font-weight: 500;
-    color: #495057;
-    margin-bottom: 5px;
+    color: #374151;
+    margin-bottom: 8px;
 }
 
 .form-control:disabled {

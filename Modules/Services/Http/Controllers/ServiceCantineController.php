@@ -20,13 +20,6 @@ class ServiceCantineController extends Controller
     public function index(Request $request)
     {
         try {
-            // DEBUG: Log entry
-            \Log::info('=== ServiceCantineController::index called ===');
-            \Log::info('User ID: ' . auth()->id());
-            \Log::info('User Roles: ' . json_encode(auth()->user()?->roles->pluck('name')->toArray()));
-            \Log::info('Request URL: ' . $request->url());
-            \Log::info('Request Path: ' . $request->path());
-
             $query = ServiceCantine::query();
 
             if ($request->filled('annee_scolaire_id')) {
@@ -75,17 +68,11 @@ class ServiceCantineController extends Controller
 
             $anneeScolaires = \Modules\Parametrage\Entities\AnneeScolaire::select('id', 'libelle')->orderBy('libelle')->get();
 
-            \Log::info('Services count: ' . $services->total());
-            \Log::info('About to render Inertia component: Services::ServicesCantines/Index');
-
-            $response = Inertia::render('Services::ServicesCantines/Index', [
+            return Inertia::render('Services::ServicesCantines/Index', [
                 'servicesCantines' => $services,
                 'anneeScolaires' => $anneeScolaires,
                 'filters' => $request->only(['annee_scolaire_id', 'etat']),
             ]);
-
-            \Log::info('Inertia render successful');
-            return $response;
         } catch (\Throwable $th) {
             \Log::error('=== ERROR in ServiceCantineController::index ===');
             \Log::error('Exception: ' . get_class($th));

@@ -5,6 +5,7 @@ import TheSidebar from '@/Components/Layout/TheSidebar.vue';
 import TheNavbar from '@/Components/Layout/TheNavbar.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import NotificationManager from '@/Components/NotificationManager.vue';
+import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 
 defineProps({
     title: {
@@ -68,9 +69,13 @@ onMounted(() => {
     window.addEventListener('resize', handleResize);
     handleResize();
 
-    // Écoute les navigations Inertia pour afficher un voile de chargement.
-    // Un délai de 200ms évite tout clignotement sur les pages rapides.
-    removeStartListener = router.on('start', () => {
+    // Écoute les navigations Inertia pour afficher le loader plein écran.
+    // - Uniquement sur les visites GET (navigation entre pages). Les POST/PUT/DELETE
+    //   (soumissions de formulaire) ont déjà leur propre loader via useLoader.
+    // - Un délai de 200ms évite tout clignotement sur les pages rapides.
+    removeStartListener = router.on('start', (event) => {
+        const method = event?.detail?.visit?.method?.toLowerCase();
+        if (method && method !== 'get') return;
         navDelayTimer = setTimeout(() => {
             isNavigating.value = true;
         }, 200);
@@ -113,18 +118,18 @@ onUnmounted(() => {
             <TheNavbar />
 
             <!-- Contenu de la page -->
-            <main class="dashboard-content" :class="{ 'is-navigating': isNavigating }">
+            <main class="dashboard-content">
                 <slot />
-
-                <!-- Voile de navigation (chargement d'une nouvelle page Inertia) -->
-                <Transition name="nav-veil-fade">
-                    <div v-if="isNavigating" class="nav-veil">
-                        <div class="nav-veil-spinner"></div>
-                        <span class="nav-veil-text">Chargement…</span>
-                    </div>
-                </Transition>
             </main>
         </div>
+
+        <!-- Loader plein écran pendant la navigation Inertia -->
+        <FullPageLoader
+            :show="isNavigating"
+            message="Chargement en cours..."
+            sub-message="Veuillez patienter"
+            variant="primary"
+        />
 
         <!-- Modal de confirmation de déconnexion -->
         <ConfirmModal
@@ -173,62 +178,6 @@ onUnmounted(() => {
     overflow-y: auto;
     overflow-x: auto;
     position: relative;
-}
-
-/* Pendant la navigation : contenu légèrement atténué + curseur d'attente */
-.dashboard-content.is-navigating {
-    cursor: progress;
-}
-
-.dashboard-content.is-navigating > :not(.nav-veil) {
-    opacity: 0.55;
-    transition: opacity 0.2s ease;
-    pointer-events: none;
-}
-
-/* Voile de navigation */
-.nav-veil {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    z-index: 50;
-    background: rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(1px);
-}
-
-.nav-veil-spinner {
-    width: 44px;
-    height: 44px;
-    border: 4px solid rgba(229, 89, 12, 0.2);
-    border-top-color: #E5590C;
-    border-radius: 50%;
-    animation: nav-veil-spin 0.7s linear infinite;
-}
-
-.nav-veil-text {
-    font-family: 'Poppins', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #E5590C;
-    letter-spacing: 0.3px;
-}
-
-@keyframes nav-veil-spin {
-    to { transform: rotate(360deg); }
-}
-
-.nav-veil-fade-enter-active,
-.nav-veil-fade-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.nav-veil-fade-enter-from,
-.nav-veil-fade-leave-to {
-    opacity: 0;
 }
 
 /* Overlay mobile */

@@ -27,7 +27,7 @@ class Enseignant extends BaseModel
         // Formation
         'highest_diploma', 'speciality', 'year_obtained', 'languages', 'teaching_speciality',
         // Emploi
-        'type_contrat', 'date_embauche', 'teacher_category', 'categorie_enseignant_id',
+        'type_contrat', 'nature_contrat_id', 'date_embauche', 'teacher_category', 'categorie_enseignant_id',
         // Contact
         'email', 'telephone',
         // Photo & statut
