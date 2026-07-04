@@ -11,6 +11,14 @@ import { usePermissions } from '@/Composables/usePermissions';
  * Filtrage : par permission `{feature.menu_url}-list` (sauf Super Admin).
  */
 
+// Fonctionnalités masquées partout (sidebar + recherche Ctrl+K), même pour le
+// Super Admin. Comparaison insensible aux tirets/underscores/espaces.
+const HIDDEN_FEATURES = ['types_etablissement_spe'];
+function isHiddenFeature(menuUrl) {
+    const norm = String(menuUrl || '').toLowerCase().replace(/[-_\s]+/g, '');
+    return HIDDEN_FEATURES.some((h) => h.toLowerCase().replace(/[-_\s]+/g, '') === norm);
+}
+
 // Mapping module -> préfixe de route (identique à la sidebar).
 const moduleRouteMap = {
     'academique': 'academique',
@@ -139,6 +147,9 @@ export function useAppFeatures() {
             const section = moduleLabel || 'Autres';
 
             list.forEach((feature) => {
+                // Fonctionnalité masquée (prioritaire, même pour Super Admin)
+                if (isHiddenFeature(feature.menu_url)) return;
+
                 const permission = `${feature.menu_url}-list`;
                 const allowed = isSuperAdmin.value || hasPermission(permission);
                 if (!allowed) return;
