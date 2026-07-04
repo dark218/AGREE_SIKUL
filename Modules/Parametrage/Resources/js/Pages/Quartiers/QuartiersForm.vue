@@ -54,14 +54,14 @@ watch(() => props.form.commune_id, (newCommuneId) => {
 <template>
     <div class="row g-3 custom-input">
         <!-- LIGNE 1 : Code | Quartier (libellé) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
                 <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.quartier') || 'Quartier' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" placeholder="Quartier" :disabled="isReadOnly">
@@ -70,7 +70,7 @@ watch(() => props.form.commune_id, (newCommuneId) => {
         </div>
 
         <!-- LIGNE 2 : Commune | Ville -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.commune') || 'Commune' }} <span class="text-danger">*</span></label>
                 <SearchableSelect
@@ -84,7 +84,7 @@ watch(() => props.form.commune_id, (newCommuneId) => {
                 <span v-if="form.errors?.commune_id" class="text-danger"><strong>{{ form.errors.commune_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.ville') || 'Ville' }}</label>
                 <input type="text" v-model="form.ville" class="form-control" :placeholder="t('fields.ville') || 'Ville'" :disabled="isReadOnly">
@@ -93,7 +93,7 @@ watch(() => props.form.commune_id, (newCommuneId) => {
         </div>
 
         <!-- LIGNE 3 : Département (readonly auto) | Région (readonly auto) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.departement') || 'Département' }}
                     <span v-if="communeSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -108,7 +108,7 @@ watch(() => props.form.commune_id, (newCommuneId) => {
                 <span v-if="form.errors?.departement_id" class="text-danger"><strong>{{ form.errors.departement_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.region') || 'Région/Province' }}
                     <span v-if="communeSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -125,7 +125,7 @@ watch(() => props.form.commune_id, (newCommuneId) => {
         </div>
 
         <!-- LIGNE 4 : État physique seul -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.etat') || 'État' }}</label>
                 <SearchableSelect

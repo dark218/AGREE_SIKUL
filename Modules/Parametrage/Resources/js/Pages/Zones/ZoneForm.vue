@@ -41,7 +41,7 @@ const typeZoneOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
@@ -51,7 +51,7 @@ const typeZoneOptions = [
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
@@ -61,7 +61,7 @@ const typeZoneOptions = [
             </div>
         </div>
         <!-- Type Zone (liste fixe) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.type_zone') || 'Type de Zone' }}</label>
                 <SearchableSelect
@@ -78,7 +78,7 @@ const typeZoneOptions = [
             </div>
         </div>
         <!-- Coordonnées (optionnel) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.coordinates') || 'Coordonnées' }}
                     <small class="text-muted">(optionnel — GPS : lat,lng)</small>
@@ -90,7 +90,7 @@ const typeZoneOptions = [
             </div>
         </div>
         <!-- Description -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.description') }}</label>
                 <textarea v-model="form.description" class="form-control" :placeholder="t('fields.description')" :disabled="isReadOnly" rows="2"></textarea>
@@ -100,7 +100,7 @@ const typeZoneOptions = [
             </div>
         </div>
         <!-- Region -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.region') }}</label>
                 <SearchableSelect
@@ -117,7 +117,7 @@ const typeZoneOptions = [
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.etat') }}</label>
                 <SearchableSelect

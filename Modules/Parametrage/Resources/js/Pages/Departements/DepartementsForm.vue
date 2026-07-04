@@ -34,7 +34,7 @@ watch(() => props.form.region_id, (newRegionId) => {
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
@@ -42,7 +42,7 @@ watch(() => props.form.region_id, (newRegionId) => {
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.label') || 'Libellé' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.label') || 'Libellé'" :disabled="isReadOnly">
@@ -50,7 +50,7 @@ watch(() => props.form.region_id, (newRegionId) => {
             </div>
         </div>
         <!-- Region -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.region') || 'Région' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
@@ -65,7 +65,7 @@ watch(() => props.form.region_id, (newRegionId) => {
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') || 'Statut' }}</label>
                 <SearchableSelect

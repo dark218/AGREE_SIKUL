@@ -42,7 +42,7 @@ const typeUniteOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
@@ -52,7 +52,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle') || 'Libellé'" :disabled="isReadOnly">
@@ -62,7 +62,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Unite Mère (Unité parente) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.unite_mere') || 'Unité mère' }}</label>
                 <SearchableSelect
@@ -79,7 +79,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Type d'unité -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.type_unite') || 'Type d\'unité' }}</label>
                 <SearchableSelect
@@ -96,7 +96,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Responsable -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.responsable') || 'Responsable' }}</label>
                 <SearchableSelect
@@ -113,7 +113,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Budget annuel -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.budget_annuel') || 'Budget annuel' }}</label>
                 <input type="number" v-model.number="form.budget_annuel" class="form-control" step="0.01" min="0" :disabled="isReadOnly">
@@ -123,7 +123,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Effectif maximum -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.effectif_max') || 'Effectif maximum' }}</label>
                 <input type="number" v-model.number="form.effectif_max" class="form-control" min="0" :disabled="isReadOnly">
@@ -134,7 +134,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Niveau hiérarchique -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.niveau_hierarchique') || 'Niveau hiérarchique' }}</label>
                 <input type="number" v-model.number="form.niveau_hierarchique" class="form-control" min="1" :disabled="isReadOnly">
@@ -145,7 +145,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- Ecole -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.school') || 'École' }}</label>
                 <SearchableSelect
@@ -162,7 +162,7 @@ const typeUniteOptions = [
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.etat') || 'Statut' }}</label>
                 <SearchableSelect

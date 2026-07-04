@@ -67,14 +67,14 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
 <template>
     <div class="row g-3 custom-input">
         <!-- LIGNE 1 : Code | Libellé -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly" />
                 <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle') || 'Libellé'" :disabled="isReadOnly" />
@@ -83,7 +83,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 2 : École | Institution (auto readonly) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.ecole') || 'École' }}</label>
                 <SearchableSelect
@@ -97,7 +97,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.ecole_id" class="text-danger"><strong>{{ form.errors.ecole_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.institution') || 'Institution' }}
                     <span v-if="ecoleSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -114,7 +114,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 3 : Niveau | Section (auto readonly) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.niveau') || 'Niveau' }}</label>
                 <SearchableSelect
@@ -128,7 +128,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.niveau_id" class="text-danger"><strong>{{ form.errors.niveau_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.section') || 'Section' }}
                     <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -145,7 +145,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 4 : Cycle (auto readonly) | Coefficient -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.cycle') || 'Cycle' }}
                     <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -160,7 +160,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.coefficient') || 'Coefficient' }}</label>
                 <input type="number" step="0.01" min="0" max="10" v-model="form.coefficient" class="form-control" :disabled="isReadOnly" />
@@ -169,7 +169,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 5 : État physique -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.etat') || 'État physique' }}</label>
                 <SearchableSelect

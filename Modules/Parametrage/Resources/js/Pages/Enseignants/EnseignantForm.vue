@@ -32,35 +32,35 @@ const statusOptions = [
     <div class="row g-3 custom-input">
         <!-- Section 1: Basic Information -->
         <div class="col-12"><h5 class="section-title">👤 Informations Personnelles</h5></div>
-        <div class="col-sm-6"><label>N. Enseignant *</label><input v-model="form.num_enseignant" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Nom *</label><input v-model="form.nom" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Prénoms</label><input v-model="form.prenoms" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Email</label><input v-model="form.email" type="email" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Téléphone</label><input v-model="form.telephone" type="text" class="form-control" :disabled="isReadOnly" maxlength="20" /></div>
-        <div class="col-sm-6"><label>Photo</label><input v-model="form.photo" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>N. Enseignant *</label><input v-model="form.num_enseignant" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Nom *</label><input v-model="form.nom" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Prénoms</label><input v-model="form.prenoms" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Email</label><input v-model="form.email" type="email" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Téléphone</label><input v-model="form.telephone" type="text" class="form-control" :disabled="isReadOnly" maxlength="20" /></div>
+        <div class="col-md-4"><label>Photo</label><input v-model="form.photo" type="text" class="form-control" :disabled="isReadOnly" /></div>
         <!-- Section 2: État Civil -->
         <div class="col-12"><h5 class="section-title">📋 État Civil</h5></div>
-        <div class="col-sm-6"><label>Titre Civilité</label><SearchableSelect v-model="form.civility_title_id" :options="civilityTitles" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
-        <div class="col-sm-6"><label>Genre</label><SearchableSelect v-model="form.gender" :options="genderOptions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
-        <div class="col-sm-6"><label>Statut Marital</label><input v-model="form.marital_status" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Date de Naissance</label><input v-model="form.date_of_birth" type="date" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Lieu de Naissance</label><input v-model="form.place_of_birth" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Commune</label><SearchableSelect v-model="form.commune_id" :options="communes" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
-        <div class="col-sm-6"><label>Département</label><SearchableSelect v-model="form.department_id" :options="departments" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
-        <div class="col-sm-6"><label>Région</label><SearchableSelect v-model="form.region_id" :options="regions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
-        <div class="col-sm-6"><label>Pays</label><SearchableSelect v-model="form.country_id" :options="pays" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
+        <div class="col-md-4"><label>Titre Civilité</label><SearchableSelect v-model="form.civility_title_id" :options="civilityTitles" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
+        <div class="col-md-4"><label>Genre</label><SearchableSelect v-model="form.gender" :options="genderOptions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
+        <div class="col-md-4"><label>Statut Marital</label><input v-model="form.marital_status" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Date de Naissance</label><input v-model="form.date_of_birth" type="date" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Lieu de Naissance</label><input v-model="form.place_of_birth" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Commune</label><SearchableSelect v-model="form.commune_id" :options="communes" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
+        <div class="col-md-4"><label>Département</label><SearchableSelect v-model="form.department_id" :options="departments" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
+        <div class="col-md-4"><label>Région</label><SearchableSelect v-model="form.region_id" :options="regions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
+        <div class="col-md-4"><label>Pays</label><SearchableSelect v-model="form.country_id" :options="pays" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner...'" /></div>
         <!-- Section 3: Formation -->
         <div class="col-12"><h5 class="section-title">🎓 Formation et Diplômes</h5></div>
-        <div class="col-sm-6"><label>Plus Haut Diplôme</label><input v-model="form.highest_diploma" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Spécialité</label><input v-model="form.speciality" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Année d'Obtention</label><input v-model="form.year_obtained" type="number" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Langues</label><input v-model="form.languages" type="text" class="form-control" :disabled="isReadOnly" placeholder="Ex: Français, Anglais" /></div>
-        <div class="col-sm-6"><label>Catégorie Enseignant</label><input v-model="form.teacher_category" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Spécialité Pédagogique</label><input v-model="form.teaching_speciality" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Plus Haut Diplôme</label><input v-model="form.highest_diploma" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Spécialité</label><input v-model="form.speciality" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Année d'Obtention</label><input v-model="form.year_obtained" type="number" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Langues</label><input v-model="form.languages" type="text" class="form-control" :disabled="isReadOnly" placeholder="Ex: Français, Anglais" /></div>
+        <div class="col-md-4"><label>Catégorie Enseignant</label><input v-model="form.teacher_category" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Spécialité Pédagogique</label><input v-model="form.teaching_speciality" type="text" class="form-control" :disabled="isReadOnly" /></div>
         <!-- Section 4: Professionnel -->
         <div class="col-12"><h5 class="section-title">💼 Informations Professionnelles</h5></div>
-        <div class="col-sm-6"><label>Diplôme Professionnel</label><input v-model="form.diplome" type="text" class="form-control" :disabled="isReadOnly" /></div>
-        <div class="col-sm-6"><label>Date d'Embauche</label><input v-model="form.date_embauche" type="date" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Diplôme Professionnel</label><input v-model="form.diplome" type="text" class="form-control" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Date d'Embauche</label><input v-model="form.date_embauche" type="date" class="form-control" :disabled="isReadOnly" /></div>
         <!-- Section 5: Assignations Académiques -->
         <div class="col-12"><h5 class="section-title">📚 Assignations Académiques</h5></div>
         <div class="col-12">
@@ -134,13 +134,13 @@ const statusOptions = [
         </div>
         <!-- Section 6: Matières (up to 7) -->
         <div class="col-12"><h5 class="section-title">📖 Matières d'Enseignement</h5></div>
-        <div v-for="i in 7" :key="i" class="col-sm-6">
+        <div v-for="i in 7" :key="i" class="col-md-4">
             <label>Matière {{ i }}</label>
             <SearchableSelect v-model="form.matieres_data[i - 1]" :options="matieres" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" :placeholder="'Sélectionner une matière...'" />
         </div>
         <!-- Section 7: Statut -->
         <div class="col-12"><h5 class="section-title">🔖 Statut</h5></div>
-        <div class="col-sm-6"><label>Statut</label><SearchableSelect v-model="form.statut" :options="statusOptions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" /></div>
+        <div class="col-md-4"><label>Statut</label><SearchableSelect v-model="form.statut" :options="statusOptions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" /></div>
     </div>
 </template>
 <style scoped>

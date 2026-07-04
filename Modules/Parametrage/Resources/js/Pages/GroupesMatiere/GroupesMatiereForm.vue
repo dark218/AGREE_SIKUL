@@ -61,14 +61,14 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
 <template>
     <div class="row g-3 custom-input">
         <!-- LIGNE 1 : Code | Libellé -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
                 <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
@@ -77,7 +77,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 2 : École | Institution (auto) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.ecole') || 'École' }}</label>
                 <SearchableSelect
@@ -91,7 +91,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.ecole_id" class="text-danger"><strong>{{ form.errors.ecole_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.institution') || 'Institution' }}
                     <small class="text-muted">(auto depuis école)</small>
@@ -109,7 +109,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 3 : Niveau | Section (auto lecture seule) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.niveau') || 'Niveau' }} <span class="text-danger">*</span></label>
                 <SearchableSelect
@@ -123,7 +123,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.niveau_id" class="text-danger"><strong>{{ form.errors.niveau_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.section') || 'Section' }}
                     <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -140,7 +140,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- LIGNE 4 : Cycle (auto lecture seule) | Matière 1 -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.cycle') || 'Cycle' }}
                     <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -155,7 +155,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>Matière 1</label>
                 <SearchableSelect
@@ -172,7 +172,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
 
         <!-- LIGNES 5-9 : Matière 2 → Matière 10 -->
         <div v-for="n in [2, 4, 6, 8, 10]" :key="`pair-${n}`" class="row g-3 col-12 mx-0 px-0">
-            <div class="col-sm-6">
+            <div class="col-md-4">
                 <div class="mb-3">
                     <label>Matière {{ n }}</label>
                     <SearchableSelect
@@ -185,7 +185,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                     />
                 </div>
             </div>
-            <div v-if="n !== 10" class="col-sm-6">
+            <div v-if="n !== 10" class="col-md-4">
                 <div class="mb-3">
                     <label>Matière {{ n + 1 }}</label>
                     <SearchableSelect
@@ -201,7 +201,7 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
 
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.etat') || 'État' }}</label>
                 <SearchableSelect

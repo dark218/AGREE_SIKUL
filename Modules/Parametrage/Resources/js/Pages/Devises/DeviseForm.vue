@@ -27,7 +27,7 @@ const statusOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.code') }}
@@ -46,7 +46,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.label') }}
@@ -65,7 +65,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Code ISO (3 letters, e.g., USD, EUR, XOF) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.code_iso') || 'Code ISO' }}
@@ -87,7 +87,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Symbol -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.symbol') || 'Symbole' }}
@@ -108,7 +108,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Decimal Places -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.decimal_places') || 'Décimales' }}
@@ -129,7 +129,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Exchange Rate -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.exchange_rate') || 'Taux de Change' }}
@@ -150,7 +150,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Is Default -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <div class="form-check">
                     <input
@@ -172,7 +172,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Pays -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.country') || 'Pays' }}
@@ -191,7 +191,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Etat -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.status') || 'Statut' }}

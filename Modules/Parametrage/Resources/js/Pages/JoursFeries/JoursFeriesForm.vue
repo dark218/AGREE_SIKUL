@@ -26,35 +26,35 @@ const statusOptions = [
 </script>
 <template>
     <div class="row g-3 custom-input">
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly" />
                 <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly" />
                 <span v-if="form.errors?.libelle" class="text-danger"><strong>{{ form.errors.libelle }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.date') || 'Date' }}</label>
                 <input type="date" v-model="form.date" class="form-control" :disabled="isReadOnly" />
                 <span v-if="form.errors?.date" class="text-danger"><strong>{{ form.errors.date }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6" v-if="pays && pays.length > 0">
+        <div class="col-md-4" v-if="pays && pays.length > 0">
             <div class="mb-3">
                 <label>{{ t('fields.country') || 'Pays' }}</label>
                 <SearchableSelect v-model="form.pays_id" :options="pays" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
                 <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') }}</label>
                 <SearchableSelect v-model="form.etat" :options="statusOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />

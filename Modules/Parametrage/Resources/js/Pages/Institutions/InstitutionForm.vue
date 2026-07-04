@@ -70,7 +70,7 @@ const deviseLabel = (d) => d ? (d.libelle ?? d.symbol ?? '') : '';
             />
             <span v-if="form.errors?.devise_slogan" class="text-danger small">{{ form.errors.devise_slogan }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Devise de tenue de la comptabilité</label>
             <SearchableSelect
                 v-model="form.devise_comptabilite_id"
@@ -82,7 +82,7 @@ const deviseLabel = (d) => d ? (d.libelle ?? d.symbol ?? '') : '';
             />
             <span v-if="form.errors?.devise_comptabilite_id" class="text-danger small">{{ form.errors.devise_comptabilite_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Logo</label>
             <input
                 type="file"
@@ -178,12 +178,12 @@ const deviseLabel = (d) => d ? (d.libelle ?? d.symbol ?? '') : '';
                 <i class="fa fa-users"></i> Dirigeants
             </h6>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Promoteur</label>
             <input type="text" v-model="form.promoteur" class="form-control" placeholder="Nom du promoteur" :disabled="isReadOnly" />
             <span v-if="form.errors?.promoteur" class="text-danger small">{{ form.errors.promoteur }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Gérant</label>
             <input type="text" v-model="form.gerant" class="form-control" placeholder="Nom du gérant" :disabled="isReadOnly" />
             <span v-if="form.errors?.gerant" class="text-danger small">{{ form.errors.gerant }}</span>
@@ -275,7 +275,7 @@ const deviseLabel = (d) => d ? (d.libelle ?? d.symbol ?? '') : '';
                 <i class="fa fa-check-circle"></i> Statut
             </h6>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Statut</label>
             <SearchableSelect
                 v-model="form.statut"

@@ -107,7 +107,7 @@ function handleLogoChange(event) {
             </h6>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Campus <span class="text-danger">*</span></label>
             <SearchableSelect
                 v-model="form.campus_id"
@@ -119,7 +119,7 @@ function handleLogoChange(event) {
             />
             <span v-if="form.errors?.campus_id" class="text-danger small">{{ form.errors.campus_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">
                 Institution
                 <small class="text-muted">(auto-remonte depuis le campus)</small>
@@ -135,23 +135,23 @@ function handleLogoChange(event) {
             <span v-if="form.errors?.institution_id" class="text-danger small">{{ form.errors.institution_id }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Code <span class="text-danger">*</span></label>
             <input v-model="form.code" type="text" class="form-control" placeholder="Code" :disabled="isReadOnly" />
             <span v-if="form.errors?.code" class="text-danger small">{{ form.errors.code }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Nom <span class="text-danger">*</span></label>
             <input v-model="form.nom" type="text" class="form-control" placeholder="Nom de l'école" :disabled="isReadOnly" />
             <span v-if="form.errors?.nom" class="text-danger small">{{ form.errors.nom }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Sigle</label>
             <input v-model="form.sigle" type="text" class="form-control" placeholder="Ex: ENSPG" :disabled="isReadOnly" />
             <span v-if="form.errors?.sigle" class="text-danger small">{{ form.errors.sigle }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">
                 Devise
                 <small class="text-muted">(slogan)</small>
@@ -160,7 +160,7 @@ function handleLogoChange(event) {
             <span v-if="form.errors?.devise_slogan" class="text-danger small">{{ form.errors.devise_slogan }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Type d'établissement</label>
             <SearchableSelect
                 v-model="form.type_etablissement_id"
@@ -172,7 +172,7 @@ function handleLogoChange(event) {
             />
             <span v-if="form.errors?.type_etablissement_id" class="text-danger small">{{ form.errors.type_etablissement_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Type d'enseignement</label>
             <SearchableSelect
                 v-model="form.type_enseignement_id"
@@ -185,7 +185,7 @@ function handleLogoChange(event) {
             <span v-if="form.errors?.type_enseignement_id" class="text-danger small">{{ form.errors.type_enseignement_id }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Type de cours</label>
             <SearchableSelect
                 v-model="form.type_cours_id"
@@ -197,7 +197,7 @@ function handleLogoChange(event) {
             />
             <span v-if="form.errors?.type_cours_id" class="text-danger small">{{ form.errors.type_cours_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Capacité maximale</label>
             <input
                 v-model.number="form.capacite_maximale"
@@ -270,7 +270,7 @@ function handleLogoChange(event) {
             <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Devise de tenue de la comptabilité</label>
             <SearchableSelect
                 v-model="form.devise_comptabilite_id"
@@ -282,7 +282,7 @@ function handleLogoChange(event) {
             />
             <span v-if="form.errors?.devise_comptabilite_id" class="text-danger small">{{ form.errors.devise_comptabilite_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Logo</label>
             <input type="file" @change="handleLogoChange" class="form-control" accept="image/*" :disabled="isReadOnly" />
             <small class="text-muted d-block">JPG, PNG, GIF</small>
@@ -412,7 +412,7 @@ function handleLogoChange(event) {
         <div class="col-12">
             <h6 class="section-header"><i class="fa fa-check-circle"></i> Statut</h6>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Statut</label>
             <SearchableSelect
                 v-model="form.statut"

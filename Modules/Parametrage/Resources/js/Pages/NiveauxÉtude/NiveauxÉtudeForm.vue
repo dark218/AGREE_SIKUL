@@ -25,14 +25,14 @@ const statusOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code | Libellé -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
                 <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
@@ -41,14 +41,14 @@ const statusOptions = [
         </div>
 
         <!-- Sigle | Cycle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.sigle') || 'Sigle' }}</label>
                 <input type="text" v-model="form.sigle" class="form-control" :placeholder="t('fields.sigle')" :disabled="isReadOnly">
                 <span v-if="form.errors?.sigle" class="text-danger"><strong>{{ form.errors.sigle }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.cycle') || 'Cycle' }} <span class="text-danger">*</span></label>
                 <SearchableSelect
@@ -64,7 +64,7 @@ const statusOptions = [
         </div>
 
         <!-- Section | État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.section') || 'Section' }}</label>
                 <SearchableSelect
@@ -78,7 +78,7 @@ const statusOptions = [
                 <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.etat') || 'État' }}</label>
                 <SearchableSelect

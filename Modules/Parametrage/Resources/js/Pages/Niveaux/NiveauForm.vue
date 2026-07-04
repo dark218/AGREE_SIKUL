@@ -27,7 +27,7 @@ const statusOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }}</label>
                 <input
@@ -43,7 +43,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }}</label>
                 <input
@@ -59,7 +59,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Cycle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.cycle') || 'Cycle' }}</label>
                 <input
@@ -75,7 +75,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- École -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.school') || 'École' }}</label>
                 <SearchableSelect
@@ -92,7 +92,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Ordre -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.order') || 'Ordre' }}</label>
                 <input
@@ -108,7 +108,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Âge minimum -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.age_min') || 'Âge minimum' }}</label>
                 <input
@@ -125,7 +125,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Âge maximum -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.age_max') || 'Âge maximum' }}</label>
                 <input
@@ -142,7 +142,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Statut -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') || 'Statut' }}</label>
                 <SearchableSelect

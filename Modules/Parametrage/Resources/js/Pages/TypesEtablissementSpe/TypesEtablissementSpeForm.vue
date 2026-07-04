@@ -28,7 +28,7 @@ const statusOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
@@ -39,7 +39,7 @@ const statusOptions = [
         </div>
 
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.label') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.label')" :disabled="isReadOnly">
@@ -61,7 +61,7 @@ const statusOptions = [
         </div>
 
         <!-- Status -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') }}</label>
                 <SearchableSelect

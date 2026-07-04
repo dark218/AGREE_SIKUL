@@ -56,7 +56,7 @@ const getResponsableLabel = (opt) => opt ? `${opt.nom} (${opt.email})` : '';
     <div class="row g-3 custom-input">
 
         <!-- LIGNE 1 : Institution | Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Institution <span v-if="!isReadOnly" class="text-danger">*</span></label>
             <SearchableSelect
                 v-model="form.institution_id"
@@ -68,19 +68,19 @@ const getResponsableLabel = (opt) => opt ? `${opt.nom} (${opt.email})` : '';
             />
             <span v-if="form.errors?.institution_id" class="text-danger small">{{ form.errors.institution_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Code <span v-if="!isReadOnly" class="text-danger">*</span></label>
             <input type="text" v-model="form.code" class="form-control" placeholder="Code" :disabled="isReadOnly" />
             <span v-if="form.errors?.code" class="text-danger small">{{ form.errors.code }}</span>
         </div>
 
         <!-- LIGNE 2 : Nom | Adresse -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Nom <span v-if="!isReadOnly" class="text-danger">*</span></label>
             <input type="text" v-model="form.nom" class="form-control" placeholder="Nom du campus" :disabled="isReadOnly" />
             <span v-if="form.errors?.nom" class="text-danger small">{{ form.errors.nom }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Adresse</label>
             <input type="text" v-model="form.adresse" class="form-control" placeholder="Adresse" :disabled="isReadOnly" />
             <span v-if="form.errors?.adresse" class="text-danger small">{{ form.errors.adresse }}</span>
@@ -100,31 +100,31 @@ const getResponsableLabel = (opt) => opt ? `${opt.nom} (${opt.email})` : '';
         </div>
 
         <!-- LIGNE 7 : Longitude | Latitude -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Longitude</label>
             <input type="number" v-model.number="form.longitude" class="form-control" placeholder="Ex: -4.024429" :disabled="isReadOnly" step="0.000001" />
             <span v-if="form.errors?.longitude" class="text-danger small">{{ form.errors.longitude }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Latitude</label>
             <input type="number" v-model.number="form.latitude" class="form-control" placeholder="Ex: 5.345317" :disabled="isReadOnly" step="0.000001" />
             <span v-if="form.errors?.latitude" class="text-danger small">{{ form.errors.latitude }}</span>
         </div>
 
         <!-- LIGNE 8 : Téléphone | Email -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Téléphone</label>
             <input type="tel" v-model="form.telephone" class="form-control" :disabled="isReadOnly" />
             <span v-if="form.errors?.telephone" class="text-danger small">{{ form.errors.telephone }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Email</label>
             <input type="email" v-model="form.email" class="form-control" :disabled="isReadOnly" />
             <span v-if="form.errors?.email" class="text-danger small">{{ form.errors.email }}</span>
         </div>
 
         <!-- LIGNE 9 : Responsable | Statut de disponibilité -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Responsable</label>
             <SearchableSelect
                 v-model="form.responsable_id"
@@ -136,7 +136,7 @@ const getResponsableLabel = (opt) => opt ? `${opt.nom} (${opt.email})` : '';
             />
             <span v-if="form.errors?.responsable_id" class="text-danger small">{{ form.errors.responsable_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Statut de disponibilité</label>
             <SearchableSelect
                 v-model="form.statut_disponibilite"
@@ -150,7 +150,7 @@ const getResponsableLabel = (opt) => opt ? `${opt.nom} (${opt.email})` : '';
         </div>
 
         <!-- Statut administratif (caché en bas, hors spec mais nécessaire pour le système) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Statut</label>
             <SearchableSelect
                 v-model="form.statut"

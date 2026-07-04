@@ -36,7 +36,7 @@ const sexeOptions = [
             <h5 class="section-title">{{ t('fields.identity') || 'Identité' }}</h5>
         </div>
         <!-- Matricule -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.matricule') || 'Matricule' }} <span class="text-danger">*</span></label>
                 <input
@@ -52,7 +52,7 @@ const sexeOptions = [
             </div>
         </div>
         <!-- Nom -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.nom') || 'Nom' }} <span class="text-danger">*</span></label>
                 <input
@@ -68,7 +68,7 @@ const sexeOptions = [
             </div>
         </div>
         <!-- Prénoms -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.prenoms') || 'Prénoms' }}</label>
                 <input
@@ -84,7 +84,7 @@ const sexeOptions = [
             </div>
         </div>
         <!-- Sexe -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.sexe') || 'Sexe' }}</label>
                 <SearchableSelect
@@ -105,7 +105,7 @@ const sexeOptions = [
             <h5 class="section-title">{{ t('fields.contact') || 'Contact' }}</h5>
         </div>
         <!-- Email -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.email') || 'Email' }}</label>
                 <input
@@ -121,7 +121,7 @@ const sexeOptions = [
             </div>
         </div>
         <!-- Téléphone -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.telephone') || 'Téléphone' }}</label>
                 <input
@@ -158,7 +158,7 @@ const sexeOptions = [
             <h5 class="section-title">{{ t('fields.academic') || 'Académique' }}</h5>
         </div>
         <!-- Classe -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.classe') || 'Classe' }}</label>
                 <SearchableSelect
@@ -175,7 +175,7 @@ const sexeOptions = [
             </div>
         </div>
         <!-- Numéro Inscription -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.numero_inscription') || 'Numéro inscription' }}</label>
                 <input
@@ -192,7 +192,7 @@ const sexeOptions = [
             </div>
         </div>
         <!-- Date Naissance -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.date_naissance') || 'Date de naissance' }}</label>
                 <input
@@ -211,7 +211,7 @@ const sexeOptions = [
             <h5 class="section-title">{{ t('fields.status') || 'Statut' }}</h5>
         </div>
         <!-- Statut -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.statut') || 'Statut' }}</label>
                 <SearchableSelect

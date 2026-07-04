@@ -16,27 +16,27 @@ const statusOptions = [
 <template>
     <div class="row g-3 custom-input">
         <div class="col-12"><h5 class="section-title">{{ t('fields.identity') || 'Identité' }}</h5></div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.nom') || 'Nom' }} <span class="text-danger">*</span></label>
                 <input v-model="form.nom" type="text" class="form-control" :placeholder="t('fields.nom')" :disabled="isReadOnly" />
                 <span v-if="form.errors?.nom" class="text-danger"><strong>{{ form.errors.nom }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.prenoms') || 'Prénoms' }}</label>
                 <input v-model="form.prenoms" type="text" class="form-control" :placeholder="t('fields.prenoms')" :disabled="isReadOnly" />
             </div>
         </div>
         <div class="col-12"><h5 class="section-title">{{ t('fields.contact') || 'Contact' }}</h5></div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.email') || 'Email' }}</label>
                 <input v-model="form.email" type="email" class="form-control" :placeholder="t('fields.email')" :disabled="isReadOnly" />
             </div>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.telephone') || 'Téléphone' }}</label>
                 <input v-model="form.telephone" type="text" class="form-control" :placeholder="t('fields.telephone')" :disabled="isReadOnly" maxlength="20" />
@@ -49,14 +49,14 @@ const statusOptions = [
             </div>
         </div>
         <div class="col-12"><h5 class="section-title">{{ t('fields.professional') || 'Professionnel' }}</h5></div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.profession') || 'Profession' }}</label>
                 <input v-model="form.profession" type="text" class="form-control" :placeholder="t('fields.profession')" :disabled="isReadOnly" />
             </div>
         </div>
         <div class="col-12"><h5 class="section-title">{{ t('fields.status') || 'Statut' }}</h5></div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.statut') || 'Statut' }}</label>
                 <SearchableSelect v-model="form.statut" :options="statusOptions" optionValue="id" optionLabel="libelle" :disabled="isReadOnly" />

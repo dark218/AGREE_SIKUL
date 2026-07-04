@@ -110,7 +110,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             <h6 class="section-header"><i class="fa fa-bookmark"></i> Informations de base</h6>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Code</label>
             <input
                 v-model="form.code"
@@ -122,7 +122,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.code" class="text-danger small">{{ form.errors.code }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Libellé <span class="text-danger">*</span></label>
             <input
                 v-model="form.libelle"
@@ -134,7 +134,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             <span v-if="form.errors?.libelle" class="text-danger small">{{ form.errors.libelle }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Libellé à afficher</label>
             <input
                 v-model="form.libelle_affichage"
@@ -145,7 +145,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.libelle_affichage" class="text-danger small">{{ form.errors.libelle_affichage }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Bâtiment</label>
             <input
                 v-model="form.batiment"
@@ -171,7 +171,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             </p>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">École</label>
             <SearchableSelect
                 v-model="form.ecole_id"
@@ -183,7 +183,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.ecole_id" class="text-danger small">{{ form.errors.ecole_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">
                 Campus
                 <span v-if="ecoleSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -210,7 +210,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             <span v-if="form.errors?.campus_id" class="text-danger small">{{ form.errors.campus_id }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Niveau</label>
             <SearchableSelect
                 v-model="form.niveau_id"
@@ -222,7 +222,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.niveau_id" class="text-danger small">{{ form.errors.niveau_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">
                 Section
                 <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -237,7 +237,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">
                 Cycle
                 <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -261,7 +261,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             </h6>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Enseignant titulaire</label>
             <SearchableSelect
                 v-model="form.enseignant_titulaire_id"
@@ -273,7 +273,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.enseignant_titulaire_id" class="text-danger small">{{ form.errors.enseignant_titulaire_id }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Capacité maximale</label>
             <input
                 v-model.number="form.capacite_max"
@@ -286,7 +286,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             <span v-if="form.errors?.capacite_max" class="text-danger small">{{ form.errors.capacite_max }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Capacité actuelle</label>
             <input
                 v-model.number="form.capacite_actuelle"
@@ -298,7 +298,7 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.capacite_actuelle" class="text-danger small">{{ form.errors.capacite_actuelle }}</span>
         </div>
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Statut</label>
             <SearchableSelect
                 v-model="form.statut"

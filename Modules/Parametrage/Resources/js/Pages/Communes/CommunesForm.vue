@@ -46,7 +46,7 @@ watch(() => props.form.departement_id, (newDeptId) => {
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" maxlength="100" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
@@ -54,7 +54,7 @@ watch(() => props.form.departement_id, (newDeptId) => {
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" maxlength="255" class="form-control" :placeholder="t('fields.libelle') || 'Libellé'" :disabled="isReadOnly">
@@ -62,7 +62,7 @@ watch(() => props.form.departement_id, (newDeptId) => {
             </div>
         </div>
         <!-- Departement -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.departement') || 'Département' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
@@ -77,7 +77,7 @@ watch(() => props.form.departement_id, (newDeptId) => {
             </div>
         </div>
         <!-- Region (readonly auto) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.region') || 'Région' }}
                     <span v-if="departementSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
@@ -93,7 +93,7 @@ watch(() => props.form.departement_id, (newDeptId) => {
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') || 'Statut' }}</label>
                 <SearchableSelect

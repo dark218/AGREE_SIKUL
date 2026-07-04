@@ -34,7 +34,7 @@ watch(() => [props.form.date_debut, props.form.date_fin], ([d1, d2]) => {
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly" />
@@ -42,7 +42,7 @@ watch(() => [props.form.date_debut, props.form.date_fin], ([d1, d2]) => {
             </div>
         </div>
         <!-- Libellé -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly" />
@@ -50,7 +50,7 @@ watch(() => [props.form.date_debut, props.form.date_fin], ([d1, d2]) => {
             </div>
         </div>
         <!-- Année scolaire -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.annee_scolaire') || 'Année scolaire' }} <span class="text-danger">*</span></label>
                 <SearchableSelect v-model="form.annee_scolaire_id" :options="annees_scolaires" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
@@ -84,7 +84,7 @@ watch(() => [props.form.date_debut, props.form.date_fin], ([d1, d2]) => {
             </div>
         </div>
         <!-- Statut -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') || 'Statut de disponibilité' }}</label>
                 <SearchableSelect v-model="form.etat" :options="statusOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />

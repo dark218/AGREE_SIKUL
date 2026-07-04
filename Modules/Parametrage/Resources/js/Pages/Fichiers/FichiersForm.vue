@@ -38,7 +38,7 @@ const entiteLieeOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
@@ -48,7 +48,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
@@ -58,7 +58,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Type de fichier -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.type_fichier') || 'Type de fichier' }}</label>
                 <SearchableSelect
@@ -75,7 +75,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Extensions autorisées -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.extensions_autorisees') || 'Extensions autorisées' }}</label>
                 <input type="text" v-model="form.extensions_autorisees" class="form-control" placeholder="pdf, jpg, png" :disabled="isReadOnly">
@@ -86,7 +86,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Taille maximum (Mo) -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.taille_max_mo') || 'Taille maximum (Mo)' }}</label>
                 <input type="number" v-model.number="form.taille_max_mo" class="form-control" min="1" :disabled="isReadOnly">
@@ -96,7 +96,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Est obligatoire -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label class="form-check-label">
                     <input type="checkbox" v-model="form.est_obligatoire" class="form-check-input" :disabled="isReadOnly">
@@ -108,7 +108,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Entité liée -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.entite_liee') || 'Entité liée' }}</label>
                 <SearchableSelect
@@ -125,7 +125,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Ordre d'affichage -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.ordre_affichage') || 'Ordre d\'affichage' }}</label>
                 <input type="number" v-model.number="form.ordre_affichage" class="form-control" min="0" :disabled="isReadOnly">
@@ -135,7 +135,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- Nécessite validation -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label class="form-check-label">
                     <input type="checkbox" v-model="form.necessite_validation" class="form-check-input" :disabled="isReadOnly">
@@ -147,7 +147,7 @@ const entiteLieeOptions = [
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect

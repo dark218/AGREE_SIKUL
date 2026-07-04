@@ -23,7 +23,7 @@ const statusOptions = [
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.code') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.code" class="form-control" :placeholder="t('fields.code')" :disabled="isReadOnly">
@@ -33,7 +33,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Libelle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
@@ -43,7 +43,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Date Debut -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.date_debut') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="date" v-model="form.date_debut" class="form-control" :disabled="isReadOnly">
@@ -53,7 +53,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Date Fin -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.date_fin') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="date" v-model="form.date_fin" class="form-control" :disabled="isReadOnly">
@@ -63,7 +63,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- Duree -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.duree') }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <input type="number" v-model.number="form.duree" class="form-control" :disabled="isReadOnly">
@@ -73,7 +73,7 @@ const statusOptions = [
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>{{ t('fields.status') || 'Statut' }}</label>
                 <SearchableSelect

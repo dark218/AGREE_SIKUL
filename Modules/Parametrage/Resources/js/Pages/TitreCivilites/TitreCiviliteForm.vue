@@ -25,7 +25,7 @@ const etatOptions = statusOptions;
 <template>
     <div class="row g-3 custom-input">
         <!-- Code -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.code') }}
@@ -44,7 +44,7 @@ const etatOptions = statusOptions;
             </div>
         </div>
         <!-- Libellé -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.label') }}
@@ -63,7 +63,7 @@ const etatOptions = statusOptions;
             </div>
         </div>
         <!-- Sigle -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.sigle') || 'Sigle' }}
@@ -82,7 +82,7 @@ const etatOptions = statusOptions;
             </div>
         </div>
         <!-- État -->
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <div class="mb-3">
                 <label>
                     {{ t('fields.status') }}

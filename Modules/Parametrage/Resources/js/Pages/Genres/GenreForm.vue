@@ -31,7 +31,7 @@ const presetColors = [
 
 <template>
     <div class="row g-3 custom-input">
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Code <span class="text-danger">*</span></label>
             <input
                 v-model="form.code"
@@ -46,7 +46,7 @@ const presetColors = [
             <span v-if="form.errors?.code" class="text-danger small mt-1 d-block">{{ form.errors.code }}</span>
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Libellé <span class="text-danger">*</span></label>
             <input
                 v-model="form.libelle"
@@ -102,7 +102,7 @@ const presetColors = [
             />
         </div>
 
-        <div class="col-sm-6">
+        <div class="col-md-4">
             <label class="form-label fw-medium">Statut <span class="text-danger">*</span></label>
             <SearchableSelect
                 v-model="form.etat"
