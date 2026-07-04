@@ -19,25 +19,37 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('users')) return;
-
-        foreach (['qr_data', 'code_owner'] as $col) {
-            if (Schema::hasColumn('users', $col)) {
-                DB::statement("ALTER TABLE `users` MODIFY `$col` VARCHAR(255) NULL");
+        // 1. Colonnes legacy SmilPay dans `users`
+        if (Schema::hasTable('users')) {
+            foreach (['qr_data', 'code_owner'] as $col) {
+                if (Schema::hasColumn('users', $col)) {
+                    DB::statement("ALTER TABLE `users` MODIFY `$col` VARCHAR(255) NULL");
+                }
             }
+        }
+
+        // 2. `num_enseignant` : auto-généré désormais côté controller,
+        //    on retire l'obligation NOT NULL pour permettre la création
+        //    même sans valeur explicite (idempotent).
+        if (Schema::hasTable('enseignants') && Schema::hasColumn('enseignants', 'num_enseignant')) {
+            DB::statement("ALTER TABLE `enseignants` MODIFY `num_enseignant` VARCHAR(50) NULL");
         }
     }
 
     public function down(): void
     {
-        if (!Schema::hasTable('users')) return;
         // Rollback : on remet NOT NULL (mais les lignes NULL déjà présentes
         // provoqueront un échec — c'est voulu, ça alerte sur la donnée
         // récente qui doit être remplie avant rollback).
-        foreach (['qr_data', 'code_owner'] as $col) {
-            if (Schema::hasColumn('users', $col)) {
-                DB::statement("ALTER TABLE `users` MODIFY `$col` VARCHAR(255) NOT NULL");
+        if (Schema::hasTable('users')) {
+            foreach (['qr_data', 'code_owner'] as $col) {
+                if (Schema::hasColumn('users', $col)) {
+                    DB::statement("ALTER TABLE `users` MODIFY `$col` VARCHAR(255) NOT NULL");
+                }
             }
+        }
+        if (Schema::hasTable('enseignants') && Schema::hasColumn('enseignants', 'num_enseignant')) {
+            DB::statement("ALTER TABLE `enseignants` MODIFY `num_enseignant` VARCHAR(50) NOT NULL");
         }
     }
 };

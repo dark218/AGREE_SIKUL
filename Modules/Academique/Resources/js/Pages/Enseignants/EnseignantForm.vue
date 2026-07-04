@@ -210,10 +210,7 @@ const age = computed(() => {
                 <label class="mb-10">{{ t('fields.matricule') }}</label>
                 <input v-model="form.matricule" type="text" class="form-control" :disabled="isReadOnly" />
             </div>
-            <div class="col-md-6 mb-20">
-                <label class="mb-10">{{ t('fields.num_enseignant') }}</label>
-                <input v-model="form.num_enseignant" type="text" class="form-control" :disabled="isReadOnly" />
-            </div>
+            <!-- num_enseignant : auto-généré côté serveur (format ENS-YYYY-NNNNN) -->
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.type_contrat') }}</label>
                 <SearchableSelect

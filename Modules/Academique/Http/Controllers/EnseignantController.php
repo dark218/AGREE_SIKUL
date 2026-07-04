@@ -76,6 +76,7 @@ class EnseignantController extends Controller
                 // à partir du nom/prénom/email/téléphone saisis dans le formulaire.
                 'user_id' => 'nullable|exists:users,id|unique:enseignants',
                 'matricule' => 'nullable|unique:enseignants',
+                'num_enseignant' => 'nullable|string|max:50|unique:enseignants,num_enseignant',
                 'nom' => 'required|string|max:100',
                 'prenoms' => 'required|string|max:100',
                 'nom_restituer' => 'nullable|string|max:100',
@@ -144,6 +145,12 @@ class EnseignantController extends Controller
                     'telephone' => $validated['telephone'] ?? null,
                     'role'      => 'enseignant',
                 ]);
+            }
+
+            // Auto-génération du numéro d'enseignant si non fourni
+            // Format : ENS-YYYY-NNNNN (séquentiel par année)
+            if (empty($validated['num_enseignant'])) {
+                $validated['num_enseignant'] = $this->generateNumEnseignant();
             }
 
             $enseignant = Enseignant::create($validated);
@@ -250,6 +257,7 @@ class EnseignantController extends Controller
             $validated = $request->validate([
                 'user_id' => 'required|exists:users,id|unique:enseignants,user_id,' . $enseignant->id,
                 'matricule' => 'nullable|unique:enseignants,matricule,' . $enseignant->id,
+                'num_enseignant' => 'nullable|string|max:50|unique:enseignants,num_enseignant,' . $enseignant->id,
                 'nom' => 'nullable|string|max:100',
                 'prenoms' => 'nullable|string|max:100',
                 'nom_restituer' => 'nullable|string|max:100',
@@ -371,5 +379,27 @@ class EnseignantController extends Controller
             log_error("Academique", "EnseignantController::destroy", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
         }
+    }
+
+    /**
+     * Génère un numéro d'enseignant unique au format ENS-YYYY-NNNNN
+     * (séquentiel par année). Sécurisé contre les collisions concurrentes
+     * via `withoutGlobalScopes` pour ignorer les scopes d'affichage.
+     */
+    private function generateNumEnseignant(): string
+    {
+        $year = date('Y');
+        $prefix = 'ENS-' . $year . '-';
+
+        $lastNumero = Enseignant::withoutGlobalScopes()
+            ->where('num_enseignant', 'like', $prefix . '%')
+            ->orderByDesc('num_enseignant')
+            ->value('num_enseignant');
+
+        $nextSeq = ($lastNumero && preg_match('/-(\d+)$/', $lastNumero, $m))
+            ? (int) $m[1] + 1
+            : 1;
+
+        return $prefix . str_pad($nextSeq, 5, '0', STR_PAD_LEFT);
     }
 }
