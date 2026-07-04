@@ -70,8 +70,8 @@ class PdfExportController extends Controller
         $apprenant->load([
             'classe.ecole',
             'parents:id,pere_nom,pere_prenoms,mere_nom,mere_prenoms,pere_telephone_1,mere_telephone_1',
-            'tuteurs:id,nom,prenoms,telephone,relation',
-            'tuteurs.user:id,nom,prenoms',
+            'tuteurs:id,user_id,relation',
+            'tuteurs.user:id,nom,prenoms,telephone',
             'accompagnateurs:id,accompagnant1_nom,accompagnant1_prenoms,accompagnant2_nom,accompagnant2_prenoms,accompagnant3_nom,accompagnant3_prenoms',
         ]);
 

@@ -56,10 +56,11 @@ const parentEntries = computed(() =>
 const tuteurEntries = computed(() =>
     props.tuteurs.map((t) => ({
         id: t.id,
-        type: t.relation || 'Tuteur',
-        nom: `${t.prenoms ?? t.user?.prenoms ?? ''} ${t.nom ?? t.user?.nom ?? ''}`.trim(),
-        telephone: t.telephone,
-        email: t.email ?? t.user?.email,
+        type: t.pivot?.relation || t.relation || 'Tuteur',
+        // Les infos identité sont dans la relation user (pas dans tuteurs directement)
+        nom: `${t.user?.prenoms ?? ''} ${t.user?.nom ?? ''}`.trim(),
+        telephone: t.user?.telephone,
+        email: t.user?.email,
         icon: 'fa-user-shield',
         color: '#8b5cf6',
     }))

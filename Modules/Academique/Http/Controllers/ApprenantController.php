@@ -187,8 +187,9 @@ class ApprenantController extends Controller
             'departementResidence', 'regionResidence', 'paysResidence',
             // Contacts humains (parents, tuteurs, accompagnateurs) — récupérés en Show pour la nouvelle section
             'parents:id,pere_nom,pere_prenoms,mere_nom,mere_prenoms,pere_telephone_1,mere_telephone_1,pere_email_1,mere_email_1',
-            'tuteurs:id,nom,prenoms,telephone,email,relation,profession',
-            'tuteurs.user:id,nom,prenoms,email',
+            // La table tuteurs n'a que user_id + relation/profession — les infos identité (nom/prénoms/tel/email) sont dans users
+            'tuteurs:id,user_id,relation,profession',
+            'tuteurs.user:id,nom,prenoms,email,telephone',
             'accompagnateurs:id,accompagnant1_nom,accompagnant1_prenoms,accompagnant2_nom,accompagnant2_prenoms,accompagnant3_nom,accompagnant3_prenoms',
         );
 
