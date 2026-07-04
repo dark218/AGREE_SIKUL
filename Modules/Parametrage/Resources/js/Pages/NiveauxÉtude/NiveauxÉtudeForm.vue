@@ -1,15 +1,12 @@
 <script setup>
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 
 const { t } = useI18n();
 const props = defineProps({
     form: { type: Object, required: true },
-    pays: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
-    ecoles: { type: Array, default: () => [] },
     sections: { type: Array, default: () => [] },
     mode: {
         type: String,
@@ -23,23 +20,11 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
-
-// HÉRITAGE : quand on sélectionne une École, le Pays se remplit
-// automatiquement depuis le pays_id de l'école (lecture seule ensuite).
-const paysHerite = computed(() => !!props.form.ecole_id);
-
-watch(() => props.form.ecole_id, (newEcoleId) => {
-    if (!newEcoleId || isReadOnly.value) return;
-    const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
-    if (ecole?.pays_id) {
-        props.form.pays_id = ecole.pays_id;
-    }
-});
 </script>
 
 <template>
     <div class="row g-3 custom-input">
-        <!-- Code | Sigle -->
+        <!-- Code | Libellé -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span class="text-danger">*</span></label>
@@ -49,38 +34,36 @@ watch(() => props.form.ecole_id, (newEcoleId) => {
         </div>
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.sigle') || 'Sigle' }}
-                    <small class="text-muted">(varie selon école/section)</small>
-                </label>
-                <input type="text" v-model="form.sigle" class="form-control" :placeholder="t('fields.sigle')" :disabled="isReadOnly">
-                <span v-if="form.errors?.sigle" class="text-danger"><strong>{{ form.errors.sigle }}</strong></span>
-            </div>
-        </div>
-
-        <!-- Libellé -->
-        <div class="col-12">
-            <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span class="text-danger">*</span></label>
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
                 <span v-if="form.errors?.libelle" class="text-danger"><strong>{{ form.errors.libelle }}</strong></span>
             </div>
         </div>
 
-        <!-- École | Section (nouveaux champs demandés) -->
+        <!-- Sigle | Cycle -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.ecole') || 'École' }}</label>
+                <label>{{ t('fields.sigle') || 'Sigle' }}</label>
+                <input type="text" v-model="form.sigle" class="form-control" :placeholder="t('fields.sigle')" :disabled="isReadOnly">
+                <span v-if="form.errors?.sigle" class="text-danger"><strong>{{ form.errors.sigle }}</strong></span>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.cycle') || 'Cycle' }} <span class="text-danger">*</span></label>
                 <SearchableSelect
-                    v-model.number="form.ecole_id"
-                    :options="ecoles"
+                    v-model.number="form.cycle_id"
+                    :options="cycles"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.ecole_id" class="text-danger"><strong>{{ form.errors.ecole_id }}</strong></span>
+                <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
+
+        <!-- Section | État -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.section') || 'Section' }}</label>
@@ -93,55 +76,6 @@ watch(() => props.form.ecole_id, (newEcoleId) => {
                     :disabled="isReadOnly"
                 />
                 <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
-            </div>
-        </div>
-
-        <!-- Cycle | Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle d\'enseignement' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model.number="form.cycle_id"
-                    :options="cycles"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') || 'Pays' }}
-                    <span v-if="paysHerite" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">hérité de l'école</span>
-                    <span class="text-danger">*</span>
-                </label>
-                <SearchableSelect
-                    v-model.number="form.pays_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly || paysHerite"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
-            </div>
-        </div>
-
-        <!-- Année Scolaire | État -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année Scolaire' }}</label>
-                <SearchableSelect
-                    v-model.number="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger"><strong>{{ form.errors.annee_scolaire_id }}</strong></span>
             </div>
         </div>
         <div class="col-sm-6">

@@ -16,10 +16,11 @@ const toggleCollapse = () => {
 const form = useForm({
     code: page.props.niveauEtude?.code || '',
     libelle: page.props.niveauEtude?.libelle || '',
+    sigle: page.props.niveauEtude?.sigle || '',
     cycle_id: page.props.niveauEtude?.cycle_id || null,
-    pays_id: page.props.niveauEtude?.pays_id || null,
+    section_id: page.props.niveauEtude?.section_id || null,
     etat: page.props.niveauEtude?.etat || 'actif',
-    });
+});
 </script>
 <template>
     <Head :title="t('actions.view')" />
@@ -40,7 +41,12 @@ const form = useForm({
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <div>
-                                <NiveauxÉtudeForm :form="form" :pays="page.props.pays" :cycles="page.props.cycles" mode="show" />
+                                <NiveauxÉtudeForm
+                                    :form="form"
+                                    :cycles="page.props.cycles"
+                                    :sections="page.props.sections"
+                                    mode="show"
+                                />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">
@@ -63,9 +69,6 @@ const form = useForm({
                 </div>
             </div>
         </div>
-        <!-- Loader pleine page -->
-        <FullPageLoader
-            :show="false"
-        />
+        <FullPageLoader :show="false" />
     </div>
 </template>

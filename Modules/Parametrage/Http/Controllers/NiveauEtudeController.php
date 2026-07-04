@@ -6,10 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Parametrage\Entities\NiveauEtude;
-use Modules\Parametrage\Entities\Pays;
 use Modules\Parametrage\Entities\CycleEnseignement;
-use Modules\Parametrage\Entities\AnneeScolaire;
-use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Section;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Support\Facades\Log;
@@ -27,10 +24,21 @@ class NiveauEtudeController extends Controller
         $this->middleware('permission.check:parametrage-niveauetude-activate', ['only' => ['activate']]);
     }
 
+    /**
+     * Charge les lookups nécessaires au formulaire (Cycle + Section uniquement).
+     */
+    private function lookups(): array
+    {
+        return [
+            'cycles' => CycleEnseignement::orderBy('libelle')->get(['id', 'libelle']),
+            'sections' => Section::orderBy('libelle')->get(['id', 'libelle']),
+        ];
+    }
+
     public function index(Request $request)
     {
         try {
-            $query = NiveauEtude::query()->with(['cycle', 'pays']);
+            $query = NiveauEtude::query()->with(['cycle', 'section']);
 
             if ($request->filled('code')) {
                 $query->where('code', 'like', '%' . $request->code . '%');
@@ -59,37 +67,7 @@ class NiveauEtudeController extends Controller
     public function create()
     {
         try {
-            $pays = Pays::all()->map(function($country) {
-                return [
-                    'id' => $country->id,
-                    'libelle' => $country->libelle,
-                ];
-            });
-
-            $cycles = CycleEnseignement::all()->map(function($cycle) {
-                return [
-                    'id' => $cycle->id,
-                    'libelle' => $cycle->libelle,
-                ];
-            });
-
-            $anneesScolaires = AnneeScolaire::all()->map(function($annee) {
-                return [
-                    'id' => $annee->id,
-                    'libelle' => $annee->libelle,
-                ];
-            });
-
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'pays_id', 'institution_id', 'campus_id']);
-            $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
-
-            return Inertia::render('Parametrage::NiveauxÉtude/Create', [
-                'pays' => $pays,
-                'cycles' => $cycles,
-                'anneesScolaires' => $anneesScolaires,
-                'ecoles' => $ecoles,
-                'sections' => $sections,
-            ]);
+            return Inertia::render('Parametrage::NiveauxÉtude/Create', $this->lookups());
         } catch (\Exception $e) {
             Log::error('niveauetudecontroller@error: ' . $e->getmessage());
             return back()->with('error', 'Erreur lors du chargement du formulaire');
@@ -100,13 +78,10 @@ class NiveauEtudeController extends Controller
     {
         $validated = $request->validate([
             'code' => 'required|string|max:100|unique:niveaux_etudes,code',
-            'sigle' => 'nullable|string|max:50',
             'libelle' => 'required|string|max:255',
-            'ecole_id' => 'nullable|exists:ecoles,id',
-            'section_id' => 'nullable|exists:sections,id',
+            'sigle' => 'nullable|string|max:50',
             'cycle_id' => 'required|exists:cycles_enseignement,id',
-            'pays_id' => 'required|exists:pays,id',
-            'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
+            'section_id' => 'nullable|exists:sections,id',
             'etat' => 'nullable|in:actif,inactif',
         ]);
 
@@ -129,38 +104,9 @@ class NiveauEtudeController extends Controller
     public function show(NiveauEtude $niveauEtude)
     {
         try {
-            $pays = Pays::all()->map(function($country) {
-                return [
-                    'id' => $country->id,
-                    'libelle' => $country->libelle,
-                ];
-            });
-
-            $cycles = CycleEnseignement::all()->map(function($cycle) {
-                return [
-                    'id' => $cycle->id,
-                    'libelle' => $cycle->libelle,
-                ];
-            });
-
-            $anneesScolaires = AnneeScolaire::all()->map(function($annee) {
-                return [
-                    'id' => $annee->id,
-                    'libelle' => $annee->libelle,
-                ];
-            });
-
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'pays_id', 'institution_id', 'campus_id']);
-            $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
-
-            return Inertia::render('Parametrage::NiveauxÉtude/Show', [
+            return Inertia::render('Parametrage::NiveauxÉtude/Show', array_merge($this->lookups(), [
                 'niveauEtude' => $niveauEtude,
-                'pays' => $pays,
-                'cycles' => $cycles,
-                'anneesScolaires' => $anneesScolaires,
-                'ecoles' => $ecoles,
-                'sections' => $sections,
-            ]);
+            ]));
         } catch (\Exception $e) {
             Log::error('niveauetudecontroller@error: ' . $e->getmessage());
             return back()->with('error', 'Erreur lors du chargement');
@@ -170,38 +116,9 @@ class NiveauEtudeController extends Controller
     public function edit(NiveauEtude $niveauEtude)
     {
         try {
-            $pays = Pays::all()->map(function($country) {
-                return [
-                    'id' => $country->id,
-                    'libelle' => $country->libelle,
-                ];
-            });
-
-            $cycles = CycleEnseignement::all()->map(function($cycle) {
-                return [
-                    'id' => $cycle->id,
-                    'libelle' => $cycle->libelle,
-                ];
-            });
-
-            $anneesScolaires = AnneeScolaire::all()->map(function($annee) {
-                return [
-                    'id' => $annee->id,
-                    'libelle' => $annee->libelle,
-                ];
-            });
-
-            $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'pays_id', 'institution_id', 'campus_id']);
-            $sections = Section::orderBy('libelle')->get(['id', 'libelle']);
-
-            return Inertia::render('Parametrage::NiveauxÉtude/Edit', [
+            return Inertia::render('Parametrage::NiveauxÉtude/Edit', array_merge($this->lookups(), [
                 'niveauEtude' => $niveauEtude,
-                'pays' => $pays,
-                'cycles' => $cycles,
-                'anneesScolaires' => $anneesScolaires,
-                'ecoles' => $ecoles,
-                'sections' => $sections,
-            ]);
+            ]));
         } catch (\Exception $e) {
             Log::error('niveauetudecontroller@error: ' . $e->getmessage());
             return back()->with('error', 'Erreur lors du chargement du formulaire');
@@ -213,13 +130,10 @@ class NiveauEtudeController extends Controller
         try {
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:niveaux_etudes,code,' . $niveauEtude->id,
-                'sigle' => 'nullable|string|max:50',
                 'libelle' => 'required|string|max:255',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'section_id' => 'nullable|exists:sections,id',
+                'sigle' => 'nullable|string|max:50',
                 'cycle_id' => 'required|exists:cycles_enseignement,id',
-                'pays_id' => 'required|exists:pays,id',
-                'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
+                'section_id' => 'nullable|exists:sections,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 

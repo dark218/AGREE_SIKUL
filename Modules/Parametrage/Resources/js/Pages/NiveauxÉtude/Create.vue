@@ -16,21 +16,15 @@ const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 const props = defineProps({
-    pays: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
-    ecoles: { type: Array, default: () => [] },
     sections: { type: Array, default: () => [] },
 });
 const form = useForm({
     code: '',
-    sigle: '',
     libelle: '',
-    ecole_id: null,
-    section_id: null,
+    sigle: '',
     cycle_id: null,
-    pays_id: null,
-    annee_scolaire_id: null,
+    section_id: null,
     etat: 'actif',
 });
 const submitForm = () => {
@@ -62,10 +56,7 @@ const submitForm = () => {
                             <form @submit.prevent="submitForm">
                                 <NiveauxÉtudeForm
                                     :form="form"
-                                    :pays="props.pays"
                                     :cycles="props.cycles"
-                                    :annees-scolaires="props.anneesScolaires"
-                                    :ecoles="props.ecoles"
                                     :sections="props.sections"
                                     mode="create"
                                 />
@@ -93,7 +84,6 @@ const submitForm = () => {
                 </div>
             </div>
         </div>
-        <!-- Loader pleine page -->
         <FullPageLoader
             :show="isLoading"
             :message="loaderMessage"
