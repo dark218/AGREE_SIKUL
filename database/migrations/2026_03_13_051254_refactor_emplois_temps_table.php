@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('emplois_temps', function (Blueprint $table) {
             // Add correct columns for EmploiDuTemps if they don't exist
             if (!Schema::hasColumn('emplois_temps', 'jour_semaine')) {

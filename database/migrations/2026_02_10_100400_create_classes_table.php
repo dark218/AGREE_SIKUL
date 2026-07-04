@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('classes')) Schema::create('classes', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('classes')) Schema::hasTable('classes') ? null : Schema::create('classes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ecole_id')->constrained('ecoles')->cascadeOnDelete();
             $table->foreignId('niveau_id')->constrained('niveaux')->cascadeOnDelete();

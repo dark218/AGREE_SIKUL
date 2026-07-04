@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('menu_cantines')) Schema::create('menu_cantines', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('menu_cantines')) Schema::hasTable('menu_cantines') ? null : Schema::create('menu_cantines', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('service_cantine_id')->nullable();
             $table->date('week_start_date')->nullable();

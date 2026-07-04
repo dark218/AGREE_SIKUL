@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('menus')) if (Schema::hasTable('menus')) Schema::table('menus', function (Blueprint $table) {
             $table->date('week_start_date')->nullable()->after('id');
             $table->date('week_end_date')->nullable()->after('week_start_date');

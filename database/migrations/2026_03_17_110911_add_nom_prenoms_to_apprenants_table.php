@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('apprenants', function (Blueprint $table) {
             // Add columns that were referenced in entity but missing from original migration
             if (!Schema::hasColumn('apprenants', 'nom')) {

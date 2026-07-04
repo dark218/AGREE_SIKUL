@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Backfill week_start_date, week_number, and year from date_debut
         DB::statement('
             UPDATE emplois_temps

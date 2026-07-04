@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('salles')) if (Schema::hasTable('salles')) Schema::table('salles', function (Blueprint $table) {
             $table->softDeletes()->after('description');
         });

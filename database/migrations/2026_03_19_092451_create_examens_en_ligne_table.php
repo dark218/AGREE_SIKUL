@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Cette table est créée par 2026_03_19_create_exam_modules_table.php
         // Cette migration ne fait rien (elle était incorrecte - utilisait Schema::table sur une table inexistante)
     }

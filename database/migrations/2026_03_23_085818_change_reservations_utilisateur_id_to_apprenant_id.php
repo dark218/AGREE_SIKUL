@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Skip si la table n'existe pas ou la colonne est déjà renommée
         if (!Schema::hasTable('reservations') || !Schema::hasColumn('reservations', 'utilisateur_id')) {
             return;

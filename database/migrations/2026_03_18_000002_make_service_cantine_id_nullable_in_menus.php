@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('menus')) if (Schema::hasTable('menus')) Schema::table('menus', function (Blueprint $table) {
             // Make service_cantine_id nullable since generic menus don't belong to a specific cantine
             $table->unsignedBigInteger('service_cantine_id')->nullable()->change();

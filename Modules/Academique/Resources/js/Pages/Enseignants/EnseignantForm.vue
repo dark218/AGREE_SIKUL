@@ -23,11 +23,19 @@ const props = defineProps({
     situationsMatrimoniales: { type: Array, default: () => [] },
     langues: { type: Array, default: () => [] },
     statutsEmployes: { type: Array, default: () => [] },
+    fonctions: { type: Array, default: () => [] },
 });
 
 const photoPreview = ref(null);
 const photoLoadError = ref(false);
 const isReadOnly = computed(() => props.mode === 'show');
+
+// Normalise les codes des statuts en minuscules pour matcher la valeur
+// stockée en base (ex: 'actif') vs le référentiel qui les fournit en
+// majuscules (ex: 'ACTIF'). Sans ça, la SearchableSelect ne préselectionne rien.
+const statutsEmployesNormalises = computed(() =>
+    (props.statutsEmployes || []).map(s => ({ ...s, code: (s.code || '').toLowerCase() }))
+);
 
 // Cascade géographique : Commune → Département → Région → Pays
 useGeoCascade(props.form, {
@@ -239,6 +247,18 @@ const age = computed(() => {
                 />
             </div>
             <div class="col-md-6 mb-20">
+                <label class="mb-10">{{ t('fields.fonction') || 'Fonction' }}</label>
+                <SearchableSelect
+                    v-model="form.fonction_id"
+                    :options="fonctions"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <small class="text-muted">Paramétrable depuis Paramétrage → Fonctions</small>
+            </div>
+            <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.email') }}</label>
                 <input v-model="form.email" type="email" class="form-control" :disabled="isReadOnly" />
             </div>
@@ -378,7 +398,7 @@ const age = computed(() => {
                 <label class="mb-10">{{ t('fields.statut') }} *</label>
                 <SearchableSelect
                     v-model="form.statut"
-                    :options="statutsEmployes"
+                    :options="statutsEmployesNormalises"
                     optionValue="code"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"

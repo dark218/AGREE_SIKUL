@@ -19,6 +19,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (!Schema::hasTable('classes') || !Schema::hasColumn('classes', 'niveau_id')) {
             return;
         }

@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('justificatifs_absences')) if (Schema::hasTable('justificatifs_absences')) Schema::table('justificatifs_absences', function (Blueprint $table) {
             // Add polymorphic columns for supporting both AbsenceApprenant and AbsenceEnseignant
             $table->string('absence_type')->default('apprenant')->after('absence_id');

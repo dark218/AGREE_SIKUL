@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('absences_apprenants', function (Blueprint $table) {
             // Drop foreign key constraint on justificatif_id
             if (Schema::hasColumn('absences_apprenants', 'justificatif_id')) {

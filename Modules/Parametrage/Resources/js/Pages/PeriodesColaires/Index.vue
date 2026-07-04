@@ -38,6 +38,16 @@ const filterFields = [
     { key: 'libelle', type: 'text', placeholder: 'Libellé', width: '220px' },
     { key: 'etat', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
 ];
+// Helpers d'affichage
+const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR') : '-';
+const dureeJours = (p) => {
+    if (p.duree !== null && p.duree !== undefined && p.duree !== '') return p.duree + ' j';
+    if (p.date_debut && p.date_fin) {
+        const days = Math.round((new Date(p.date_fin) - new Date(p.date_debut)) / 86400000);
+        return (days >= 0 ? days : 0) + ' j';
+    }
+    return '-';
+};
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -156,12 +166,10 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('fields.type_periode') || 'Type' }}</th>
-                                        <th>{{ t('common.annee_scolaire') || 'Année Scolaire' }}</th>
-                                        <th>{{ t('common.ecole') || 'École' }}</th>
-                                        <th>Dates</th>
-                                        <th>{{ t('fields.numero_ordre') || 'Ordre' }}</th>
-                                        <th>{{ t('fields.est_periode_evaluation') || 'Évaluation' }}</th>
+                                        <th>{{ t('common.annee_scolaire') || 'Année scolaire' }}</th>
+                                        <th>Date début</th>
+                                        <th>Date fin</th>
+                                        <th>Durée</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -171,17 +179,10 @@ watch(
                                         <tr v-for="periode in periodesColaires?.data" :key="periode.id">
                                             <td><small>{{ periode.code || '-' }}</small></td>
                                             <td>{{ periode.libelle || '-' }}</td>
-                                            <td><small>{{ periode.type_periode || '-' }}</small></td>
                                             <td><small>{{ periode.annee_scolaire?.libelle || '-' }}</small></td>
-                                            <td><small>{{ periode.ecole?.nom || '-' }}</small></td>
-                                            <td>
-                                                <small v-if="periode.date_debut">
-                                                    {{ new Date(periode.date_debut).toLocaleDateString('fr-FR') }} - {{ new Date(periode.date_fin).toLocaleDateString('fr-FR') }}
-                                                </small>
-                                                <small v-else>-</small>
-                                            </td>
-                                            <td><small>{{ periode.numero_ordre || '-' }}</small></td>
-                                            <td><small>{{ periode.est_periode_evaluation ? '✓' : '-' }}</small></td>
+                                            <td><small>{{ formatDate(periode.date_debut) }}</small></td>
+                                            <td><small>{{ formatDate(periode.date_fin) }}</small></td>
+                                            <td><small>{{ dureeJours(periode) }}</small></td>
                                             <td><span class="badge" :class="periode.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ periode.etat === 'actif' ? 'Actif' : 'Inactif' }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -205,7 +206,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="10" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="8" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -224,33 +225,20 @@ watch(
                                             <span class="mobile-card-value">{{ periode.libelle || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.type_periode') || 'Type' }}</span>
-                                            <span class="mobile-card-value"><small>{{ periode.type_periode || '-' }}</small></span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('common.annee_scolaire') || 'Année' }}</span>
+                                            <span class="mobile-card-label">{{ t('common.annee_scolaire') || 'Année scolaire' }}</span>
                                             <span class="mobile-card-value"><small>{{ periode.annee_scolaire?.libelle || '-' }}</small></span>
                                         </div>
                                         <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('common.ecole') || 'École' }}</span>
-                                            <span class="mobile-card-value"><small>{{ periode.ecole?.nom || '-' }}</small></span>
+                                            <span class="mobile-card-label">Date début</span>
+                                            <span class="mobile-card-value"><small>{{ formatDate(periode.date_debut) }}</small></span>
                                         </div>
                                         <div class="mobile-card-row">
-                                            <span class="mobile-card-label">Dates</span>
-                                            <span class="mobile-card-value">
-                                                <small v-if="periode.date_debut">
-                                                    {{ new Date(periode.date_debut).toLocaleDateString('fr-FR') }} - {{ new Date(periode.date_fin).toLocaleDateString('fr-FR') }}
-                                                </small>
-                                                <small v-else>-</small>
-                                            </span>
+                                            <span class="mobile-card-label">Date fin</span>
+                                            <span class="mobile-card-value"><small>{{ formatDate(periode.date_fin) }}</small></span>
                                         </div>
                                         <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.numero_ordre') || 'Ordre' }}</span>
-                                            <span class="mobile-card-value"><small>{{ periode.numero_ordre || '-' }}</small></span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.est_periode_evaluation') || 'Évaluation' }}</span>
-                                            <span class="mobile-card-value"><small>{{ periode.est_periode_evaluation ? '✓' : '-' }}</small></span>
+                                            <span class="mobile-card-label">Durée</span>
+                                            <span class="mobile-card-value"><small>{{ dureeJours(periode) }}</small></span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>

@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Supprimer les doublons en gardant le plus récent pour chaque (bulletin_id, matiere_id)
         DB::statement('
             DELETE FROM moyennes_matieres

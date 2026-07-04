@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
+        // idempotence guard
         if (Schema::hasTable('cours')) if (Schema::hasTable('cours')) Schema::table('cours', function (Blueprint $table) {
             // Change date_debut and date_fin from date to datetime
             $table->dateTime('date_debut')->nullable()->change();

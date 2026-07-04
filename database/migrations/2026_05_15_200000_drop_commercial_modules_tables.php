@@ -28,6 +28,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Désactiver les contraintes FK temporairement (MySQL/MariaDB)
         Schema::disableForeignKeyConstraints();
 

@@ -49,14 +49,6 @@ watch(() => [props.form.date_debut, props.form.date_fin], ([d1, d2]) => {
                 <span v-if="form.errors?.libelle" class="text-danger"><strong>{{ form.errors.libelle }}</strong></span>
             </div>
         </div>
-        <!-- Cycle -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
-                <SearchableSelect v-model="form.cycle_id" :options="cycles" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
-                <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
-            </div>
-        </div>
         <!-- Année scolaire -->
         <div class="col-sm-6">
             <div class="mb-3">

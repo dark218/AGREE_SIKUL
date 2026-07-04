@@ -13,6 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('notes') && Schema::hasColumn('notes', 'note_max')) {
             Schema::table('notes', function (Blueprint $table) {
                 $table->dropColumn('note_max');

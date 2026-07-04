@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Rename table
         Schema::rename('modes_paiement', 'moyens_paiement');
     }

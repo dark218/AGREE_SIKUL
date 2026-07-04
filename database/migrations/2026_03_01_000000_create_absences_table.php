@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('absences')) Schema::create('absences', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('absences')) Schema::hasTable('absences') ? null : Schema::create('absences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('apprenant_id')->nullable()->constrained('apprenants')->cascadeOnDelete();
             $table->foreignId('classe_id')->nullable()->constrained('classes')->cascadeOnDelete();

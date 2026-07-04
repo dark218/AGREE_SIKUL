@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('services_cantines', function (Blueprint $table) {
             if (Schema::hasColumn('services_cantines', 'capacite')) {
                 $table->integer('capacite')->nullable()->change();

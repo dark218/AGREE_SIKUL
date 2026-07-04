@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('inventaire_lignes', function (Blueprint $table) {
+        // idempotence guard
+        Schema::hasTable('inventaire_lignes') ? null : Schema::create('inventaire_lignes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('inventaire_id')
                 ->constrained('inventaires')

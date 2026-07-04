@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('sessions')) if (Schema::hasTable('sessions')) Schema::table('sessions', function (Blueprint $table) {
+        if (Schema::hasTable('sessions') && !Schema::hasColumn('sessions', 'fcm_token')) Schema::table('sessions', function (Blueprint $table) {
             $table->text('fcm_token')->nullable()->after('user_agent');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('sessions')) if (Schema::hasTable('sessions')) Schema::table('sessions', function (Blueprint $table) {
+        if (Schema::hasTable('sessions') && Schema::hasColumn('sessions', 'fcm_token')) Schema::table('sessions', function (Blueprint $table) {
             $table->dropColumn('fcm_token');
         });
     }

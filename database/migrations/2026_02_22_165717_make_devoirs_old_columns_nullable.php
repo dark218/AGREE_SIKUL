@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('devoirs', function (Blueprint $table) {
             // Make old columns nullable since we're using new columns instead
             // date_donnee and date_limite from old schema

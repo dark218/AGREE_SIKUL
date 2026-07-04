@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // 1. Ajouter les colonnes manquantes à examens_en_ligne
         // Note: enseignant_id et nombre_heures existent déjà dans la table
         if (Schema::hasTable('examens_en_ligne') && !Schema::hasColumn('examens_en_ligne', 'melange_questions')) {
@@ -36,7 +37,7 @@ return new class extends Migration
         }
 
         // 2. Table des questions d'examen
-        if (!Schema::hasTable('questions_examen')) Schema::create('questions_examen', function (Blueprint $table) {
+        if (!Schema::hasTable('questions_examen')) Schema::hasTable('questions_examen') ? null : Schema::create('questions_examen', function (Blueprint $table) {
             $table->id();
             $table->foreignId('examen_en_ligne_id')->constrained('examens_en_ligne')->onDelete('cascade');
             $table->integer('ordre')->default(0);
@@ -56,7 +57,7 @@ return new class extends Migration
         });
 
         // 3. Table des réponses (choix) pour chaque question
-        if (!Schema::hasTable('reponses_question')) Schema::create('reponses_question', function (Blueprint $table) {
+        if (!Schema::hasTable('reponses_question')) Schema::hasTable('reponses_question') ? null : Schema::create('reponses_question', function (Blueprint $table) {
             $table->id();
             $table->foreignId('question_examen_id')->constrained('questions_examen')->onDelete('cascade');
             $table->integer('ordre')->default(0);
@@ -69,7 +70,7 @@ return new class extends Migration
         });
 
         // 4. Table des tentatives d'examen par apprenant
-        if (!Schema::hasTable('tentatives_examen')) Schema::create('tentatives_examen', function (Blueprint $table) {
+        if (!Schema::hasTable('tentatives_examen')) Schema::hasTable('tentatives_examen') ? null : Schema::create('tentatives_examen', function (Blueprint $table) {
             $table->id();
             $table->foreignId('examen_en_ligne_id')->constrained('examens_en_ligne')->onDelete('cascade');
             $table->foreignId('apprenant_id')->constrained('apprenants')->onDelete('cascade');
@@ -91,7 +92,7 @@ return new class extends Migration
         });
 
         // 5. Table des réponses de l'apprenant à chaque question
-        if (!Schema::hasTable('reponses_apprenant')) Schema::create('reponses_apprenant', function (Blueprint $table) {
+        if (!Schema::hasTable('reponses_apprenant')) Schema::hasTable('reponses_apprenant') ? null : Schema::create('reponses_apprenant', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tentative_examen_id')->constrained('tentatives_examen')->onDelete('cascade');
             $table->foreignId('question_examen_id')->constrained('questions_examen')->onDelete('cascade');

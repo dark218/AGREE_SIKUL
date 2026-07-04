@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Table Planification des examens
-        if (!Schema::hasTable('planification_examens')) Schema::create('planification_examens', function (Blueprint $table) {
+        if (!Schema::hasTable('planification_examens')) Schema::hasTable('planification_examens') ? null : Schema::create('planification_examens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('nature_examen_id')->nullable()->constrained('natures_examens')->onDelete('set null');
             $table->foreignId('type_examen_id')->nullable()->constrained('type_examens')->onDelete('set null');
@@ -33,7 +34,7 @@ return new class extends Migration
         });
 
         // Table Examens en ligne
-        if (!Schema::hasTable('examens_en_ligne')) Schema::create('examens_en_ligne', function (Blueprint $table) {
+        if (!Schema::hasTable('examens_en_ligne')) Schema::hasTable('examens_en_ligne') ? null : Schema::create('examens_en_ligne', function (Blueprint $table) {
             $table->id();
             $table->foreignId('planification_examen_id')->nullable()->constrained('planification_examens')->onDelete('cascade');
             $table->foreignId('classe_id')->nullable()->constrained('classes')->onDelete('set null');
@@ -56,7 +57,7 @@ return new class extends Migration
         });
 
         // Table Résultats des examens
-        if (!Schema::hasTable('resultats_examens')) Schema::create('resultats_examens', function (Blueprint $table) {
+        if (!Schema::hasTable('resultats_examens')) Schema::hasTable('resultats_examens') ? null : Schema::create('resultats_examens', function (Blueprint $table) {
             $table->id();
             $table->foreignId('examen_en_ligne_id')->nullable()->constrained('examens_en_ligne')->onDelete('cascade');
             $table->foreignId('apprenant_id')->nullable()->constrained('apprenants')->onDelete('cascade');

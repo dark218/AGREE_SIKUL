@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('apprenants')) if (Schema::hasTable('apprenants')) Schema::table('apprenants', function (Blueprint $table) {
             // Modify the statut enum to match the form options and use 'inactif' instead of 'non_actif'
             $table->enum('statut', ['actif', 'inactif', 'suspendu', 'exclus'])

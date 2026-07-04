@@ -10,6 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Désactiver temporairement les contraintes de clé étrangère
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 

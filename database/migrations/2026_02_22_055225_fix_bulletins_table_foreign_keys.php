@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Simply add the missing foreign keys
         // The statut column already exists
         // Just ensure the correct foreign key relationships are in place

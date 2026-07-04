@@ -23,8 +23,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (!Schema::hasTable('apprenant_parent')) {
-            Schema::create('apprenant_parent', function (Blueprint $table) {
+            Schema::hasTable('apprenant_parent') ? null : Schema::create('apprenant_parent', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->unsignedBigInteger('parent_id');
                 $table->unsignedBigInteger('apprenant_id');

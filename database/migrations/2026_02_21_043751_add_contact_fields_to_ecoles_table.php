@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('ecoles')) if (Schema::hasTable('ecoles')) Schema::table('ecoles', function (Blueprint $table) {
             // Adresse et localisation
             $table->text('adresse_siege')->nullable()->after('capacite_totale');

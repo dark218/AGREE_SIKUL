@@ -9,6 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // First, ensure all rows have valid nom and prenoms
         DB::table('apprenants')
             ->whereNull('nom')

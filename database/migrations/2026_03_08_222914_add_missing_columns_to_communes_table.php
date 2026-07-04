@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('communes', function (Blueprint $table) {
             if (!Schema::hasColumn('communes', 'region_id')) {
                 $table->foreignId('region_id')->nullable()->after('departement_id')->constrained('regions')->onDelete('set null');

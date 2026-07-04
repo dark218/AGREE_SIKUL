@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('moyennes_matieres')) if (Schema::hasTable('moyennes_matieres')) Schema::table('moyennes_matieres', function (Blueprint $table) {
             $table->enum('statut', ['actif', 'inactif', 'suspendu', 'archive'])->default('actif')->after('appreciation');
             $table->index('statut');

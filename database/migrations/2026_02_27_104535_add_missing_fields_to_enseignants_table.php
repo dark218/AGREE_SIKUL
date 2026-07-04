@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('enseignants')) Schema::table('enseignants', function (Blueprint $table) {
             $table->string('nom_restituer')->nullable();
             $table->string('nom_jeune_fille')->nullable();

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // PHASE 2: Zones - Add missing fields
         if (Schema::hasTable('zones')) {
             Schema::table('zones', function (Blueprint $table) {

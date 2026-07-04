@@ -22,8 +22,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (!Schema::hasTable('genres')) {
-            Schema::create('genres', function (Blueprint $table) {
+            Schema::hasTable('genres') ? null : Schema::create('genres', function (Blueprint $table) {
                 $table->id();
                 $table->string('code', 20)->unique();           // 'M', 'F', 'AUTRE' — utilisé pour compat legacy
                 $table->string('libelle', 100);                 // 'Masculin', 'Féminin', 'Autre'

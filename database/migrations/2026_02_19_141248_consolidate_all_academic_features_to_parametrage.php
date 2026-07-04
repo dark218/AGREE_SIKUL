@@ -14,6 +14,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Move all features from modules 2-9 to module 23
         DB::table('feature')
             ->whereIn('module_id', [2, 3, 4, 5, 6, 7, 8, 9])

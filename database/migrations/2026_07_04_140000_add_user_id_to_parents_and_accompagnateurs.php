@@ -20,6 +20,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('parents') && !Schema::hasColumn('parents', 'user_id')) {
             Schema::table('parents', function (Blueprint $table) {
                 $table->foreignId('user_id')->nullable()

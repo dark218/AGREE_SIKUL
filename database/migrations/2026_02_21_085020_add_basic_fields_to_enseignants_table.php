@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('enseignants', function (Blueprint $table) {
             // Add basic identity fields if not exist
             if (!Schema::hasColumn('enseignants', 'num_enseignant')) {

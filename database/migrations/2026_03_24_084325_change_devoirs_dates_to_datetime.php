@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('devoirs', function (Blueprint $table) {
             // Change date_debut from date to dateTime
             if (Schema::hasColumn('devoirs', 'date_debut')) {

@@ -24,6 +24,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         $tables = [
             'types_contrats' => [
                 ['code' => 'CDI', 'libelle' => 'CDI', 'ordre' => 1],

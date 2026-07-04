@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Ajouter un INDEX composite pour optimiser les requêtes et détecter les doublons
         // Note: Une UNIQUE constraint échoue à cause des doublons existants dans la BD
         // Les doublons seront filtrés au niveau du contrôleur (voir MoyenneMatiereController)

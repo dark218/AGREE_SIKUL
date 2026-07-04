@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('absences_apprenants', function (Blueprint $table) {
             // Add nombre_heures column (for hours tracking)
             if (!Schema::hasColumn('absences_apprenants', 'nombre_heures')) {

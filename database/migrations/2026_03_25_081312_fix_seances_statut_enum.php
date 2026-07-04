@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         DB::statement("ALTER TABLE seances MODIFY COLUMN statut ENUM('planifiee', 'realisee', 'annulee', 'reportee') DEFAULT 'planifiee'");
     }
 

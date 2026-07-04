@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('matieres_unites', function (Blueprint $table) {
             // Add type_matiere if it doesn't exist
             if (!Schema::hasColumn('matieres_unites', 'type_matiere')) {

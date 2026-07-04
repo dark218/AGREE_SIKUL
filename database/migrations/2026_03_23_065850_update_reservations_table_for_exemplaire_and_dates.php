@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Only run migrations if the reservations table exists and hasn't been migrated yet
         if (!Schema::hasTable('reservations')) {
             return;

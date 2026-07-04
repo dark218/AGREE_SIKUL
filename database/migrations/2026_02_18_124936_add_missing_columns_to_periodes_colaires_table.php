@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('periodes_colaires')) if (Schema::hasTable('periodes_colaires')) Schema::table('periodes_colaires', function (Blueprint $table) {
             $table->unsignedBigInteger('annee_scolaire_id')->nullable()->after('id');
             $table->enum('type_periode', ['trimestre', 'semestre', 'quadrimestre', 'annuel'])->nullable()->after('annee_scolaire_id');

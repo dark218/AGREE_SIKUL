@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Check if the old column exists and rename it
         if (Schema::hasColumn('exam_finance_audit_logs', 'planification_examen_poste_recette_id')) {
             // Rename the column in audit logs table

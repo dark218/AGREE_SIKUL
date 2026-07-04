@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('absences_enseignants', function (Blueprint $table) {
             if (!Schema::hasColumn('absences_enseignants', 'etat')) {
                 $table->enum('etat', ['actif', 'inactif'])->default('actif')->after('statut');

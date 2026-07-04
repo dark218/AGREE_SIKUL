@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('apprenants', function (Blueprint $table) {
             // Birth location
             if (!Schema::hasColumn('apprenants', 'commune_naissance_id')) {

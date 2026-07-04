@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('institutions')) if (Schema::hasTable('institutions')) Schema::table('institutions', function (Blueprint $table) {
             // Address fields
             $table->string('code_postal', 20)->nullable()->after('adresse_siege');

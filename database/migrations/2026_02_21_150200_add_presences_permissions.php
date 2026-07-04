@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 return new class extends Migration
@@ -12,12 +13,13 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Create permissions for presences
         $actions = ['list', 'create', 'read', 'update', 'delete', 'activate'];
 
         foreach ($actions as $action) {
-            if (!Permission::where('name', "presences-{$action}")->exists()) {
-                Permission::create([
+            if (!DB::table('permissions')->where('name', "presences-{$action}")->exists()) {
+                DB::table('permissions')->insert([
                     'name' => "presences-{$action}",
                     'libelle' => match($action) {
                         'list' => 'Voir la liste',
@@ -28,6 +30,9 @@ return new class extends Migration
                         'activate' => 'Activer/Désactiver',
                     },
                     'guard_name' => 'web',
+                    'feature_id' => 123,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
         }

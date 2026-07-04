@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('campuses', function (Blueprint $table) {
             if (!Schema::hasColumn('campuses', 'boite_postale')) {
                 $table->string('boite_postale')->nullable()->after('code_postal');

@@ -46,9 +46,16 @@ class AddAuditFieldsToAllTables extends Migration
                     }
 
                     // Index pour les performances
-                    // $table->index(['active', 'statut']);
-                    $table->index(['external_id']);
-                    $table->index(['source_system']);
+                    // Récupère les index existants pour éviter la recréation.
+                    $existingIndexes = collect(
+                        \DB::select("SHOW INDEX FROM `{$tableName}`")
+                    )->pluck('Key_name')->toArray();
+                    if (!in_array("{$tableName}_external_id_index", $existingIndexes, true)) {
+                        $table->index(['external_id']);
+                    }
+                    if (!in_array("{$tableName}_source_system_index", $existingIndexes, true)) {
+                        $table->index(['source_system']);
+                    }
                 });
             }
         }

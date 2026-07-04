@@ -9,6 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // ── matieres_unites ──
         if (Schema::hasTable('matieres_unites')) {
             Schema::table('matieres_unites', function (Blueprint $table) {

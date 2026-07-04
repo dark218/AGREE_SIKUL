@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Table Groupes de Comptes
-        if (!Schema::hasTable('groupes_comptes')) Schema::create('groupes_comptes', function (Blueprint $table) {
+        if (!Schema::hasTable('groupes_comptes')) Schema::hasTable('groupes_comptes') ? null : Schema::create('groupes_comptes', function (Blueprint $table) {
             $table->id();
             $table->string('code_groupe')->nullable()->unique();
             $table->string('libelle_groupes')->nullable();
@@ -28,7 +29,7 @@ return new class extends Migration
         });
 
         // Table Plan des Comptes
-        if (!Schema::hasTable('plan_comptes')) Schema::create('plan_comptes', function (Blueprint $table) {
+        if (!Schema::hasTable('plan_comptes')) Schema::hasTable('plan_comptes') ? null : Schema::create('plan_comptes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('groupe_comptes_id')->nullable()->constrained('groupes_comptes')->onDelete('cascade');
             $table->string('numero_compte')->nullable()->unique();
@@ -44,7 +45,7 @@ return new class extends Migration
         });
 
         // Table Lignes de Recettes
-        if (!Schema::hasTable('lignes_recettes')) Schema::create('lignes_recettes', function (Blueprint $table) {
+        if (!Schema::hasTable('lignes_recettes')) Schema::hasTable('lignes_recettes') ? null : Schema::create('lignes_recettes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('groupe_compte_id')->nullable()->constrained('groupes_comptes')->onDelete('set null');
             $table->string('code')->nullable()->unique();
@@ -61,7 +62,7 @@ return new class extends Migration
         });
 
         // Table Lignes de Dépenses
-        if (!Schema::hasTable('lignes_depenses')) Schema::create('lignes_depenses', function (Blueprint $table) {
+        if (!Schema::hasTable('lignes_depenses')) Schema::hasTable('lignes_depenses') ? null : Schema::create('lignes_depenses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('groupe_compte_id')->nullable()->constrained('groupes_comptes')->onDelete('set null');
             $table->string('code')->nullable()->unique();
@@ -78,7 +79,7 @@ return new class extends Migration
         });
 
         // Table Postes de Recettes
-        if (!Schema::hasTable('postes_recettes')) Schema::create('postes_recettes', function (Blueprint $table) {
+        if (!Schema::hasTable('postes_recettes')) Schema::hasTable('postes_recettes') ? null : Schema::create('postes_recettes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ligne_recette_id')->nullable()->constrained('lignes_recettes')->onDelete('set null');
             $table->string('code')->nullable()->unique();
@@ -94,7 +95,7 @@ return new class extends Migration
         });
 
         // Table Postes de Dépenses
-        if (!Schema::hasTable('postes_depenses')) Schema::create('postes_depenses', function (Blueprint $table) {
+        if (!Schema::hasTable('postes_depenses')) Schema::hasTable('postes_depenses') ? null : Schema::create('postes_depenses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ligne_depense_id')->nullable()->constrained('lignes_depenses')->onDelete('set null');
             $table->string('code')->nullable()->unique();

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('groupes_matieres')) if (Schema::hasTable('groupes_matieres')) Schema::table('groupes_matieres', function (Blueprint $table) {
             // Add remaining subjects (4-10)
             $table->unsignedBigInteger('matiere4_id')->nullable()->after('matiere3_id');

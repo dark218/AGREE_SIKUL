@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('inscriptions_cantine')) if (Schema::hasTable('inscriptions_cantine')) Schema::table('inscriptions_cantine', function (Blueprint $table) {
             // Drop the incorrect foreign key
             $table->dropForeign(['service_cantine_id']);

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('enseignants', function (Blueprint $table) {
             // Make matricule nullable since we use num_enseignant instead
             if (Schema::hasColumn('enseignants', 'matricule')) {

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('enseignants', function (Blueprint $table) {
             // État civil - add if not exists
             if (!Schema::hasColumn('enseignants', 'civility_title_id')) {

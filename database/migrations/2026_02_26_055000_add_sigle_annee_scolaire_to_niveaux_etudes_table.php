@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('niveaux_etudes')) if (Schema::hasTable('niveaux_etudes')) Schema::table('niveaux_etudes', function (Blueprint $table) {
             $table->string('sigle')->nullable()->after('code')->comment('Abbreviation/Code for the education level');
             $table->unsignedBigInteger('annee_scolaire_id')->nullable()->after('pays_id');

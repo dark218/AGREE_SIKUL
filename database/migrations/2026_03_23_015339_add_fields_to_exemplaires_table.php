@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('exemplaires', function (Blueprint $table) {
             // Colonnes ajoutées manuellement - vérification pour idempotence
             if (!Schema::hasColumn('exemplaires', 'numero_serie')) {

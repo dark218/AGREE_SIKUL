@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jwt_blacklist', function (Blueprint $table) {
+        // idempotence guard
+        Schema::hasTable('jwt_blacklist') ? null : Schema::create('jwt_blacklist', function (Blueprint $table) {
             $table->id();
             $table->string('token')->unique();
             $table->string('user_id')->nullable();

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('type_apprenants')) Schema::table('type_apprenants', function (Blueprint $table) {
             $table->foreignId('ecole_id')->nullable()->constrained('ecoles')->onDelete('cascade');
         });

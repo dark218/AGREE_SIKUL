@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('absences', function (Blueprint $table) {
             if (!Schema::hasColumn('absences', 'nombre_heures')) {
                 $table->decimal('nombre_heures', 5, 2)->nullable();

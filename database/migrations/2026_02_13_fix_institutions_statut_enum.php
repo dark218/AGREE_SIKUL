@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('institutions')) if (Schema::hasTable('institutions')) Schema::table('institutions', function (Blueprint $table) {
             // Change the enum to match form values
             $table->enum('statut', ['actif', 'inactif'])->default('actif')->change();

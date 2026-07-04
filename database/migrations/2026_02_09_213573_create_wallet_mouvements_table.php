@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Supprimer la table si elle existe
         Schema::dropIfExists('wallet_mouvements');
-        Schema::create('wallet_mouvements', function (Blueprint $table) {
+        Schema::hasTable('wallet_mouvements') ? null : Schema::create('wallet_mouvements', function (Blueprint $table) {
             $table->id();
             /**
              * Wallet concerné

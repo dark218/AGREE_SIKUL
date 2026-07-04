@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('devoirs', function (Blueprint $table) {
             // Make cours_id nullable to avoid "Field doesn't have a default value" error
             // Since we're using matiere_id and classe_id instead

@@ -7,6 +7,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         try {
             DB::statement('ALTER TABLE `type_enseignement` DROP FOREIGN KEY `type_enseignement_pays_id_foreign`');
         } catch (\Exception $e) {

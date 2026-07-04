@@ -18,6 +18,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::disableForeignKeyConstraints();
         if (Schema::hasTable('absences')) {
             Schema::drop('absences');

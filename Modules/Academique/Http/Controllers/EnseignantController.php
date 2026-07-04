@@ -81,6 +81,7 @@ class EnseignantController extends Controller
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
         ]);
     }
 
@@ -119,6 +120,7 @@ class EnseignantController extends Controller
                 'date_embauche' => 'nullable|date',
                 'teacher_category' => 'nullable|string|max:100',
                 'categorie_enseignant_id' => 'nullable|exists:categorie_enseignants,id',
+                'fonction_id' => 'nullable|exists:fonctions,id',
                 'email' => 'nullable|email|max:100',
                 'telephone' => 'nullable|string|max:20',
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -233,6 +235,7 @@ class EnseignantController extends Controller
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
         ]);
     }
 
@@ -265,6 +268,7 @@ class EnseignantController extends Controller
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+            'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
         ]);
     }
 
@@ -306,6 +310,7 @@ class EnseignantController extends Controller
                 'date_embauche' => 'nullable|date',
                 'teacher_category' => 'nullable|string|max:100',
                 'categorie_enseignant_id' => 'nullable|exists:categorie_enseignants,id',
+                'fonction_id' => 'nullable|exists:fonctions,id',
                 'email' => 'nullable|email|max:100',
                 'telephone' => 'nullable|string|max:20',
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',

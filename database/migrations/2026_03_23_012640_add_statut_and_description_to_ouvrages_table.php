@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('ouvrages')) if (Schema::hasTable('ouvrages')) Schema::table('ouvrages', function (Blueprint $table) {
             $table->string('statut')->default('actif')->after('nombre_exemplaires');
             $table->text('description')->nullable()->after('statut');

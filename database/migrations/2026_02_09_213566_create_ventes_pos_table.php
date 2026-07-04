@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ventes_pos', function (Blueprint $table) {
+        // idempotence guard
+        Schema::hasTable('ventes_pos') ? null : Schema::create('ventes_pos', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
 

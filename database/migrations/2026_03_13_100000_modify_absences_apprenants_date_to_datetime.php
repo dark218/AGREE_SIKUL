@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('absences_apprenants')) if (Schema::hasTable('absences_apprenants')) Schema::table('absences_apprenants', function (Blueprint $table) {
             // Modify date_debut and date_fin from date to datetime
             $table->dateTime('date_debut')->change();

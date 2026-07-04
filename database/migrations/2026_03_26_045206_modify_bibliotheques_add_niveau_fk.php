@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('bibliotheques')) if (Schema::hasTable('bibliotheques')) Schema::table('bibliotheques', function (Blueprint $table) {
             // Ajouter colonne niveau_id
             $table->foreignId('niveau_id')->nullable()->after('langue')->constrained('niveaux')->onDelete('set null');

@@ -32,6 +32,7 @@ const form = useForm({
     ecole_id: page.props.item?.ecole_id || null,
     date_debut: page.props.item?.date_debut || '',
     date_fin: page.props.item?.date_fin || '',
+    duree: page.props.item?.duree ?? null,
     est_periode_evaluation: page.props.item?.est_periode_evaluation || false,
     etat: page.props.item?.etat || 'actif',
     });

@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Check if table exists and needs migration
         if (Schema::hasTable('type_cours')) {
             Schema::table('type_cours', function (Blueprint $table) {

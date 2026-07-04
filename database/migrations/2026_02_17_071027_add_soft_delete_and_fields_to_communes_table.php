@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('communes', function (Blueprint $table) {
             // Only add if they don't exist
             if (!Schema::hasColumn('communes', 'population')) {

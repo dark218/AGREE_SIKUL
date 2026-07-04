@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('documents')) if (Schema::hasTable('documents')) Schema::table('documents', function (Blueprint $table) {
             $table->unsignedBigInteger('fichier_id')->nullable()->change();
         });

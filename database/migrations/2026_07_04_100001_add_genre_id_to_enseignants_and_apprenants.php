@@ -21,6 +21,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Apprenants
         if (Schema::hasTable('apprenants') && !Schema::hasColumn('apprenants', 'genre_id')) {
             Schema::table('apprenants', function (Blueprint $table) {

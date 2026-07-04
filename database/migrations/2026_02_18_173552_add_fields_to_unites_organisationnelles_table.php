@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('unites_organisationnelles')) Schema::table('unites_organisationnelles', function (Blueprint $table) {
             // Add missing columns
             $table->string('type_unite')->nullable()->after('libelle');

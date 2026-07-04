@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('exam_finance_monthly_reports')) Schema::create('exam_finance_monthly_reports', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('exam_finance_monthly_reports')) Schema::hasTable('exam_finance_monthly_reports') ? null : Schema::create('exam_finance_monthly_reports', function (Blueprint $table) {
             $table->id();
 
             // Period

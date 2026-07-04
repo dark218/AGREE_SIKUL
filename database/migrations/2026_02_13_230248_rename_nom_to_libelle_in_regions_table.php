@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('regions')) if (Schema::hasTable('regions')) Schema::table('regions', function (Blueprint $table) {
             $table->renameColumn('nom', 'libelle');
         });

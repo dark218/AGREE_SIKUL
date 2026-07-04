@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('moyennes_matieres')) if (Schema::hasTable('moyennes_matieres')) Schema::table('moyennes_matieres', function (Blueprint $table) {
             // Ajouter apprenant_id après matiere_id
             $table->unsignedBigInteger('apprenant_id')->nullable()->after('matiere_id');

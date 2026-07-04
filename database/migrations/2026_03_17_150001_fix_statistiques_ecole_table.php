@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('statistiques_ecole', function (Blueprint $table) {
             // Keep existing columns and add missing ones
             if (!Schema::hasColumn('statistiques_ecole', 'nombre_enseignants_permanent')) {

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('emplois_temps', function (Blueprint $table) {
             // Add missing columns for EmploiTemps CRUD
             if (!Schema::hasColumn('emplois_temps', 'titre')) {

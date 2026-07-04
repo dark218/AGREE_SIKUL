@@ -9,6 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // 1. FIX DEVISES TABLE
         Schema::table('devises', function (Blueprint $table) {
             if (Schema::hasColumn('devises', 'symbole')) {
@@ -100,7 +101,7 @@ return new class extends Migration
 
         // 5. CREATE MISSING TABLES
         if (!Schema::hasTable('cycles_enseignement')) {
-            Schema::create('cycles_enseignement', function (Blueprint $table) {
+            Schema::hasTable('cycles_enseignement') ? null : Schema::create('cycles_enseignement', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -115,7 +116,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('niveaux_etudes')) {
-            Schema::create('niveaux_etudes', function (Blueprint $table) {
+            Schema::hasTable('niveaux_etudes') ? null : Schema::create('niveaux_etudes', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -131,7 +132,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('natures_examens')) {
-            Schema::create('natures_examens', function (Blueprint $table) {
+            Schema::hasTable('natures_examens') ? null : Schema::create('natures_examens', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -150,7 +151,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('unites_organisationnelles')) {
-            Schema::create('unites_organisationnelles', function (Blueprint $table) {
+            Schema::hasTable('unites_organisationnelles') ? null : Schema::create('unites_organisationnelles', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -165,7 +166,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('matieres_unites')) {
-            Schema::create('matieres_unites', function (Blueprint $table) {
+            Schema::hasTable('matieres_unites') ? null : Schema::create('matieres_unites', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -185,7 +186,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('groupes_matieres')) {
-            Schema::create('groupes_matieres', function (Blueprint $table) {
+            Schema::hasTable('groupes_matieres') ? null : Schema::create('groupes_matieres', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -205,7 +206,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('titres_civilites')) {
-            Schema::create('titres_civilites', function (Blueprint $table) {
+            Schema::hasTable('titres_civilites') ? null : Schema::create('titres_civilites', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -220,7 +221,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('periodes_colaires')) {
-            Schema::create('periodes_colaires', function (Blueprint $table) {
+            Schema::hasTable('periodes_colaires') ? null : Schema::create('periodes_colaires', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');
@@ -234,7 +235,7 @@ return new class extends Migration
         }
 
         if (!Schema::hasTable('jours_feries')) {
-            Schema::create('jours_feries', function (Blueprint $table) {
+            Schema::hasTable('jours_feries') ? null : Schema::create('jours_feries', function (Blueprint $table) {
                 $table->id();
                 $table->string('code')->unique()->index();
                 $table->string('libelle');

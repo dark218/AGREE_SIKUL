@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('categories_documents')) if (Schema::hasTable('categories_documents')) Schema::table('categories_documents', function (Blueprint $table) {
             $table->string('code')->nullable()->unique()->after('id');
             $table->string('couleur')->nullable()->after('icone');

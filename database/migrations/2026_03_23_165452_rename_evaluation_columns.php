@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         DB::statement('ALTER TABLE evaluations CHANGE COLUMN date_evaluation `date` DATE NULL');
         DB::statement('ALTER TABLE evaluations CHANGE COLUMN type_evaluation `type` VARCHAR(255) NULL');
         DB::statement('ALTER TABLE evaluations CHANGE COLUMN note_sur `sur` DECIMAL(8,2) NOT NULL DEFAULT 20');

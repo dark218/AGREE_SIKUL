@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('accompagnateurs')) Schema::create('accompagnateurs', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('accompagnateurs')) Schema::hasTable('accompagnateurs') ? null : Schema::create('accompagnateurs', function (Blueprint $table) {
             $table->id();
 
             // Basic Information

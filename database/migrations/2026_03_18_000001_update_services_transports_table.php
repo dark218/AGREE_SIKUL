@@ -9,6 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('services_transports', function (Blueprint $table) {
             // Drop old columns only if they exist
             if (Schema::hasColumn('services_transports', 'nom')) {

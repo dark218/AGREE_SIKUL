@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('notes')) if (Schema::hasTable('notes')) Schema::table('notes', function (Blueprint $table) {
             // Colonne pour stocker la note originale (avant normalisation à /20)
             // Exemple: 8 (pour une interrogation sur 10)

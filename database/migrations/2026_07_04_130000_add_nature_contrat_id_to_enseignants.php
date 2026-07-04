@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('enseignants') && !Schema::hasColumn('enseignants', 'nature_contrat_id')) {
             Schema::table('enseignants', function (Blueprint $table) {
                 $table->foreignId('nature_contrat_id')->nullable()

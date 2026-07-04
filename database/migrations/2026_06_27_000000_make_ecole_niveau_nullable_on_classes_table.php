@@ -13,6 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasColumn('classes', 'ecole_id')) {
             DB::statement('ALTER TABLE `classes` MODIFY `ecole_id` BIGINT UNSIGNED NULL');
         }

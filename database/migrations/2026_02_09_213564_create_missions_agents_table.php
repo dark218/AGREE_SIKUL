@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('missions_agents', function (Blueprint $table) {
+        // idempotence guard
+        Schema::hasTable('missions_agents') ? null : Schema::create('missions_agents', function (Blueprint $table) {
             /**
              * =========================
              * Identité

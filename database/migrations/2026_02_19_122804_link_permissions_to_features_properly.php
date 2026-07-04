@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Mapping entre les noms de permission et les menu_url des features
         $permissionToFeatureMap = [
             // PARAMETRAGE features

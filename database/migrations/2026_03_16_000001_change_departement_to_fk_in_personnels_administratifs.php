@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('personnels_administratifs')) if (Schema::hasTable('personnels_administratifs')) Schema::table('personnels_administratifs', function (Blueprint $table) {
             $table->dropColumn('departement');
             $table->foreignId('departement_id')->nullable()->constrained('departements')->onDelete('set null');

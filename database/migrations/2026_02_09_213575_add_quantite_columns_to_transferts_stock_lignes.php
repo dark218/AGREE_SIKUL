@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('transferts_stock_lignes')) if (Schema::hasTable('transferts_stock_lignes')) Schema::table('transferts_stock_lignes', function (Blueprint $table) {
             $table->integer('quantite_demandee')->default(0)->after('article_id');
             $table->integer('quantite_approuvee')->default(0)->after('quantite_demandee');

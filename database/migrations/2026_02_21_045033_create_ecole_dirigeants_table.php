@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('ecole_dirigeants')) Schema::create('ecole_dirigeants', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('ecole_dirigeants')) Schema::hasTable('ecole_dirigeants') ? null : Schema::create('ecole_dirigeants', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('ecole_id');
             $table->string('nom')->nullable();

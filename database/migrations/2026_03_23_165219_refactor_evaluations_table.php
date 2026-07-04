@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('evaluations', function (Blueprint $table) {
             // Add classe_id and matiere_id columns
             if (!Schema::hasColumn('evaluations', 'classe_id')) {

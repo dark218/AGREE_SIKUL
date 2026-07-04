@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('absences_enseignants')) if (Schema::hasTable('absences_enseignants')) Schema::table('absences_enseignants', function (Blueprint $table) {
             // Change justificatif_path from string to json to support multiple files
             $table->json('justificatif_path')->nullable()->change();

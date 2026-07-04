@@ -19,6 +19,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // 1. Colonnes legacy SmilPay dans `users`
         if (Schema::hasTable('users')) {
             foreach (['qr_data', 'code_owner'] as $col) {

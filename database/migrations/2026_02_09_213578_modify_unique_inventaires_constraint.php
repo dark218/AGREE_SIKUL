@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('inventaires')) if (Schema::hasTable('inventaires')) Schema::table('inventaires', function (Blueprint $table) {
             // Ajouter directement le nouvel index unique
             $table->unique(

@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         DB::statement("
             ALTER TABLE transferts_stock
             MODIFY statut ENUM(

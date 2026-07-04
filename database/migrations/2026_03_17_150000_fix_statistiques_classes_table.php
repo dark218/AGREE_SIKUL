@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('statistiques_classes', function (Blueprint $table) {
             // Drop old columns
             $table->dropColumn(['nombre_enseignants', 'nombre_enseignants_permanent', 'nombre_enseignants_vacataires', 'produits_ecole', 'services_offerts']);

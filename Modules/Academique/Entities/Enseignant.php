@@ -27,7 +27,7 @@ class Enseignant extends BaseModel
         // Formation
         'highest_diploma', 'speciality', 'year_obtained', 'languages', 'teaching_speciality',
         // Emploi
-        'type_contrat', 'nature_contrat_id', 'date_embauche', 'teacher_category', 'categorie_enseignant_id',
+        'type_contrat', 'nature_contrat_id', 'date_embauche', 'teacher_category', 'categorie_enseignant_id', 'fonction_id',
         // Contact
         'email', 'telephone',
         // Photo & statut
@@ -43,6 +43,11 @@ class Enseignant extends BaseModel
     public function genre(): BelongsTo
     {
         return $this->belongsTo(\Modules\Parametrage\Entities\Genre::class, 'genre_id');
+    }
+
+    public function fonction(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Parametrage\Entities\Fonction::class, 'fonction_id');
     }
 
     public function user(): BelongsTo

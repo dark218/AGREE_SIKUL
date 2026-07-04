@@ -8,10 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Drop the old table and create a new one with the correct structure
         Schema::dropIfExists('accompagnateurs');
 
-        if (!Schema::hasTable('accompagnateurs')) Schema::create('accompagnateurs', function (Blueprint $table) {
+        if (!Schema::hasTable('accompagnateurs')) Schema::hasTable('accompagnateurs') ? null : Schema::create('accompagnateurs', function (Blueprint $table) {
             $table->id();
 
             // School Information

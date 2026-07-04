@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('absences_enseignants')) if (Schema::hasTable('absences_enseignants')) Schema::table('absences_enseignants', function (Blueprint $table) {
             $table->unsignedBigInteger('matiere_id')->nullable()->after('enseignant_id');
             $table->foreign('matiere_id')->references('id')->on('matieres')->onDelete('set null');

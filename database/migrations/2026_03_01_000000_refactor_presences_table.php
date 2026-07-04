@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         Schema::table('presences', function (Blueprint $table) {
             // Remove redundant columns
             $table->dropColumn(['present', 'retard']);

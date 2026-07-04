@@ -34,6 +34,7 @@ return new class extends Migration
 
     public function up(): void
     {
+        // idempotence guard
         foreach ($this->fks as [$table, $column, $target, $onDelete]) {
             if (!Schema::hasTable($table) || !Schema::hasColumn($table, $column)) {
                 continue;

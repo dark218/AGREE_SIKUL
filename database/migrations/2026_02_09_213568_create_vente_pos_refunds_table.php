@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('vente_pos_refunds', function (Blueprint $table) {
+        // idempotence guard
+        Schema::hasTable('vente_pos_refunds') ? null : Schema::create('vente_pos_refunds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vente_pos_id')->constrained('ventes_pos');
             $table->enum('mode_paiement', ['espece', 'electronique']);

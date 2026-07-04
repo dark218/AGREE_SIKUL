@@ -12,6 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         // Drop the foreign key constraint using raw SQL
         DB::statement('ALTER TABLE evaluations DROP FOREIGN KEY evaluations_cours_id_foreign');
 

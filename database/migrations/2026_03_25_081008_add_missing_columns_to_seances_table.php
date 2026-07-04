@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('seances')) if (Schema::hasTable('seances')) Schema::table('seances', function (Blueprint $table) {
             // Ajouter les colonnes manquantes
             $table->string('titre')->nullable()->after('cours_id');

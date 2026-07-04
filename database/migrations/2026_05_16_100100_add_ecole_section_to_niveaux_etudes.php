@@ -9,6 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (!Schema::hasTable('niveaux_etudes')) {
             return;
         }

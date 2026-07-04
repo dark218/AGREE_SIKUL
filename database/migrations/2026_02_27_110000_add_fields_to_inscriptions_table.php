@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('inscriptions')) Schema::table('inscriptions', function (Blueprint $table) {
             // Affectation scolaire étendue
             $table->foreignId('ecole_id')->nullable()->after('classe_id')->nullOnDelete();

@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('classes', function (Blueprint $table) {
             // Only add campus_id if it doesn't exist
             if (!Schema::hasColumn('classes', 'campus_id')) {

@@ -33,6 +33,7 @@ const props = defineProps({
     situationsMatrimoniales: { type: Array, default: () => [] },
     langues: { type: Array, default: () => [] },
     statutsEmployes: { type: Array, default: () => [] },
+    fonctions: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -45,6 +46,7 @@ const form = useForm({
     gender: '',
     genre_id: '',
     nature_contrat_id: '',
+    fonction_id: '',
     marital_status: '',
     date_of_birth: '',
     place_of_birth: '',
@@ -132,6 +134,7 @@ const submitForm = () => {
                                     :situationsMatrimoniales="situationsMatrimoniales"
                                     :langues="langues"
                                     :statutsEmployes="statutsEmployes"
+                                    :fonctions="fonctions"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

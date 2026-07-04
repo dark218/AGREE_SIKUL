@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('type_apprenants', function (Blueprint $table) {
             if (!Schema::hasColumn('type_apprenants', 'poids')) {
                 $table->decimal('poids', 5, 2)->default(1)->after('cycle_id');

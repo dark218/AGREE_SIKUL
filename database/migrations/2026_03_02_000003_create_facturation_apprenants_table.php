@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('facturation_apprenants')) Schema::create('facturation_apprenants', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('facturation_apprenants')) Schema::hasTable('facturation_apprenants') ? null : Schema::create('facturation_apprenants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('annee_scolaire_id')->nullable()->constrained('annees_scolaires')->onDelete('set null');
             $table->foreignId('section_id')->nullable()->constrained('sections')->onDelete('set null');

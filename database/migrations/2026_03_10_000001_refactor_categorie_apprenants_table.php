@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         Schema::table('categorie_apprenants', function (Blueprint $table) {
             // Drop old foreign key first (before dropping index)
             if (Schema::hasColumn('categorie_apprenants', 'pays_id')) {

@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('transferts_stock_lignes', function (Blueprint $table) {
+        // idempotence guard
+        Schema::hasTable('transferts_stock_lignes') ? null : Schema::create('transferts_stock_lignes', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->foreignId('transfert_stock_id')

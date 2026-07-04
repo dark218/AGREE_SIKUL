@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('modes_paiement')) if (Schema::hasTable('modes_paiement')) Schema::table('modes_paiement', function (Blueprint $table) {
             $table->string('type_mode')->nullable()->after('libelle');
             $table->boolean('necessite_reference')->default(false)->after('type_mode');

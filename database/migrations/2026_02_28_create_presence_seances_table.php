@@ -11,7 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('presence_seances')) Schema::create('presence_seances', function (Blueprint $table) {
+        // idempotence guard
+        if (!Schema::hasTable('presence_seances')) Schema::hasTable('presence_seances') ? null : Schema::create('presence_seances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('seance_id')->constrained('seances')->cascadeOnDelete();
             $table->foreignId('apprenant_id')->constrained('users')->cascadeOnDelete();

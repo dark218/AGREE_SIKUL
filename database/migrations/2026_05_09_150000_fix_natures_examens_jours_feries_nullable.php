@@ -16,6 +16,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         if (Schema::hasTable('natures_examens') && Schema::hasColumn('natures_examens', 'poids')) {
             Schema::table('natures_examens', function (Blueprint $table) {
                 $table->decimal('poids', 5, 2)->nullable()->change();

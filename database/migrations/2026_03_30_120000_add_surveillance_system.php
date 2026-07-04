@@ -8,8 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // idempotence guard
         // Table des logs de surveillance (anti-triche)
-        if (!Schema::hasTable('logs_surveillance_examen')) Schema::create('logs_surveillance_examen', function (Blueprint $table) {
+        if (!Schema::hasTable('logs_surveillance_examen')) Schema::hasTable('logs_surveillance_examen') ? null : Schema::create('logs_surveillance_examen', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tentative_examen_id')->constrained('tentatives_examen')->onDelete('cascade');
             $table->foreignId('apprenant_id')->constrained('apprenants')->onDelete('cascade');
