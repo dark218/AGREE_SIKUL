@@ -88,6 +88,12 @@ const form = useForm({
 
 const submitForm = () => {
     showStoreLoader(t('common.saving'));
+    // Si form.photo est une string (URL de la photo existante en base), on la
+    // retire du payload — sinon Laravel rejette avec "The photo must be a file".
+    // Le backend garde l'ancienne valeur inchangée quand on n'envoie pas le champ.
+    if (typeof form.photo === 'string') {
+        form.photo = null;
+    }
     // Method spoofing : Laravel/Inertia ne supporte pas PUT en multipart →
     // on passe par POST avec _method = 'put' sur le form lui-même.
     form._method = 'put';

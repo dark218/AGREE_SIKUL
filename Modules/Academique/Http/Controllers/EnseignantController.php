@@ -145,10 +145,12 @@ class EnseignantController extends Controller
                 'classe_5_id' => 'nullable|exists:classes,id',
             ]);
 
-            // Handle photo upload
+            // Handle photo upload — n'ajouter au payload QUE si un vrai fichier arrive.
             if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
                 $photoPath = $request->file('photo')->store('enseignants', 'public');
                 $validated['photo'] = $photoPath;
+            } else {
+                unset($validated['photo']);
             }
 
             // Auto-création d'un User si non fourni — via service unique
@@ -194,9 +196,13 @@ class EnseignantController extends Controller
             return redirect()->route('academique.enseignants.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            // Laisser Laravel flash les erreurs par champ → AlertMessage
+            // les listera au lieu de "The photo must be a file. (and 2 more errors)".
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Academique", "EnseignantController::store", $th->getMessage());
-            return back()->withErrors(['error' => $th->getMessage()])->withInput();
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
@@ -334,6 +340,10 @@ class EnseignantController extends Controller
                 }
                 $photoPath = $request->file('photo')->store('enseignants', 'public');
                 $validated['photo'] = $photoPath;
+            } else {
+                // Pas de nouveau fichier uploadé → on ne touche pas au champ photo
+                // (évite d'écraser l'ancienne valeur avec null ou une string URL).
+                unset($validated['photo']);
             }
 
             $enseignant->update($validated);
@@ -361,9 +371,13 @@ class EnseignantController extends Controller
             return redirect()->route('academique.enseignants.index')
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            // Laissons Laravel gérer nativement : il flash les erreurs par champ
+            // ($errors->pere_nom, etc.) au lieu d'un message groupé illisible.
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Academique", "EnseignantController::update", $th->getMessage());
-            return back()->withErrors(['error' => $th->getMessage()])->withInput();
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
