@@ -36,6 +36,50 @@ import en from "./locales/en.json";
 
 const appName = import.meta.env.VITE_APP_NAME || "AGREE SIKUL";
 
+// ---------------------------------------------------------------------------
+// Récupération automatique après un déploiement (assets obsolètes)
+// ---------------------------------------------------------------------------
+// Après un nouveau déploiement, les fichiers JS changent de hash. Un onglet
+// resté ouvert référence les anciens fichiers qui n'existent plus (404) : la
+// navigation Inertia échoue alors et la page semble "figée".
+// Ici on détecte ce cas et on recharge en dur UNE fois pour récupérer les
+// nouveaux assets. Un garde-fou de 10s évite toute boucle de rechargement.
+function reloadOnStaleChunk() {
+    const KEY = 'chunkReloadAt';
+    const now = Date.now();
+    const last = parseInt(sessionStorage.getItem(KEY) || '0', 10);
+    if (now - last > 10000) {
+        sessionStorage.setItem(KEY, String(now));
+        window.location.reload();
+    }
+}
+
+// Message d'erreur d'import dynamique selon les navigateurs
+function isDynamicImportError(err) {
+    const msg = (err && err.message) ? err.message : String(err);
+    return (
+        msg.includes('Failed to fetch dynamically imported module') ||   // Chrome/Edge
+        msg.includes('error loading dynamically imported module') ||      // Firefox
+        msg.includes('Importing a module script failed')                  // Safari
+    );
+}
+
+// Événement émis par Vite quand le préchargement d'un chunk échoue
+window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    reloadOnStaleChunk();
+});
+
+// Charge un composant de page en récupérant proprement les chunks obsolètes
+function loadPageComponent(importer) {
+    return importer().catch((err) => {
+        if (isDynamicImportError(err)) {
+            reloadOnStaleChunk();
+        }
+        throw err;
+    });
+}
+
 // Créer l'instance i18n
 const i18n = createI18n({
     legacy: false, // Mode Composition API
@@ -60,7 +104,7 @@ createInertiaApp({
         if (name.includes('::')) {
             const [module, page] = name.split('::');
             const path = `../../Modules/${module}/Resources/js/Pages/${page}.vue`;
-            if (pages[path]) return pages[path]();
+            if (pages[path]) return loadPageComponent(pages[path]);
         }
 
         // Gestion des modules avec "/" => "ModuleName/PagePath/PageName"
@@ -69,11 +113,11 @@ createInertiaApp({
             const module = parts[0];
             const page = parts.slice(1).join('/');
             const path = `../../Modules/${module}/Resources/js/Pages/${page}.vue`;
-            if (pages[path]) return pages[path]();
+            if (pages[path]) return loadPageComponent(pages[path]);
         }
 
         const mainPath = `./Pages/${name}.vue`;
-        if (pages[mainPath]) return pages[mainPath]();
+        if (pages[mainPath]) return loadPageComponent(pages[mainPath]);
 
         console.log(pages);
 
