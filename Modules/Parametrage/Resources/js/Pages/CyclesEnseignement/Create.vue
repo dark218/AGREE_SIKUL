@@ -14,18 +14,11 @@ const isCollapsed = ref(false);
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
-const props = defineProps({
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-});
 const form = useForm({
     code: '',
     libelle: '',
-    pays_id: null,
     etat: 'actif',
-    });
+});
 const submitForm = () => {
     showStoreLoader();
     form.post(route('parametrage.cycles_enseignement.store'), {
@@ -53,8 +46,7 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <CyclesEnseignementForm :form="form" :pays="props.pays" mode="create" />
-                                <!-- Boutons -->
+                                <CyclesEnseignementForm :form="form" mode="create" />
                                 <div class="row mt-3">
                                     <div class="col">
                                         <div class="text-end">
@@ -78,7 +70,6 @@ const submitForm = () => {
                 </div>
             </div>
         </div>
-        <!-- Loader pleine page -->
         <FullPageLoader
             :show="isLoading"
             :message="loaderMessage"

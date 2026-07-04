@@ -11,18 +11,11 @@ const isCollapsed = ref(false);
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
-const props = defineProps({
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-});
 const form = useForm({
     code: page.props.cycleEnseignement?.code || '',
     libelle: page.props.cycleEnseignement?.libelle || '',
-    pays_id: page.props.cycleEnseignement?.pays_id || null,
     etat: page.props.cycleEnseignement?.etat || 'actif',
-    });
+});
 </script>
 <template>
     <div class="body-wrapper">
@@ -42,8 +35,7 @@ const form = useForm({
                             </button>
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
-                            <CyclesEnseignementForm :form="form" :pays="props.pays" mode="show" />
-                            <!-- Boutons -->
+                            <CyclesEnseignementForm :form="form" mode="show" />
                             <div class="row mt-3">
                                 <div class="col">
                                     <div class="text-end">

@@ -156,7 +156,6 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('fields.pays') || 'Pays' }}</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -166,7 +165,6 @@ watch(
                                         <tr v-for="cycle in cycles?.data" :key="cycle.id">
                                             <td>{{ cycle.code || '' }}</td>
                                             <td>{{ cycle.libelle || '' }}</td>
-                                            <td>{{ cycle.pays?.libelle || '-' }}</td>
                                             <td><span class="badge" :class="cycle.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + cycle.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -216,7 +214,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="5" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="4" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -233,10 +231,6 @@ watch(
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.label') || 'Libellé' }}</span>
                                             <span class="mobile-card-value">{{ cycle.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.pays') || 'Pays' }}</span>
-                                            <span class="mobile-card-value">{{ cycle.pays?.libelle || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>

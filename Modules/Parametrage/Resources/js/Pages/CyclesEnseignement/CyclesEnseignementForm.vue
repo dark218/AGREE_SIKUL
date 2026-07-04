@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 const { t } = useI18n();
@@ -7,17 +8,13 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
     mode: {
         type: String,
         default: 'create',
         validator: (value) => ['create', 'edit', 'show'].includes(value),
     },
 });
-const isReadOnly = props.mode === 'show';
+const isReadOnly = computed(() => props.mode === 'show');
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
@@ -42,23 +39,6 @@ const statusOptions = [
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
                 <span v-if="form.errors?.libelle" class="text-danger">
                     <strong>{{ form.errors.libelle }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="props.pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger">
-                    <strong>{{ form.errors.pays_id }}</strong>
                 </span>
             </div>
         </div>

@@ -15,26 +15,14 @@ const isCollapsed = ref(false);
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
-const props = defineProps({
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-});
 const form = useForm({
     code: page.props.cycleEnseignement?.code || '',
     libelle: page.props.cycleEnseignement?.libelle || '',
-    pays_id: page.props.cycleEnseignement?.pays_id || null,
     etat: page.props.cycleEnseignement?.etat || 'actif',
-    });
+});
 const submitForm = () => {
     showUpdateLoader();
     form.put(route('parametrage.cycles_enseignement.update', page.props.cycleEnseignement?.id), {
-        onError: (errors) => {
-            console.error('Form validation errors:', errors);
-        },
-        onSuccess: () => {
-        },
         onFinish: () => {
             hideLoader();
         }
@@ -59,8 +47,7 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <CyclesEnseignementForm :form="form" :pays="props.pays" mode="edit" />
-                                <!-- Boutons -->
+                                <CyclesEnseignementForm :form="form" mode="edit" />
                                 <div class="row mt-3">
                                     <div class="col">
                                         <div class="text-end">
@@ -84,7 +71,6 @@ const submitForm = () => {
                 </div>
             </div>
         </div>
-        <!-- Loader pleine page -->
         <FullPageLoader
             :show="isLoading"
             :message="loaderMessage"

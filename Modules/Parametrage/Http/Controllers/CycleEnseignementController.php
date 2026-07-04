@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Parametrage\Entities\CycleEnseignement;
-use Modules\Parametrage\Entities\Pays;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class CycleEnseignementController extends Controller
@@ -26,7 +25,7 @@ class CycleEnseignementController extends Controller
     {
         try {
             \Log::info('=== CycleEnseignementController::index called ===');
-            $query = CycleEnseignement::with(['pays']);
+            $query = CycleEnseignement::query();
 
             if ($request->filled('code')) {
                 $query->where('code', 'like', '%' . $request->code . '%');
@@ -55,21 +54,7 @@ class CycleEnseignementController extends Controller
 
     public function create()
     {
-        try {
-            $pays = Pays::all()->map(function($country) {
-                return [
-                    'id' => $country->id,
-                    'libelle' => $country->libelle,
-                ];
-            });
-
-            return Inertia::render('Parametrage::CyclesEnseignement/Create', [
-                'pays' => $pays,
-            ]);
-        } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors du chargement du formulaire');
-        }
+        return Inertia::render('Parametrage::CyclesEnseignement/Create');
     }
 
     public function store(Request $request)
@@ -78,7 +63,6 @@ class CycleEnseignementController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:cycles_enseignement,code',
                 'libelle' => 'required|string|max:255',
-                'pays_id' => 'required|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -97,40 +81,16 @@ class CycleEnseignementController extends Controller
 
     public function show(CycleEnseignement $cycleEnseignement)
     {
-        try {
-            return Inertia::render('Parametrage::CyclesEnseignement/Show', [
-                'cycleEnseignement' => $cycleEnseignement,
-                'pays' => Pays::all()->map(function($country) {
-                    return [
-                        'id' => $country->id,
-                        'libelle' => $country->libelle,
-                    ];
-                }),
-            ]);
-        } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors du chargement');
-        }
+        return Inertia::render('Parametrage::CyclesEnseignement/Show', [
+            'cycleEnseignement' => $cycleEnseignement,
+        ]);
     }
 
     public function edit(CycleEnseignement $cycleEnseignement)
     {
-        try {
-            $pays = Pays::all()->map(function($country) {
-                return [
-                    'id' => $country->id,
-                    'libelle' => $country->libelle,
-                ];
-            });
-
-            return Inertia::render('Parametrage::CyclesEnseignement/Edit', [
-                'cycleEnseignement' => $cycleEnseignement,
-                'pays' => $pays,
-            ]);
-        } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors du chargement du formulaire');
-        }
+        return Inertia::render('Parametrage::CyclesEnseignement/Edit', [
+            'cycleEnseignement' => $cycleEnseignement,
+        ]);
     }
 
     public function update(Request $request, CycleEnseignement $cycleEnseignement)
@@ -139,7 +99,6 @@ class CycleEnseignementController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:cycles_enseignement,code,' . $cycleEnseignement->id,
                 'libelle' => 'required|string|max:255',
-                'pays_id' => 'required|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
