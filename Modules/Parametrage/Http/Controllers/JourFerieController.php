@@ -101,6 +101,7 @@ class JourFerieController extends Controller
             'annee' => 'nullable|integer|min:1900',
             'date' => 'nullable|date',
             'pays_id' => 'nullable|exists:pays,id',
+            'est_recurrent' => 'nullable|boolean',
             'etat' => 'nullable|in:actif,inactif',
         ]);
 
@@ -169,6 +170,7 @@ class JourFerieController extends Controller
             'annee' => 'nullable|integer|min:1900',
             'date' => 'nullable|date',
             'pays_id' => 'nullable|exists:pays,id',
+            'est_recurrent' => 'nullable|boolean',
             'etat' => 'nullable|in:actif,inactif',
         ]);
 

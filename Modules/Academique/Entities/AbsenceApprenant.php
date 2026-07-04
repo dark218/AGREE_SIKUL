@@ -18,6 +18,7 @@ class AbsenceApprenant extends BaseModel
         'apprenant_id',
         'matiere_id',
         'classe_id',
+        'enseignant_id',
         'date_debut',
         'date_fin',
         'nombre_heures',
@@ -47,6 +48,11 @@ class AbsenceApprenant extends BaseModel
     public function classe(): BelongsTo
     {
         return $this->belongsTo(\Modules\Parametrage\Entities\Classe::class, 'classe_id');
+    }
+
+    public function enseignant(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Academique\Entities\Enseignant::class, 'enseignant_id');
     }
 
     /**

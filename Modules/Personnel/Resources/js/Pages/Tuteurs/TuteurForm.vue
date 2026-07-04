@@ -30,21 +30,16 @@ const defaultRelations = [
 const relationOptions = props.liensParente?.length > 0 ? props.liensParente : defaultRelations;
 
 /**
- * Auto-fill : quand un apprenant est sélectionné, on utilise son
- * `nom_tuteur` (ou nom_responsable_legal en fallback) pour pré-remplir
- * les champs nom/prénoms du tuteur en cours de création.
+ * Auto-fill : on rapatrie directement `nom_tuteur` (ou nom_responsable_legal
+ * en fallback) dans le champ unique "Nom(s) et prénom(s) du tuteur"
+ * (form.nom) — sans plus split nom/prénoms.
  */
 const onApprenantSelected = ({ apprenant, isFirst }) => {
     if (!apprenant || !isFirst) return;
     const source = apprenant.nom_tuteur || apprenant.nom_responsable_legal;
-    if (!source) return;
-
-    const parts = source.trim().split(/\s+/);
-    const nom = parts.length > 1 ? parts.pop() : parts[0];
-    const prenoms = parts.join(' ');
-
-    if (!props.form.nom || String(props.form.nom).trim() === '') props.form.nom = nom;
-    if (!props.form.prenoms || String(props.form.prenoms).trim() === '') props.form.prenoms = prenoms;
+    if (source && (!props.form.nom || String(props.form.nom).trim() === '')) {
+        props.form.nom = source;
+    }
     if (apprenant.telephone && (!props.form.telephone || String(props.form.telephone).trim() === '')) {
         props.form.telephone = apprenant.telephone;
     }
@@ -84,17 +79,9 @@ const onApprenantSelected = ({ apprenant, isFirst }) => {
 
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>Nom <span class="text-danger">*</span></label>
-                <input v-model="form.nom" type="text" class="form-control" :disabled="isReadOnly" placeholder="Nom du tuteur" />
+                <label>Nom(s) et prénom(s) du tuteur <span class="text-danger">*</span></label>
+                <input v-model="form.nom" type="text" class="form-control" :disabled="isReadOnly" placeholder="Nom(s) et prénom(s) du tuteur" />
                 <span v-if="form.errors?.nom" class="text-danger"><strong>{{ form.errors.nom }}</strong></span>
-            </div>
-        </div>
-
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>Prénom(s) <span class="text-danger">*</span></label>
-                <input v-model="form.prenoms" type="text" class="form-control" :disabled="isReadOnly" placeholder="Prénom(s)" />
-                <span v-if="form.errors?.prenoms" class="text-danger"><strong>{{ form.errors.prenoms }}</strong></span>
             </div>
         </div>
 

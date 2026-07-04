@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Modules\Academique\Entities\AbsenceApprenant;
 use Modules\Academique\Entities\Matiere;
+use Modules\Academique\Entities\Enseignant;
 use Modules\Parametrage\Entities\Classe;
 
 class AbsenceApprenantController extends Controller
@@ -100,11 +101,22 @@ class AbsenceApprenantController extends Controller
                 ->map(fn($c) => ['id' => $c->id, 'nom' => $c->nom])
                 ->values();
 
+            $enseignants = Enseignant::whereNull('deleted_at')
+                ->with('user:id,nom,prenoms')
+                ->get()
+                ->map(fn($e) => [
+                    'id' => $e->id,
+                    'nom' => $e->user?->nom ?? $e->nom ?? '',
+                    'prenoms' => $e->user?->prenoms ?? $e->prenoms ?? '',
+                ])
+                ->values();
+
             return Inertia::render('Academique::AbsencesApprenants/Create', [
                 'title' => __('actions.create'),
                 'apprenants' => $apprenants,
                 'matieres' => $matieres,
                 'classes' => $classes,
+                'enseignants' => $enseignants,
             ]);
         } catch (\Throwable $th) {
             \Log::error('AbsenceApprenantController::create ERROR', [
@@ -124,6 +136,7 @@ class AbsenceApprenantController extends Controller
             'apprenant_id' => 'required|exists:apprenants,id',
             'matiere_id' => 'nullable|exists:matieres,id',
             'classe_id' => 'nullable|exists:classes,id',
+            'enseignant_id' => 'nullable|exists:enseignants,id',
             'date_debut' => 'required|date_format:Y-m-d\TH:i',
             'date_fin' => 'required|date_format:Y-m-d\TH:i|after_or_equal:date_debut',
             'nombre_heures' => 'nullable|numeric|min:0',
@@ -193,12 +206,23 @@ class AbsenceApprenantController extends Controller
                 $absence['date_fin'] = $absenceApprenant->date_fin->format('Y-m-d\TH:i');
             }
 
+            $enseignants = Enseignant::whereNull('deleted_at')
+                ->with('user:id,nom,prenoms')
+                ->get()
+                ->map(fn($e) => [
+                    'id' => $e->id,
+                    'nom' => $e->user?->nom ?? $e->nom ?? '',
+                    'prenoms' => $e->user?->prenoms ?? $e->prenoms ?? '',
+                ])
+                ->values();
+
             return Inertia::render('Academique::AbsencesApprenants/Show', [
                 'title' => __('actions.view'),
                 'absence' => $absence,
                 'apprenants' => $apprenants,
                 'matieres' => $matieres,
                 'classes' => $classes,
+                'enseignants' => $enseignants,
             ]);
         } catch (\Throwable $th) {
             log_error("Academique", "AbsenceApprenantController::show", $th->getMessage());
@@ -232,12 +256,23 @@ class AbsenceApprenantController extends Controller
                 $absence['date_fin'] = $absenceApprenant->date_fin->format('Y-m-d\TH:i');
             }
 
+            $enseignants = Enseignant::whereNull('deleted_at')
+                ->with('user:id,nom,prenoms')
+                ->get()
+                ->map(fn($e) => [
+                    'id' => $e->id,
+                    'nom' => $e->user?->nom ?? $e->nom ?? '',
+                    'prenoms' => $e->user?->prenoms ?? $e->prenoms ?? '',
+                ])
+                ->values();
+
             return Inertia::render('Academique::AbsencesApprenants/Edit', [
                 'title' => __('actions.edit'),
                 'absence' => $absence,
                 'apprenants' => $apprenants,
                 'matieres' => $matieres,
                 'classes' => $classes,
+                'enseignants' => $enseignants,
             ]);
         } catch (\Throwable $th) {
             log_error("Academique", "AbsenceApprenantController::edit", $th->getMessage());
@@ -251,6 +286,7 @@ class AbsenceApprenantController extends Controller
             'apprenant_id' => 'required|exists:apprenants,id',
             'matiere_id' => 'nullable|exists:matieres,id',
             'classe_id' => 'nullable|exists:classes,id',
+            'enseignant_id' => 'nullable|exists:enseignants,id',
             'date_debut' => 'required|date_format:Y-m-d\TH:i',
             'date_fin' => 'required|date_format:Y-m-d\TH:i|after_or_equal:date_debut',
             'nombre_heures' => 'nullable|numeric|min:0',

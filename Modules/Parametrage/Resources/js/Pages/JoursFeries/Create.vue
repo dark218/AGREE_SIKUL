@@ -28,6 +28,7 @@ const form = useForm({
     annee: '',
     date: '',
     pays_id: '',
+    est_recurrent: false,
     etat: 'actif',
     });
 const submitForm = () => {

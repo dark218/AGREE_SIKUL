@@ -17,7 +17,6 @@ class FixPermissionsSeeder extends Seeder
 
         $permissions = [
             // ACADEMIQUE PERMISSIONS (EXACT names as used in controllers)
-            'absences' => 'Absences',
             'absences_apprenants' => 'Absences Apprenants',
             'absences_enseignants' => 'Absences Enseignants',
             'affectations-enseignants' => 'Affectations Enseignants',

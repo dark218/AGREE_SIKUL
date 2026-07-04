@@ -20,7 +20,6 @@ class ModulePermissionsSeeder extends Seeder
                 'listes-manuels' => 'Listes Manuels',
                 'passages' => 'Passages',
                 'classes-apprenants' => 'Classes Apprenants',
-                'absences' => 'Absences',
                 'affectations-enseignants' => 'Affectations Enseignants',
             ],
             // FINANCES MODULE

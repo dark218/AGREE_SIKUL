@@ -26,11 +26,16 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    enseignants: {
+        type: Array,
+        default: () => [],
+    },
 });
 const form = useForm({
     apprenant_id: props.absence?.apprenant_id || '',
     matiere_id: props.absence?.matiere_id || null,
     classe_id: props.absence?.classe_id || null,
+    enseignant_id: props.absence?.enseignant_id || null,
     date_debut: props.absence?.date_debut || '',
     date_fin: props.absence?.date_fin || '',
     nombre_heures: props.absence?.nombre_heures || 0,
@@ -80,6 +85,7 @@ const submitForm = () => {
                                     :apprenants="apprenants"
                                     :matieres="matieres"
                                     :classes="classes"
+                                    :enseignants="enseignants"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

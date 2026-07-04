@@ -400,7 +400,7 @@ const currentMenu = computed(() => page.props.menu_url || '');
  * Fonctionnalités masquées du menu, quelle que soit la source (backend ou
  * fallback local) et même pour le Super Admin. Clés normalisées (voir normalizeKey).
  */
-const HIDDEN_FEATURES = ['types_etablissement_spe'].map(normalizeKey);
+const HIDDEN_FEATURES = ['types_etablissement_spe', 'civilites', 'absences'].map(normalizeKey);
 
 /**
  * Vérifie si l'utilisateur a la permission "list" pour une feature

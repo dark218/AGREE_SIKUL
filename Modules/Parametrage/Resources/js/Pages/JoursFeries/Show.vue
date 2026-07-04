@@ -32,6 +32,7 @@ const form = useForm({
     annee: page.props.item?.annee || '',
     date: formatDateForInput(page.props.item?.date),
     pays_id: page.props.item?.pays_id || null,
+    est_recurrent: page.props.item?.est_recurrent ?? false,
     etat: page.props.item?.etat || 'actif',
     });
 </script>

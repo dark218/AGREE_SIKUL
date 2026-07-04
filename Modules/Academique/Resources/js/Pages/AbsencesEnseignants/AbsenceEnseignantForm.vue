@@ -232,6 +232,45 @@ watch(() => props.form.enseignant_id, () => {
 </script>
 <template>
     <div class="row g-3 custom-input">
+        <!-- Classe -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.classe') || 'Classe' }}</label>
+                <SearchableSelect
+                    v-model="form.classe_id"
+                    @update:modelValue="handleClasseChange"
+                    :options="classes"
+                    optionValue="id"
+                    optionLabel="nom"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.classe_id" class="text-danger">
+                    <strong>{{ form.errors.classe_id }}</strong>
+                </span>
+            </div>
+        </div>
+
+        <HierarchyContextBar v-if="classeSelected" :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
+
+        <!-- Matière -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.matiere') || 'Matière' }}</label>
+                <SearchableSelect
+                    v-model="form.matiere_id"
+                    :options="matieres"
+                    optionValue="id"
+                    optionLabel="nom"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.matiere_id" class="text-danger">
+                    <strong>{{ form.errors.matiere_id }}</strong>
+                </span>
+            </div>
+        </div>
+
         <!-- Enseignant -->
         <div class="col-sm-6">
             <div class="mb-3">
@@ -292,44 +331,6 @@ watch(() => props.form.enseignant_id, () => {
             </div>
         </div>
 
-        <!-- Matière -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }}</label>
-                <SearchableSelect
-                    v-model="form.matiere_id"
-                    :options="matieres"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere_id" class="text-danger">
-                    <strong>{{ form.errors.matiere_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Classe -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.classe') || 'Classe' }}</label>
-                <SearchableSelect
-                    v-model="form.classe_id"
-                    @update:modelValue="handleClasseChange"
-                    :options="classes"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.classe_id" class="text-danger">
-                    <strong>{{ form.errors.classe_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <HierarchyContextBar v-if="classeSelected" :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
-
         <!-- Date Début -->
         <div class="col-sm-6">
             <div class="mb-3">
@@ -364,26 +365,10 @@ watch(() => props.form.enseignant_id, () => {
                 </span>
             </div>
         </div>
-        <!-- Motif -->
+        <!-- Durée (en heures) -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.motif') || 'Motif' }}</label>
-                <textarea
-                    v-model="form.motif"
-                    class="form-control"
-                    :class="{ 'is-invalid': form.errors?.motif }"
-                    rows="2"
-                    :disabled="isReadOnly"
-                ></textarea>
-                <span v-if="form.errors?.motif" class="text-danger">
-                    <strong>{{ form.errors.motif }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Nombre d'heures -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nombre_heures') || 'Nombre d\'heures' }}</label>
+                <label>{{ t('fields.nombre_heures') || 'Durée (en heures)' }}</label>
                 <input
                     v-model.number="form.nombre_heures"
                     type="number"
@@ -397,6 +382,22 @@ watch(() => props.form.enseignant_id, () => {
                 <small class="text-muted">{{ t('common.auto_calculated') || 'Calculé automatiquement' }}</small>
                 <span v-if="form.errors?.nombre_heures" class="text-danger">
                     <strong>{{ form.errors.nombre_heures }}</strong>
+                </span>
+            </div>
+        </div>
+        <!-- Motif -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.motif') || 'Motif' }}</label>
+                <textarea
+                    v-model="form.motif"
+                    class="form-control"
+                    :class="{ 'is-invalid': form.errors?.motif }"
+                    rows="2"
+                    :disabled="isReadOnly"
+                ></textarea>
+                <span v-if="form.errors?.motif" class="text-danger">
+                    <strong>{{ form.errors.motif }}</strong>
                 </span>
             </div>
         </div>

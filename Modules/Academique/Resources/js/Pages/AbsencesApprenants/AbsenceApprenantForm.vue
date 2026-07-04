@@ -24,6 +24,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    enseignants: {
+        type: Array,
+        default: () => [],
+    },
     ecoles: {
         type: Array,
         default: () => [],
@@ -310,40 +314,6 @@ watch(() => [props.form.date_debut, props.form.date_fin], () => {
 </script>
 <template>
     <div class="row g-3 custom-input">
-        <!-- Apprenant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.apprenants') || 'Apprenant' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.apprenant_id"
-                    :options="apprenants"
-                    optionValue="id"
-                    :optionLabel="(opt) => `${opt.nom} ${opt.prenoms}`"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly || mode === 'edit'"
-                />
-                <span v-if="form.errors?.apprenant_id" class="text-danger">
-                    <strong>{{ form.errors.apprenant_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Matière -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }}</label>
-                <SearchableSelect
-                    v-model="form.matiere_id"
-                    :options="matieres"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere_id" class="text-danger">
-                    <strong>{{ form.errors.matiere_id }}</strong>
-                </span>
-            </div>
-        </div>
         <!-- Classe -->
         <div class="col-sm-6">
             <div class="mb-3">
@@ -364,6 +334,58 @@ watch(() => [props.form.date_debut, props.form.date_fin], () => {
         </div>
 
         <HierarchyContextBar v-if="classeSelected" :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
+
+        <!-- Matière -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.matiere') || 'Matière' }}</label>
+                <SearchableSelect
+                    v-model="form.matiere_id"
+                    :options="matieres"
+                    optionValue="id"
+                    optionLabel="nom"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.matiere_id" class="text-danger">
+                    <strong>{{ form.errors.matiere_id }}</strong>
+                </span>
+            </div>
+        </div>
+        <!-- Enseignant -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.enseignant') || 'Enseignant' }}</label>
+                <SearchableSelect
+                    v-model="form.enseignant_id"
+                    :options="enseignants"
+                    optionValue="id"
+                    :optionLabel="(opt) => `${opt.nom} ${opt.prenoms}`"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.enseignant_id" class="text-danger">
+                    <strong>{{ form.errors.enseignant_id }}</strong>
+                </span>
+            </div>
+        </div>
+        <!-- Apprenant -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.apprenants') || 'Apprenant' }} <span class="text-danger">*</span></label>
+                <SearchableSelect
+                    v-model="form.apprenant_id"
+                    :options="apprenants"
+                    optionValue="id"
+                    :optionLabel="(opt) => `${opt.nom} ${opt.prenoms}`"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly || mode === 'edit'"
+                />
+                <span v-if="form.errors?.apprenant_id" class="text-danger">
+                    <strong>{{ form.errors.apprenant_id }}</strong>
+                </span>
+            </div>
+        </div>
 
         <!-- Date Début -->
         <div class="col-sm-6">
@@ -446,10 +468,10 @@ watch(() => [props.form.date_debut, props.form.date_fin], () => {
                 ⏳ Chargement des cours de l'apprenant...
             </div>
         </div>
-        <!-- Nombre d'heures -->
+        <!-- Durée (en heures) -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.nombre_heures') || 'Nombre d\'heures' }}</label>
+                <label>{{ t('fields.nombre_heures') || 'Durée (en heures)' }}</label>
                 <input
                     type="number"
                     v-model.number="form.nombre_heures"
@@ -463,6 +485,39 @@ watch(() => [props.form.date_debut, props.form.date_fin], () => {
                 <small class="text-muted">{{ t('common.auto_calculated') || 'Calculé automatiquement' }}</small>
                 <span v-if="form.errors?.nombre_heures" class="text-danger">
                     <strong>{{ form.errors.nombre_heures }}</strong>
+                </span>
+            </div>
+        </div>
+        <!-- Motif -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.motif') || 'Motif' }}</label>
+                <textarea
+                    v-model="form.motif"
+                    class="form-control"
+                    :class="{ 'is-invalid': form.errors?.motif }"
+                    rows="2"
+                    :disabled="isReadOnly"
+                ></textarea>
+                <span v-if="form.errors?.motif" class="text-danger">
+                    <strong>{{ form.errors.motif }}</strong>
+                </span>
+            </div>
+        </div>
+        <!-- Statut -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.statut') || 'Statut' }} <span class="text-danger">*</span></label>
+                <SearchableSelect
+                    v-model="form.statut"
+                    :options="statusOptions"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.statut" class="text-danger">
+                    <strong>{{ form.errors.statut }}</strong>
                 </span>
             </div>
         </div>
@@ -570,39 +625,6 @@ watch(() => [props.form.date_debut, props.form.date_fin], () => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-        <!-- Motif -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.motif') || 'Motif' }}</label>
-                <textarea
-                    v-model="form.motif"
-                    class="form-control"
-                    :class="{ 'is-invalid': form.errors?.motif }"
-                    rows="2"
-                    :disabled="isReadOnly"
-                ></textarea>
-                <span v-if="form.errors?.motif" class="text-danger">
-                    <strong>{{ form.errors.motif }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Statut -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.statut') || 'Statut' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.statut"
-                    :options="statusOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.statut" class="text-danger">
-                    <strong>{{ form.errors.statut }}</strong>
-                </span>
             </div>
         </div>
         <!-- Etat (Status) -->

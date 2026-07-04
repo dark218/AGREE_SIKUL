@@ -24,7 +24,11 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 
-defineOptions({ layout: DashboardLayout });
+// NB : ces pages référentiels sont rendues via des composants-pages fins
+// (Create.vue, Edit.vue…) qui NE déclarent PAS de layout Inertia. On enveloppe
+// donc directement le contenu dans <DashboardLayout> ci-dessous pour que la
+// sidebar reste présente (un defineOptions({ layout }) sur ce composant enfant
+// serait ignoré par Inertia).
 const { t } = useI18n();
 const page = usePage();
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showStoreLoader, showUpdateLoader, showDeleteLoader, hideLoader } = useLoader();
@@ -108,6 +112,7 @@ const isReadOnly = props.mode === 'show';
 </script>
 
 <template>
+  <DashboardLayout :title="title">
     <Head :title="title" />
 
     <!-- ============= INDEX ============= -->
@@ -258,4 +263,5 @@ const isReadOnly = props.mode === 'show';
         </div>
         <FullPageLoader :show="isLoading" :message="loaderMessage" :sub-message="loaderSubMessage" :variant="loaderVariant" />
     </div>
+  </DashboardLayout>
 </template>

@@ -61,5 +61,24 @@ const statusOptions = [
                 <span v-if="form.errors?.etat" class="text-danger"><strong>{{ form.errors.etat }}</strong></span>
             </div>
         </div>
+        <!-- Férié récurrent -->
+        <div class="col-md-4">
+            <div class="mb-3">
+                <label class="d-block">Férié récurrent</label>
+                <div class="form-check mt-2">
+                    <input
+                        id="est_recurrent"
+                        type="checkbox"
+                        class="form-check-input"
+                        v-model="form.est_recurrent"
+                        :disabled="isReadOnly"
+                    />
+                    <label class="form-check-label" for="est_recurrent">
+                        Se répète chaque année
+                    </label>
+                </div>
+                <span v-if="form.errors?.est_recurrent" class="text-danger"><strong>{{ form.errors.est_recurrent }}</strong></span>
+            </div>
+        </div>
     </div>
 </template>

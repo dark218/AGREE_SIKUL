@@ -4,10 +4,11 @@ namespace Modules\Academique\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Modules\Academique\Entities\Enseignant;
 use App\Models\User;
-use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, CycleEnseignement, Classe};
+use Modules\Parametrage\Entities\{Commune, Departement, Region, Pays, CategorieEnseignant, CycleEnseignement, Classe, StatutEmploye};
 
 class EnseignantController extends Controller
 {
@@ -17,6 +18,22 @@ class EnseignantController extends Controller
         $this->middleware('permission.check:enseignants-create', ['only' => ['create', 'store']]);
         $this->middleware('permission.check:enseignants-update', ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:enseignants-delete', ['only' => ['destroy']]);
+    }
+
+    /**
+     * Construit dynamiquement la liste des codes de statut acceptés
+     * (uppercase depuis le référentiel + variantes lowercase pour rétro-compat).
+     */
+    private function allowedStatutCodes(): array
+    {
+        $codes = StatutEmploye::pluck('code')->filter()->toArray();
+        $lower = array_map('strtolower', $codes);
+        // Fallback minimum si le référentiel est vide.
+        if (empty($codes)) {
+            $codes = ['ACTIF', 'INACTIF', 'SUSPENDU', 'CONGE', 'RETRAITE', 'DEMISSION'];
+            $lower = array_map('strtolower', $codes);
+        }
+        return array_values(array_unique(array_merge($codes, $lower)));
     }
 
     public function index(Request $request)
@@ -126,7 +143,7 @@ class EnseignantController extends Controller
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 // Accepte à la fois les codes majuscules (ACTIF, SUSPENDU, CONGE, RETRAITE, DEMISSION)
                 // et les valeurs legacy minuscules pour rétro-compat.
-                'statut' => 'required|in:actif,suspendu,conge,retraite,demission,ACTIF,SUSPENDU,CONGE,RETRAITE,DEMISSION',
+                'statut' => ['required', Rule::in($this->allowedStatutCodes())],
                 'matiere_1_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_2_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_3_id' => 'nullable|exists:matieres_unites,id',
@@ -316,7 +333,7 @@ class EnseignantController extends Controller
                 'photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 // Accepte à la fois les codes majuscules (ACTIF, SUSPENDU, CONGE, RETRAITE, DEMISSION)
                 // et les valeurs legacy minuscules pour rétro-compat.
-                'statut' => 'required|in:actif,suspendu,conge,retraite,demission,ACTIF,SUSPENDU,CONGE,RETRAITE,DEMISSION',
+                'statut' => ['required', Rule::in($this->allowedStatutCodes())],
                 'matiere_1_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_2_id' => 'nullable|exists:matieres_unites,id',
                 'matiere_3_id' => 'nullable|exists:matieres_unites,id',

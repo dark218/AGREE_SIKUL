@@ -87,45 +87,19 @@ const onApprenantSelected = ({ apprenant, isFirst }) => {
         }
     };
 
-    // Père — apprenant.nom_pere ex "Jean DUPONT" → on split prénoms+nom au mieux
-    if (apprenant.nom_pere) {
-        const parts = apprenant.nom_pere.trim().split(/\s+/);
-        const nom = parts.length > 1 ? parts.pop() : parts[0];
-        const prenoms = parts.join(' ');
-        fillIfEmpty('pere_nom', nom);
-        fillIfEmpty('pere_prenoms', prenoms);
-        fillIfEmpty('pere_nom_complet', apprenant.nom_pere);
-    }
-
-    // Mère
-    if (apprenant.nom_mere) {
-        const parts = apprenant.nom_mere.trim().split(/\s+/);
-        const nom = parts.length > 1 ? parts.pop() : parts[0];
-        const prenoms = parts.join(' ');
-        fillIfEmpty('mere_nom', nom);
-        fillIfEmpty('mere_prenoms', prenoms);
-        fillIfEmpty('mere_nom_complet', apprenant.nom_mere);
-    }
-
-    // Tuteur 1
-    if (apprenant.nom_tuteur) {
-        const parts = apprenant.nom_tuteur.trim().split(/\s+/);
-        const nom = parts.length > 1 ? parts.pop() : parts[0];
-        const prenoms = parts.join(' ');
-        fillIfEmpty('tuteur1_nom', nom);
-        fillIfEmpty('tuteur1_prenoms', prenoms);
-        fillIfEmpty('tuteur1_nom_complet', apprenant.nom_tuteur);
-    }
+    // Un seul champ "Nom(s) et prénom(s)" par personne — on rapatrie
+    // directement la chaîne saisie côté Apprenant (nom_pere, nom_mere, ...)
+    // sans plus split nom/prénoms.
+    fillIfEmpty('pere_nom_complet', apprenant.nom_pere);
+    fillIfEmpty('mere_nom_complet', apprenant.nom_mere);
+    fillIfEmpty('tuteur1_nom_complet', apprenant.nom_tuteur);
 
     // Responsable légal → Tuteur 2 si Tuteur 1 déjà rempli, sinon Tuteur 1
     if (apprenant.nom_responsable_legal) {
-        const parts = apprenant.nom_responsable_legal.trim().split(/\s+/);
-        const nom = parts.length > 1 ? parts.pop() : parts[0];
-        const prenoms = parts.join(' ');
-        const targetPrefix = props.form.tuteur1_nom_complet ? 'tuteur2' : 'tuteur1';
-        fillIfEmpty(`${targetPrefix}_nom`, nom);
-        fillIfEmpty(`${targetPrefix}_prenoms`, prenoms);
-        fillIfEmpty(`${targetPrefix}_nom_complet`, apprenant.nom_responsable_legal);
+        const targetKey = props.form.tuteur1_nom_complet
+            ? 'tuteur2_nom_complet'
+            : 'tuteur1_nom_complet';
+        fillIfEmpty(targetKey, apprenant.nom_responsable_legal);
     }
 };
 
@@ -178,22 +152,10 @@ watch(() => props.form.apprenant_ids, (ids) => {
             <h5 class="section-title mb-3 mt-4">Informations du père</h5>
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.pere_nom') || 'Nom du père' }}</label>
-                <input v-model="form.pere_nom" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom du père" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.pere_prenoms') || 'Prénom(s) du père' }}</label>
-                <input v-model="form.pere_prenoms" :disabled="isReadOnly" type="text" class="form-control" placeholder="Prénom(s) du père" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.pere_nom_complet') || 'Nom complet du père' }}</label>
-                <input v-model="form.pere_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom complet du père" />
+                <label>{{ t('fields.pere_nom_complet') || 'Nom(s) et prénom(s) du père' }}</label>
+                <input v-model="form.pere_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom(s) et prénom(s) du père" />
             </div>
         </div>
 
@@ -309,22 +271,10 @@ watch(() => props.form.apprenant_ids, (ids) => {
             <h5 class="section-title mb-3 mt-4">Informations de la mère</h5>
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.mere_nom') || 'Nom de la mère' }}</label>
-                <input v-model="form.mere_nom" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom de la mère" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.mere_prenoms') || 'Prénom(s) de la mère' }}</label>
-                <input v-model="form.mere_prenoms" :disabled="isReadOnly" type="text" class="form-control" placeholder="Prénom(s) de la mère" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.mere_nom_complet') || 'Nom complet de la mère' }}</label>
-                <input v-model="form.mere_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom complet de la mère" />
+                <label>{{ t('fields.mere_nom_complet') || 'Nom(s) et prénom(s) de la mère' }}</label>
+                <input v-model="form.mere_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom(s) et prénom(s) de la mère" />
             </div>
         </div>
 
@@ -440,22 +390,10 @@ watch(() => props.form.apprenant_ids, (ids) => {
             <h5 class="section-title mb-3 mt-4">Informations du tuteur 1</h5>
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.tuteur1_nom') || 'Nom du tuteur' }}</label>
-                <input v-model="form.tuteur1_nom" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom du tuteur" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.tuteur1_prenoms') || 'Prénom(s) du tuteur' }}</label>
-                <input v-model="form.tuteur1_prenoms" :disabled="isReadOnly" type="text" class="form-control" placeholder="Prénom(s) du tuteur" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.tuteur1_nom_complet') || 'Nom complet du tuteur' }}</label>
-                <input v-model="form.tuteur1_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom complet du tuteur" />
+                <label>{{ t('fields.tuteur1_nom_complet') || 'Nom(s) et prénom(s) du tuteur' }}</label>
+                <input v-model="form.tuteur1_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom(s) et prénom(s) du tuteur" />
             </div>
         </div>
 
@@ -583,22 +521,10 @@ watch(() => props.form.apprenant_ids, (ids) => {
             <h5 class="section-title mb-3 mt-4">Informations du tuteur 2</h5>
         </div>
 
-        <div class="col-sm-4">
+        <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.tuteur2_nom') || 'Nom du tuteur' }}</label>
-                <input v-model="form.tuteur2_nom" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom du tuteur" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.tuteur2_prenoms') || 'Prénom(s) du tuteur' }}</label>
-                <input v-model="form.tuteur2_prenoms" :disabled="isReadOnly" type="text" class="form-control" placeholder="Prénom(s) du tuteur" />
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.tuteur2_nom_complet') || 'Nom complet du tuteur' }}</label>
-                <input v-model="form.tuteur2_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom complet du tuteur" />
+                <label>{{ t('fields.tuteur2_nom_complet') || 'Nom(s) et prénom(s) du tuteur' }}</label>
+                <input v-model="form.tuteur2_nom_complet" :disabled="isReadOnly" type="text" class="form-control" placeholder="Nom(s) et prénom(s) du tuteur" />
             </div>
         </div>
 

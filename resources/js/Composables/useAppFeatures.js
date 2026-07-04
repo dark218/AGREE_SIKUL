@@ -13,7 +13,7 @@ import { usePermissions } from '@/Composables/usePermissions';
 
 // Fonctionnalités masquées partout (sidebar + recherche Ctrl+K), même pour le
 // Super Admin. Comparaison insensible aux tirets/underscores/espaces.
-const HIDDEN_FEATURES = ['types_etablissement_spe'];
+const HIDDEN_FEATURES = ['types_etablissement_spe', 'civilites', 'absences'];
 function isHiddenFeature(menuUrl) {
     const norm = String(menuUrl || '').toLowerCase().replace(/[-_\s]+/g, '');
     return HIDDEN_FEATURES.some((h) => h.toLowerCase().replace(/[-_\s]+/g, '') === norm);
