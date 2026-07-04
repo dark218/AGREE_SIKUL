@@ -37,6 +37,22 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    sections: {
+        type: Array,
+        default: () => [],
+    },
+    cycles: {
+        type: Array,
+        default: () => [],
+    },
+    postesRecettes: {
+        type: Array,
+        default: () => [],
+    },
+    comptes: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const form = useForm({
@@ -44,9 +60,9 @@ const form = useForm({
     niveau_id: null,
     ecole_id: null,
     campus_id: null,
-    frais_dossier: null,
-    frais_inscription: null,
-    frais_scolarite: null,
+    section_id: null,
+    cycle_id: null,
+    frais: [],
     etat: 'actif',
 });
 
@@ -84,6 +100,10 @@ const submitForm = () => {
                                     :niveaux="props.niveaux"
                                     :ecoles="props.ecoles"
                                     :campuses="props.campuses"
+                                    :sections="props.sections"
+                                    :cycles="props.cycles"
+                                    :postes-recettes="props.postesRecettes"
+                                    :comptes="props.comptes"
                                     mode="create"
                                 />
 

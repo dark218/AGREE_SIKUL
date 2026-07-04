@@ -191,9 +191,8 @@ watch(
                                         <th>{{ t('fields.level') }}</th>
                                         <th>{{ t('fields.school') }}</th>
                                         <th>{{ t('fields.campus') }}</th>
-                                        <th>{{ t('fields.file_fees') }}</th>
-                                        <th>{{ t('fields.registration_fees') }}</th>
-                                        <th>{{ t('fields.tuition_fees') }}</th>
+                                        <th class="text-center">{{ t('fields.fees') || 'Frais' }}</th>
+                                        <th class="text-end">{{ t('fields.total') || 'Total' }}</th>
                                         <th>{{ t('fields.status') }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -205,9 +204,8 @@ watch(
                                             <td>{{ item.niveau?.nom || item.niveau?.libelle || '-' }}</td>
                                             <td>{{ item.ecole?.nom || '-' }}</td>
                                             <td>{{ item.campus?.nom || '-' }}</td>
-                                            <td class="text-end">{{ item.frais_dossier ? item.frais_dossier.toLocaleString() : '-' }}</td>
-                                            <td class="text-end">{{ item.frais_inscription ? item.frais_inscription.toLocaleString() : '-' }}</td>
-                                            <td class="text-end">{{ item.frais_scolarite ? item.frais_scolarite.toLocaleString() : '-' }}</td>
+                                            <td class="text-center"><span class="badge bg-info">{{ item.nb_frais || 0 }}</span></td>
+                                            <td class="text-end">{{ Number(item.montant_total || 0).toLocaleString() }}</td>
                                             <td><span class="badge" :class="item.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + item.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -221,7 +219,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="9" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="8" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -245,8 +243,8 @@ watch(
                                             <span class="mobile-card-value">{{ item.niveau?.nom || item.niveau?.libelle || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.file_fees') }}</span>
-                                            <span class="mobile-card-value">{{ item.frais_dossier ? item.frais_dossier.toLocaleString() : '-' }}</span>
+                                            <span class="mobile-card-label">{{ t('fields.total') || 'Total frais' }}</span>
+                                            <span class="mobile-card-value">{{ Number(item.montant_total || 0).toLocaleString() }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') }}</span>

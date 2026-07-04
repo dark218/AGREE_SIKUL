@@ -37,6 +37,22 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    sections: {
+        type: Array,
+        default: () => [],
+    },
+    cycles: {
+        type: Array,
+        default: () => [],
+    },
+    postesRecettes: {
+        type: Array,
+        default: () => [],
+    },
+    comptes: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const form = {
@@ -44,9 +60,15 @@ const form = {
     niveau_id: props.item.niveau_id || null,
     ecole_id: props.item.ecole_id || null,
     campus_id: props.item.campus_id || null,
-    frais_dossier: props.item.frais_dossier || null,
-    frais_inscription: props.item.frais_inscription || null,
-    frais_scolarite: props.item.frais_scolarite || null,
+    section_id: props.item.section_id || null,
+    cycle_id: props.item.cycle_id || null,
+    frais: (props.item.frais || []).map(f => ({
+        poste_recette_id: f.poste_recette_id || null,
+        plan_compte_id: f.plan_compte_id || null,
+        libelle: f.libelle || '',
+        montant: f.montant != null ? Number(f.montant) : null,
+        date_limite: f.date_limite ? String(f.date_limite).substring(0, 10) : '',
+    })),
     etat: props.item.etat || 'actif',
     errors: {},
 };
@@ -74,6 +96,10 @@ const form = {
                                 :niveaux="props.niveaux"
                                 :ecoles="props.ecoles"
                                 :campuses="props.campuses"
+                                :sections="props.sections"
+                                :cycles="props.cycles"
+                                :postes-recettes="props.postesRecettes"
+                                :comptes="props.comptes"
                                 mode="show"
                             />
 
