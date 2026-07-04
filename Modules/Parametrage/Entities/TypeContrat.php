@@ -11,4 +11,6 @@ class TypeContrat extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'types_contrats';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

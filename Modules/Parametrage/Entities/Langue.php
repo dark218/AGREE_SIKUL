@@ -11,4 +11,6 @@ class Langue extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'langues';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

@@ -28,6 +28,8 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    statutsEmployes: { type: Array, default: () => [] },
+    typesContrats: { type: Array, default: () => [] },
 });
 const form = useForm({
     user_id: props.personnel?.user_id || '',
@@ -74,6 +76,8 @@ const submitForm = () => {
                                     :form="form"
                                     :users="users"
                                     :departements="departements"
+                                    :statutsEmployes="statutsEmployes"
+                                    :typesContrats="typesContrats"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

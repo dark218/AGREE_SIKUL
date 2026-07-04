@@ -11,4 +11,6 @@ class LienParente extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'liens_parente';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

@@ -11,8 +11,10 @@ namespace Modules\Parametrage\Entities\Concerns;
  */
 trait IsReferentiel
 {
-    protected $defaultOrderBy = 'ordre';
-    protected $defaultOrderDir = 'asc';
+    // Note : $defaultOrderBy et $defaultOrderDir sont définis DIRECTEMENT
+    // sur chaque entity concrète (surcharge de la valeur de BaseModel).
+    // PHP interdit qu'un trait redéfinisse une propriété héritée avec une
+    // valeur par défaut différente — donc on force la surcharge à la classe.
 
     protected $fillable = [
         'code',

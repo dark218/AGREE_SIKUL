@@ -79,6 +79,8 @@ class PersonnelAdministratifController extends Controller
                 'title' => __('actions.create'),
                 'users' => $users,
                 'departements' => $departements,
+                'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+                'typesContrats' => \Modules\Parametrage\Entities\TypeContrat::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
 
             \Log::info('PersonnelAdministratif::create - SUCCESS');
@@ -169,6 +171,8 @@ class PersonnelAdministratifController extends Controller
                 'personnel' => $data,
                 'users' => $users,
                 'departements' => $departements,
+                'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+                'typesContrats' => \Modules\Parametrage\Entities\TypeContrat::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Academique", "PersonnelAdministratifController::edit", $th->getMessage());

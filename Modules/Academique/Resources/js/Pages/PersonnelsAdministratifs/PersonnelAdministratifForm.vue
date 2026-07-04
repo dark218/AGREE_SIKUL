@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 const { t } = useI18n();
@@ -21,6 +21,8 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    statutsEmployes: { type: Array, default: () => [] },
+    typesContrats: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
@@ -28,19 +30,25 @@ const props = defineProps({
     },
 });
 const isReadOnly = props.mode === 'show';
-const statutOptions = [
+// Fallback legacy si Paramétrage vide
+const defaultStatuts = [
     { id: 'actif', libelle: t('common.actif') || 'Actif' },
     { id: 'suspendu', libelle: t('common.suspendu') || 'Suspendu' },
     { id: 'conge', libelle: t('common.conge') || 'Congé' },
     { id: 'retraite', libelle: t('common.retraite') || 'Retraite' },
 ];
-
-const typeContratOptions = [
+const defaultTypeContrats = [
     { id: 'cdi', libelle: 'CDI' },
     { id: 'cdd', libelle: 'CDD' },
     { id: 'vacataire', libelle: 'Vacataire' },
     { id: 'autre', libelle: 'Autre' },
 ];
+const statutOptions = computed(() => props.statutsEmployes?.length > 0
+    ? props.statutsEmployes.map(s => ({ id: s.code.toLowerCase(), libelle: s.libelle }))
+    : defaultStatuts);
+const typeContratOptions = computed(() => props.typesContrats?.length > 0
+    ? props.typesContrats.map(t => ({ id: t.code.toLowerCase(), libelle: t.libelle }))
+    : defaultTypeContrats);
 </script>
 <template>
     <div class="row g-3 custom-input">

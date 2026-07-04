@@ -11,4 +11,6 @@ class TypeInscription extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'types_inscriptions';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

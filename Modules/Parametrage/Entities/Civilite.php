@@ -11,4 +11,6 @@ class Civilite extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'civilites';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

@@ -41,6 +41,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    typesInscriptions: { type: Array, default: () => [] },
 });
 // Helper function to format date for input type="date"
 const formatDateForInput = (date) => {
@@ -154,6 +155,7 @@ const submitForm = () => {
                                     :ecoles="ecoles"
                                     :campuses="campuses"
                                     :institutions="institutions"
+                                    :typesInscriptions="typesInscriptions"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

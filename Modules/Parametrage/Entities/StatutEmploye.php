@@ -11,4 +11,6 @@ class StatutEmploye extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'statuts_employes';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

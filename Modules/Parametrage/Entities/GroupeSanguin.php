@@ -11,4 +11,6 @@ class GroupeSanguin extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'groupes_sanguins';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }

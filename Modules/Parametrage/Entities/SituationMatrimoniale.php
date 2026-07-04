@@ -11,4 +11,6 @@ class SituationMatrimoniale extends BaseModel
 {
     use HasFactory, SoftDeletes, IsReferentiel;
     protected $table = 'situations_matrimoniales';
+    protected $defaultOrderBy = 'ordre';
+    protected $defaultOrderDir = 'asc';
 }
