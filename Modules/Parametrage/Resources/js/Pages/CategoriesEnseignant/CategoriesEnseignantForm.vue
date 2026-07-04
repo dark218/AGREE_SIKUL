@@ -7,10 +7,6 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
     mode: {
         type: String,
         default: 'create',
@@ -54,23 +50,6 @@ const statusOptions = [
                 />
                 <span v-if="form.errors?.libelle" class="text-danger">
                     <strong>{{ form.errors.libelle }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.country') || 'Pays' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger">
-                    <strong>{{ form.errors.pays_id }}</strong>
                 </span>
             </div>
         </div>

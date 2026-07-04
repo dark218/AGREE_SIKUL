@@ -16,7 +16,6 @@ const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showStoreLoad
 const props = defineProps({
     item: { type: Object, required: true },
     regions: { type: Array, default: () => [] },
-    pays: { type: Array, default: () => [] },
 });
 
 const isCollapsed = ref(false);
@@ -56,7 +55,7 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <DepartementsForm :form="form" :regions="props.regions" :pays="props.pays" mode="edit" />
+                                <DepartementsForm :form="form" :regions="props.regions" mode="edit" />
                                 <div class="row mt-3">
                                     <div class="col">
                                         <div class="text-end">

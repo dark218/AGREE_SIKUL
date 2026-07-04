@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 const { t } = useI18n();
@@ -17,12 +17,15 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
 });
 const isReadOnly = computed(() => props.mode === 'show');
+
+// CASCADE Région → Pays en arrière-plan (le champ pays n'est plus visible).
+watch(() => props.form.region_id, (newRegionId) => {
+    if (!newRegionId || isReadOnly.value) return;
+    const region = props.regions.find(r => String(r.id) === String(newRegionId));
+    if (region?.pays_id) props.form.pays_id = region.pays_id;
+});
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
@@ -110,23 +113,6 @@ const typeZoneOptions = [
                 />
                 <span v-if="form.errors?.region_id" class="text-danger">
                     <strong>{{ form.errors.region_id }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') }}</label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="props.pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger">
-                    <strong>{{ form.errors.pays_id }}</strong>
                 </span>
             </div>
         </div>

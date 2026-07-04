@@ -90,7 +90,7 @@ class DepartementController extends Controller
                 'code' => 'required|string|max:100|unique:departements,code',
                 'libelle' => 'required|string|max:255',
                 'region_id' => 'required|exists:regions,id',
-                'pays_id' => 'required|exists:pays,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -154,7 +154,7 @@ class DepartementController extends Controller
                 'code' => 'required|string|max:100|unique:departements,code,' . $departement->id,
                 'libelle' => 'required|string|max:255',
                 'region_id' => 'required|exists:regions,id',
-                'pays_id' => 'required|exists:pays,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 

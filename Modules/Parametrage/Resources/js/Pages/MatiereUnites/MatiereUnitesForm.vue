@@ -11,7 +11,6 @@ const props = defineProps({
     niveaux: { type: Array, default: () => [] },
     sections: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
-    matieres: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
@@ -25,14 +24,43 @@ const statusOptions = [
     { id: 'inactif', libelle: 'Inactif' },
 ];
 
-// HÉRITAGE depuis École : quand on choisit une école, son institution
-// et son pays se remplissent automatiquement.
+const autoLabel = (list, id) => {
+    if (!id || !list?.length) return '—';
+    const found = list.find((i) => String(i.id) === String(id));
+    return found?.libelle || '—';
+};
+const institutionLabel = computed(() => autoLabel(props.institutions, props.form.institution_id));
+const sectionLabel = computed(() => autoLabel(props.sections, props.form.section_id));
+const cycleLabel = computed(() => autoLabel(props.cycles, props.form.cycle_id));
+const ecoleSelected = computed(() => !!props.form.ecole_id);
+const niveauSelected = computed(() => !!props.form.niveau_id);
+
+// HÉRITAGE École → Institution + Pays
 watch(() => props.form.ecole_id, (newEcoleId) => {
-    if (!newEcoleId || isReadOnly.value) return;
+    if (isReadOnly.value) return;
+    if (!newEcoleId) {
+        props.form.institution_id = null;
+        return;
+    }
     const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
     if (!ecole) return;
     if (ecole.institution_id) props.form.institution_id = ecole.institution_id;
     if (ecole.pays_id) props.form.pays_id = ecole.pays_id;
+});
+
+// HÉRITAGE Niveau → Section + Cycle
+watch(() => props.form.niveau_id, (newNiveauId) => {
+    if (isReadOnly.value) return;
+    if (!newNiveauId) {
+        props.form.section_id = null;
+        props.form.cycle_id = null;
+        return;
+    }
+    const niveau = props.niveaux.find(n => String(n.id) === String(newNiveauId));
+    if (niveau) {
+        props.form.section_id = niveau.section_id ?? null;
+        props.form.cycle_id = niveau.cycle_id ?? null;
+    }
 });
 </script>
 
@@ -54,7 +82,7 @@ watch(() => props.form.ecole_id, (newEcoleId) => {
             </div>
         </div>
 
-        <!-- LIGNE 2 : École | Institution (auto-fill) -->
+        <!-- LIGNE 2 : École | Institution (auto readonly) -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.ecole') || 'École' }}</label>
@@ -72,21 +100,20 @@ watch(() => props.form.ecole_id, (newEcoleId) => {
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.institution') || 'Institution' }}
-                    <small class="text-muted">(auto depuis école)</small>
+                    <span v-if="ecoleSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
                 </label>
-                <SearchableSelect
-                    v-model.number="form.institution_id"
-                    :options="institutions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="institutionLabel"
+                    disabled
+                    style="background:#eef2f7; color:#64748b;"
                 />
                 <span v-if="form.errors?.institution_id" class="text-danger"><strong>{{ form.errors.institution_id }}</strong></span>
             </div>
         </div>
 
-        <!-- LIGNE 3 : Niveau | Section -->
+        <!-- LIGNE 3 : Niveau | Section (auto readonly) -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.niveau') || 'Niveau' }}</label>
@@ -103,30 +130,32 @@ watch(() => props.form.ecole_id, (newEcoleId) => {
         </div>
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }}</label>
-                <SearchableSelect
-                    v-model.number="form.section_id"
-                    :options="sections"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                <label>{{ t('fields.section') || 'Section' }}
+                    <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="sectionLabel"
+                    disabled
+                    style="background:#eef2f7; color:#64748b;"
                 />
                 <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
             </div>
         </div>
 
-        <!-- LIGNE 4 : Cycle | Coefficient -->
+        <!-- LIGNE 4 : Cycle (auto readonly) | Coefficient -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
-                <SearchableSelect
-                    v-model.number="form.cycle_id"
-                    :options="cycles"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                <label>{{ t('fields.cycle') || 'Cycle' }}
+                    <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="cycleLabel"
+                    disabled
+                    style="background:#eef2f7; color:#64748b;"
                 />
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
@@ -139,7 +168,7 @@ watch(() => props.form.ecole_id, (newEcoleId) => {
             </div>
         </div>
 
-        <!-- LIGNE 5 : État physique (centré) -->
+        <!-- LIGNE 5 : État physique -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.etat') || 'État physique' }}</label>

@@ -8,7 +8,6 @@ const props = defineProps({
     form: { type: Object, required: true },
     departements: { type: Array, default: () => [] },
     regions: { type: Array, default: () => [] },
-    pays: { type: Array, default: () => [] },
     mode: {
         type: String,
         default: 'create',
@@ -22,27 +21,24 @@ const statusOptions = computed(() => [
     { id: 'inactif', libelle: t('common.inactif') || 'Inactif' },
 ]);
 
-// CASCADE Département → Région + Pays
+const autoLabel = (list, id) => {
+    if (!id || !list?.length) return '—';
+    const found = list.find((i) => String(i.id) === String(id));
+    return found?.libelle || '—';
+};
+const regionLabel = computed(() => autoLabel(props.regions, props.form.region_id));
+const departementSelected = computed(() => !!props.form.departement_id);
+
+// CASCADE Département → Région + Pays (Pays et Région remplis auto)
 watch(() => props.form.departement_id, (newDeptId) => {
     if (!newDeptId || isReadOnly.value) return;
     const dept = props.departements.find(d => String(d.id) === String(newDeptId));
-    if (dept) {
-        if (dept.region_id) props.form.region_id = dept.region_id;
-        if (dept.pays_id) props.form.pays_id = dept.pays_id;
-        // Si pays_id absent sur département, on tente via la région
-        if (!dept.pays_id && dept.region_id) {
-            const region = props.regions.find(r => String(r.id) === String(dept.region_id));
-            if (region?.pays_id) props.form.pays_id = region.pays_id;
-        }
-    }
-});
-
-// CASCADE Région → Pays (au cas où on modifie juste la région)
-watch(() => props.form.region_id, (newRegionId) => {
-    if (!newRegionId || isReadOnly.value) return;
-    const region = props.regions.find(r => String(r.id) === String(newRegionId));
-    if (region?.pays_id) {
-        props.form.pays_id = region.pays_id;
+    if (!dept) return;
+    if (dept.region_id) props.form.region_id = dept.region_id;
+    if (dept.pays_id) props.form.pays_id = dept.pays_id;
+    if (!dept.pays_id && dept.region_id) {
+        const region = props.regions.find(r => String(r.id) === String(dept.region_id));
+        if (region?.pays_id) props.form.pays_id = region.pays_id;
     }
 });
 </script>
@@ -53,26 +49,22 @@ watch(() => props.form.region_id, (newRegionId) => {
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.code') || 'Code' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <input type="text" v-model="form.code" maxlength="100" :class="['form-control', { 'is-invalid': form.errors?.code }]" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
-                <span v-if="form.errors?.code" class="d-block text-danger mt-1">
-                    <small><strong>{{ Array.isArray(form.errors.code) ? form.errors.code[0] : form.errors.code }}</strong></small>
-                </span>
+                <input type="text" v-model="form.code" maxlength="100" class="form-control" :placeholder="t('fields.code') || 'Code'" :disabled="isReadOnly">
+                <span v-if="form.errors?.code" class="text-danger"><strong>{{ form.errors.code }}</strong></span>
             </div>
         </div>
         <!-- Libelle -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.libelle') || 'Libellé' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <input type="text" v-model="form.libelle" maxlength="255" :class="['form-control', { 'is-invalid': form.errors?.libelle }]" :placeholder="t('fields.libelle') || 'Libellé'" :disabled="isReadOnly">
-                <span v-if="form.errors?.libelle" class="d-block text-danger mt-1">
-                    <small><strong>{{ Array.isArray(form.errors.libelle) ? form.errors.libelle[0] : form.errors.libelle }}</strong></small>
-                </span>
+                <input type="text" v-model="form.libelle" maxlength="255" class="form-control" :placeholder="t('fields.libelle') || 'Libellé'" :disabled="isReadOnly">
+                <span v-if="form.errors?.libelle" class="text-danger"><strong>{{ form.errors.libelle }}</strong></span>
             </div>
         </div>
         <!-- Departement -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.departement') || 'Département' }} <small class="text-muted">(la région et le pays se remplissent auto)</small> <span v-if="!isReadOnly" class="text-danger">*</span></label>
+                <label>{{ t('fields.departement') || 'Département' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
                 <SearchableSelect
                     v-model="form.departement_id"
                     :options="departements"
@@ -81,49 +73,29 @@ watch(() => props.form.region_id, (newRegionId) => {
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.departement_id" class="d-block text-danger mt-1">
-                    <small><strong>{{ Array.isArray(form.errors.departement_id) ? form.errors.departement_id[0] : form.errors.departement_id }}</strong></small>
-                </span>
+                <span v-if="form.errors?.departement_id" class="text-danger"><strong>{{ form.errors.departement_id }}</strong></span>
             </div>
         </div>
-        <!-- Region -->
+        <!-- Region (readonly auto) -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.region') || 'Région' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.region_id"
-                    :options="regions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                <label>{{ t('fields.region') || 'Région' }}
+                    <span v-if="departementSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="regionLabel"
+                    disabled
+                    style="background:#eef2f7; color:#64748b;"
                 />
-                <span v-if="form.errors?.region_id" class="d-block text-danger mt-1">
-                    <small><strong>{{ Array.isArray(form.errors.region_id) ? form.errors.region_id[0] : form.errors.region_id }}</strong></small>
-                </span>
-            </div>
-        </div>
-        <!-- Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.country') || 'Pays' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.pays_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="d-block text-danger mt-1">
-                    <small><strong>{{ Array.isArray(form.errors.pays_id) ? form.errors.pays_id[0] : form.errors.pays_id }}</strong></small>
-                </span>
+                <span v-if="form.errors?.region_id" class="text-danger"><strong>{{ form.errors.region_id }}</strong></span>
             </div>
         </div>
         <!-- État -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.status') || 'Statut' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
+                <label>{{ t('fields.status') || 'Statut' }}</label>
                 <SearchableSelect
                     v-model="form.etat"
                     :options="statusOptions"
@@ -132,9 +104,7 @@ watch(() => props.form.region_id, (newRegionId) => {
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.etat" class="d-block text-danger mt-1">
-                    <small><strong>{{ Array.isArray(form.errors.etat) ? form.errors.etat[0] : form.errors.etat }}</strong></small>
-                </span>
+                <span v-if="form.errors?.etat" class="text-danger"><strong>{{ form.errors.etat }}</strong></span>
             </div>
         </div>
     </div>

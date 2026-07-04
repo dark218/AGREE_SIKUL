@@ -55,7 +55,7 @@ class MatiereUniteController extends Controller
     public function create()
     {
         try {
-            $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
+            $niveaux = NiveauEtude::orderBy('libelle')->get(['id', 'libelle', 'section_id', 'cycle_id'])->toArray();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
             $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
@@ -116,7 +116,7 @@ class MatiereUniteController extends Controller
     public function show(MatiereUnite $matiereUnite)
     {
         try {
-            $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
+            $niveaux = NiveauEtude::orderBy('libelle')->get(['id', 'libelle', 'section_id', 'cycle_id'])->toArray();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
             $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();
@@ -139,7 +139,7 @@ class MatiereUniteController extends Controller
     public function edit(MatiereUnite $matiereUnite)
     {
         try {
-            $niveaux = NiveauEtude::all()->map(fn($n) => ['id' => $n->id, 'libelle' => $n->libelle])->values();
+            $niveaux = NiveauEtude::orderBy('libelle')->get(['id', 'libelle', 'section_id', 'cycle_id'])->toArray();
             $sections = Section::all()->map(fn($s) => ['id' => $s->id, 'libelle' => $s->libelle])->values();
             $cycles = CycleEnseignement::all()->map(fn($c) => ['id' => $c->id, 'libelle' => $c->libelle])->values();
             $ecoles = Ecole::orderBy('nom')->get(['id', 'nom as libelle', 'institution_id', 'pays_id', 'campus_id'])->toArray();

@@ -156,7 +156,6 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('fields.academic_year') || 'Année scolaire' }}</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -166,7 +165,6 @@ watch(
                                         <tr v-for="type in types?.data" :key="type.id">
                                             <td>{{ type.code || '' }}</td>
                                             <td>{{ type.libelle || '' }}</td>
-                                            <td>{{ type.annee_scolaire?.libelle || '-' }}</td>
                                             <td><span class="badge" :class="type.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + type.etat) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -180,7 +178,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="5" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="4" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -197,10 +195,6 @@ watch(
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.label') || 'Libellé' }}</span>
                                             <span class="mobile-card-value">{{ type.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('fields.academic_year') || 'Année scolaire' }}</span>
-                                            <span class="mobile-card-value">{{ type.annee_scolaire?.libelle || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>

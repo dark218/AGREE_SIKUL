@@ -24,10 +24,6 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
 });
 const form = useForm({
     code: page.props.quartier?.code || '',
@@ -55,7 +51,7 @@ const form = useForm({
                             </button>
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
-                            <QuartiersForm :form="form" :communes="props.communes" :departements="props.departements" :regions="props.regions" :pays="props.pays" mode="show" />
+                            <QuartiersForm :form="form" :communes="props.communes" :departements="props.departements" :regions="props.regions" mode="show" />
                             <!-- Boutons -->
                             <div class="row mt-3">
                                 <div class="col">

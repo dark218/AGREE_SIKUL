@@ -19,10 +19,6 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
 });
 const form = useForm({
     code: '',
@@ -58,7 +54,7 @@ const submitForm = () => {
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
                             <form @submit.prevent="submitForm">
-                                <DepartementsForm :form="form" :regions="props.regions" :pays="props.pays" mode="create" />
+                                <DepartementsForm :form="form" :regions="props.regions" mode="create" />
                                 <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">

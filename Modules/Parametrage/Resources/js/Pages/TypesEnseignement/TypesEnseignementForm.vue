@@ -8,10 +8,6 @@ const props = defineProps({
         type: Object,
         required: true,
     },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
     mode: {
         type: String,
         default: 'create',
@@ -43,23 +39,6 @@ const statusOptions = [
                 <input type="text" v-model="form.libelle" class="form-control" :placeholder="t('fields.libelle')" :disabled="isReadOnly">
                 <span v-if="form.errors?.libelle" class="text-danger">
                     <strong>{{ form.errors.libelle }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Année Scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année Scolaire' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="props.anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
                 </span>
             </div>
         </div>

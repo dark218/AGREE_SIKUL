@@ -101,8 +101,8 @@ class CommuneController extends Controller
                 'code' => 'required|string|max:100|unique:communes,code',
                 'libelle' => 'required|string|max:255',
                 'departement_id' => 'required|exists:departements,id',
-                'region_id' => 'required|exists:regions,id',
-                'pays_id' => 'required|exists:pays,id',
+                'region_id' => 'nullable|exists:regions,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'required|in:actif,inactif',
             ]);
 
@@ -192,8 +192,8 @@ class CommuneController extends Controller
                 'code' => 'required|string|max:100|unique:communes,code,' . $commune->id,
                 'libelle' => 'required|string|max:255',
                 'departement_id' => 'required|exists:departements,id',
-                'region_id' => 'required|exists:regions,id',
-                'pays_id' => 'required|exists:pays,id',
+                'region_id' => 'nullable|exists:regions,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'required|in:actif,inactif',
             ]);
 

@@ -197,7 +197,6 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'ecoles', libelle: 'Écoles', libelle_en: 'Schools', icone: 'fas fa-school' },
             { menu_url: 'institution', libelle: 'Institutions', libelle_en: 'Institutions', icone: 'fas fa-landmark' },
             { menu_url: 'types_etablissements', libelle: 'Types Établissements', libelle_en: 'Institution Types', icone: 'fas fa-home' },
-            { menu_url: 'types_etablissement_spe', libelle: 'Spécialité Établissement', libelle_en: 'Institution Specialty', icone: 'fas fa-certificate' },
 
             // Organizational Structure
             { menu_url: 'unite_organisationnelles', libelle: 'Unités Organisationnelles', libelle_en: 'Organizational Units', icone: 'fas fa-object-group' },
@@ -269,7 +268,7 @@ const PARAMETRAGE_GROUPS = [
     { id: 'acteurs', libelle: 'Apprenants & Enseignants', libelle_en: 'Students & Teachers', icone: 'fas fa-users',
       items: ['types_apprenants', 'categories_apprenant', 'categories_enseignant'] },
     { id: 'institutions', libelle: 'Institutions', libelle_en: 'Institutions', icone: 'fas fa-school',
-      items: ['campuses', 'ecoles', 'institution', 'types_etablissements', 'types_etablissement_spe'] },
+      items: ['campuses', 'ecoles', 'institution', 'types_etablissements'] },
     { id: 'structure', libelle: 'Structure Organisationnelle', libelle_en: 'Organizational Structure', icone: 'fas fa-object-group',
       items: ['unite_organisationnelles', 'fonctions'] },
     { id: 'contrats', libelle: 'Contrats & Ressources', libelle_en: 'Contracts & Resources', icone: 'fas fa-file-contract',
@@ -398,10 +397,19 @@ const currentMenu = computed(() => page.props.menu_url || '');
 // ============================================================================
 
 /**
+ * Fonctionnalités masquées du menu, quelle que soit la source (backend ou
+ * fallback local) et même pour le Super Admin. Clés normalisées (voir normalizeKey).
+ */
+const HIDDEN_FEATURES = ['types_etablissement_spe'].map(normalizeKey);
+
+/**
  * Vérifie si l'utilisateur a la permission "list" pour une feature
  * Convention: permission = "{menu_url}-list"
  */
 function canAccessFeature(feature) {
+    // Fonctionnalités explicitement masquées (prioritaire sur tout le reste)
+    if (HIDDEN_FEATURES.includes(normalizeKey(feature.menu_url))) return false;
+
     // Super Admin a accès à tout
     if (isSuperAdmin.value) return true;
 

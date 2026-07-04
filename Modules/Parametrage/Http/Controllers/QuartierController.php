@@ -113,9 +113,9 @@ class QuartierController extends Controller
                 'libelle' => 'required|string|max:255',
                 'ville' => 'nullable|string|max:100',
                 'commune_id' => 'required|exists:communes,id',
-                'departement_id' => 'required|exists:departements,id',
-                'region_id' => 'required|exists:regions,id',
-                'pays_id' => 'required|exists:pays,id',
+                'departement_id' => 'nullable|exists:departements,id',
+                'region_id' => 'nullable|exists:regions,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -196,9 +196,9 @@ class QuartierController extends Controller
                 'libelle' => 'required|string|max:255',
                 'ville' => 'nullable|string|max:100',
                 'commune_id' => 'required|exists:communes,id',
-                'departement_id' => 'required|exists:departements,id',
-                'region_id' => 'required|exists:regions,id',
-                'pays_id' => 'required|exists:pays,id',
+                'departement_id' => 'nullable|exists:departements,id',
+                'region_id' => 'nullable|exists:regions,id',
+                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
