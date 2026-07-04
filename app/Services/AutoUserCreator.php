@@ -38,8 +38,10 @@ class AutoUserCreator
             return $existing->id;
         }
 
+        $uuid = (string) Str::uuid();
+
         return User::create([
-            'uuid'       => (string) Str::uuid(),
+            'uuid'       => $uuid,
             'nom'        => $data['nom'] ?? 'Sans nom',
             'prenoms'    => $data['prenoms'] ?? null,
             'email'      => $data['email'] ?? null,
@@ -48,6 +50,10 @@ class AutoUserCreator
             'password'   => bcrypt($data['password'] ?? 'password123'),
             'role'       => $data['role'] ?? 'user',
             'statut'     => $data['statut'] ?? 'actif',
+            // Colonnes legacy SmilPay (voir migration 2026_07_04_160000_make_users_legacy_columns_nullable).
+            // On les initialise à partir de l'uuid pour éviter tout NOT NULL restant.
+            'qr_data'    => $uuid,
+            'code_owner' => 'AGREE-' . substr($uuid, 0, 8),
         ])->id;
     }
 }
