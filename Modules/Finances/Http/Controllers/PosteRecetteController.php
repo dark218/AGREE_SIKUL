@@ -30,12 +30,22 @@ class PosteRecetteController extends Controller
 
     public function create()
     {
-        $lignesRecettes = \Modules\Finances\Entities\LigneRecette::where('etat', 'actif')->get()->map(function($item) {
-            return [
-                'id' => $item->id,
-                'libelle' => $item->libelle
-            ];
-        })->toArray();
+        try {
+            $lignesRecettes = LigneRecette::where('etat', 'actif')->get()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'libelle' => $item->libelle
+                ];
+            })->toArray();
+        } catch (\Throwable $e) {
+            // On ne bloque pas l'affichage du formulaire si la liste des lignes
+            // de recettes ne peut pas être chargée : on log et on continue à vide.
+            \Log::error('PosteRecetteController@create - chargement lignes_recettes', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            $lignesRecettes = [];
+        }
 
         return Inertia::render('Finances::PostesRecettes/Create', [
             'title' => 'Créer un poste de recettes',
@@ -53,11 +63,23 @@ class PosteRecetteController extends Controller
             'etat' => 'required|in:actif,inactif'
         ]);
 
-        $validated['creation_username'] = auth()->user()->name;
-        PosteRecette::create($validated);
+        try {
+            // creation_username est aussi renseigné automatiquement par BaseModel
+            // (full_login), mais on garde une valeur explicite en repli.
+            $validated['creation_username'] = optional(auth()->user())->full_login ?? 'system';
+            PosteRecette::create($validated);
 
-        return redirect()->route('finances.postes-recettes.index')
-            ->with('success', 'Poste de recettes créé');
+            return redirect()->route('finances.postes-recettes.index')
+                ->with('success', 'Poste de recettes créé');
+        } catch (\Throwable $e) {
+            \Log::error('PosteRecetteController@store - EXCEPTION', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+            ]);
+            return back()
+                ->with('error', 'Erreur lors de la création du poste de recettes : ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function show(PosteRecette $posteRecette)
