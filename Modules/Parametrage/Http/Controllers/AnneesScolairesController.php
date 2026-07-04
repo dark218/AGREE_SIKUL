@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Parametrage\Entities\AnneeScolaire;
-use Modules\Parametrage\Entities\Pays;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 
 class AnneesScolairesController extends Controller
@@ -25,7 +24,7 @@ class AnneesScolairesController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = AnneeScolaire::with('pays');
+            $query = AnneeScolaire::query();
 
             if ($request->filled('code')) {
                 $query->where('code', 'like', '%' . $request->code . '%');
@@ -57,14 +56,7 @@ class AnneesScolairesController extends Controller
 
     public function create()
     {
-        try {
-            return Inertia::render('Parametrage::AnneesScolaires/Create', [
-                'pays' => Pays::all(),
-            ]);
-        } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors du chargement du formulaire');
-        }
+        return Inertia::render('Parametrage::AnneesScolaires/Create');
     }
 
     public function store(Request $request)
@@ -76,7 +68,6 @@ class AnneesScolairesController extends Controller
                 'date_debut' => 'required|date',
                 'date_fin' => 'required|date|after:date_debut',
                 'duree' => 'required|integer|min:1',
-                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
@@ -118,7 +109,6 @@ class AnneesScolairesController extends Controller
 
             return Inertia::render('Parametrage::AnneesScolaires/Edit', [
                 'annee_scolaire' => $data,
-                'pays' => Pays::all(),
             ]);
         } catch (\Exception $e) {
             // Logging handled by exception handler
@@ -135,7 +125,6 @@ class AnneesScolairesController extends Controller
                 'date_debut' => 'required|date',
                 'date_fin' => 'required|date|after:date_debut',
                 'duree' => 'required|integer|min:1',
-                'pays_id' => 'nullable|exists:pays,id',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 

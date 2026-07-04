@@ -21,7 +21,6 @@ const form = useForm({
     date_debut: page.props.annee_scolaire?.date_debut || '',
     date_fin: page.props.annee_scolaire?.date_fin || '',
     duree: page.props.annee_scolaire?.duree || null,
-    pays_id: page.props.annee_scolaire?.pays_id || null,
     etat: page.props.annee_scolaire?.etat || page.props.annee_scolaire?.statut || 'actif',
     });
 const submitForm = () => {

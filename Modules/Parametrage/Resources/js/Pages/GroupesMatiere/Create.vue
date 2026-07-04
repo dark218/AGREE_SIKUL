@@ -20,8 +20,6 @@ const props = defineProps({
     sections: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
     matieres: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
-    pays: { type: Array, default: () => [] },
     ecoles: { type: Array, default: () => [] },
     institutions: { type: Array, default: () => [] },
 });
@@ -43,8 +41,6 @@ const form = useForm({
     matiere8_id: null,
     matiere9_id: null,
     matiere10_id: null,
-    annee_scolaire_id: null,
-    pays_id: null,
     etat: 'actif',
 });
 const submitForm = () => {
@@ -92,8 +88,6 @@ const submitForm = () => {
                                     :matieres="matieres"
                                     :ecoles="ecoles"
                                     :institutions="institutions"
-                                    :annees-scolaires="anneesScolaires"
-                                    :pays="pays"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

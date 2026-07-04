@@ -10,12 +10,6 @@ import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const page = usePage();
-defineProps({
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-});
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showStoreLoader, hideLoader } = useLoader();
 const isCollapsed = ref(false);
 const toggleCollapse = () => {
@@ -27,7 +21,6 @@ const form = useForm({
     date_debut: '',
     date_fin: '',
     duree: null,
-    pays_id: null,
     etat: 'actif',
     });
 const submitForm = () => {

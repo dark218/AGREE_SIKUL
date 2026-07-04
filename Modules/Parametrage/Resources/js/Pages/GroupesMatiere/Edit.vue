@@ -22,8 +22,6 @@ const props = defineProps({
     matieres: { type: Array, default: () => [] },
     ecoles: { type: Array, default: () => [] },
     institutions: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
-    pays: { type: Array, default: () => [] },
 });
 const i = page.props.item || {};
 const form = useForm({
@@ -44,8 +42,6 @@ const form = useForm({
     matiere8_id: i.matiere8_id || null,
     matiere9_id: i.matiere9_id || null,
     matiere10_id: i.matiere10_id || null,
-    annee_scolaire_id: i.annee_scolaire_id || null,
-    pays_id: i.pays_id || null,
     etat: i.etat || 'actif',
 });
 const submitForm = () => {
@@ -89,8 +85,6 @@ const submitForm = () => {
                                     :matieres="matieres"
                                     :ecoles="ecoles"
                                     :institutions="institutions"
-                                    :annees-scolaires="anneesScolaires"
-                                    :pays="pays"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

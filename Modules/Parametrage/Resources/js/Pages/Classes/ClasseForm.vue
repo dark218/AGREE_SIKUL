@@ -1,14 +1,14 @@
 <!--
-  ClasseForm.vue — refonte selon spec Orchidée
+  ClasseForm.vue
 
   BLOC 1 — Informations de base :
     L1: Code | Libellé
     L2: Libellé à afficher | Bâtiment
 
   BLOC 2 — Structure académique :
-    L1: École | Campus (auto-fill depuis école)
-    L2: Section | Niveau (filtré par école)
-    L3: Cycle | Année scolaire
+    L1: École | Campus (auto depuis l'école, lecture seule)
+    L2: Niveau | Section (auto depuis le niveau, lecture seule)
+    L3: Cycle (auto depuis le niveau, lecture seule)
 
   BLOC 3 — Enseignant et capacité :
     L1: Enseignant titulaire | Capacité maximale
@@ -28,7 +28,6 @@ const props = defineProps({
     sections: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
     enseignants: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
     campuses: { type: Array, default: () => [] },
     mode: {
         type: String,
@@ -39,6 +38,7 @@ const props = defineProps({
 
 const isReadOnly = props.mode === 'show';
 const ecoleSelected = computed(() => !!props.form.ecole_id);
+const niveauSelected = computed(() => !!props.form.niveau_id);
 
 const autoLabel = (list, id) => {
     if (!id || !list?.length) return '—';
@@ -47,6 +47,8 @@ const autoLabel = (list, id) => {
 };
 
 const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
+const sectionLabel = computed(() => autoLabel(props.sections, props.form.section_id));
+const cycleLabel = computed(() => autoLabel(props.cycles, props.form.cycle_id));
 
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
@@ -57,7 +59,6 @@ const statusOptions = [
 // Cascade École → Campus (auto-fill du campus depuis l'école)
 watch(() => props.form.ecole_id, (newEcoleId) => {
     if (isReadOnly) return;
-    // École vidée → on rend la main pour saisir le campus manuellement
     if (!newEcoleId) {
         props.form.campus_id = null;
         return;
@@ -74,10 +75,25 @@ const filteredNiveaux = computed(() => {
     return props.niveaux.filter((n) => !n.ecole_id || String(n.ecole_id) === String(props.form.ecole_id));
 });
 
-// Si le niveau sélectionné disparaît de la liste filtrée → reset
+// Reset niveau si absent de la liste filtrée
 watch(filteredNiveaux, (newList) => {
     if (props.form.niveau_id && !newList.find((n) => String(n.id) === String(props.form.niveau_id))) {
         props.form.niveau_id = null;
+    }
+});
+
+// Cascade Niveau → Section + Cycle (auto-fill depuis le niveau sélectionné)
+watch(() => props.form.niveau_id, (newNiveauId) => {
+    if (isReadOnly) return;
+    if (!newNiveauId) {
+        props.form.section_id = null;
+        props.form.cycle_id = null;
+        return;
+    }
+    const niveau = props.niveaux.find((n) => String(n.id) === String(newNiveauId));
+    if (niveau) {
+        props.form.section_id = niveau.section_id ?? null;
+        props.form.cycle_id = niveau.cycle_id ?? null;
     }
 });
 
@@ -195,18 +211,6 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
         </div>
 
         <div class="col-sm-6">
-            <label class="form-label fw-medium">Section</label>
-            <SearchableSelect
-                v-model="form.section_id"
-                :options="sections"
-                optionValue="id"
-                optionLabel="libelle"
-                placeholder="-- Sélectionner --"
-                :disabled="isReadOnly"
-            />
-            <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
-        </div>
-        <div class="col-sm-6">
             <label class="form-label fw-medium">Niveau</label>
             <SearchableSelect
                 v-model="form.niveau_id"
@@ -218,30 +222,34 @@ const enseignantLabel = (opt) => opt ? `${opt.nom} ${opt.prenoms || ''}`.trim() 
             />
             <span v-if="form.errors?.niveau_id" class="text-danger small">{{ form.errors.niveau_id }}</span>
         </div>
+        <div class="col-sm-6">
+            <label class="form-label fw-medium">
+                Section
+                <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                :value="sectionLabel"
+                disabled
+                style="background:#eef2f7; color:#64748b;"
+            />
+            <span v-if="form.errors?.section_id" class="text-danger small">{{ form.errors.section_id }}</span>
+        </div>
 
         <div class="col-sm-6">
-            <label class="form-label fw-medium">Cycle</label>
-            <SearchableSelect
-                v-model="form.cycle_id"
-                :options="cycles"
-                optionValue="id"
-                optionLabel="libelle"
-                placeholder="-- Sélectionner --"
-                :disabled="isReadOnly"
+            <label class="form-label fw-medium">
+                Cycle
+                <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                :value="cycleLabel"
+                disabled
+                style="background:#eef2f7; color:#64748b;"
             />
             <span v-if="form.errors?.cycle_id" class="text-danger small">{{ form.errors.cycle_id }}</span>
-        </div>
-        <div class="col-sm-6">
-            <label class="form-label fw-medium">Année scolaire</label>
-            <SearchableSelect
-                v-model="form.annee_scolaire_id"
-                :options="anneesScolaires"
-                optionValue="id"
-                optionLabel="libelle"
-                placeholder="-- Sélectionner --"
-                :disabled="isReadOnly"
-            />
-            <span v-if="form.errors?.annee_scolaire_id" class="text-danger small">{{ form.errors.annee_scolaire_id }}</span>
         </div>
 
         <!-- ============================================== -->

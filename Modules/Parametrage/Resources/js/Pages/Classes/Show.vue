@@ -19,7 +19,6 @@ const props = defineProps({
     sections: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
     enseignants: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
     campuses: { type: Array, default: () => [] },
 });
 const form = useForm({
@@ -32,7 +31,6 @@ const form = useForm({
     section_id: page.props.classe?.section_id || null,
     cycle_id: page.props.classe?.cycle_id || null,
     enseignant_titulaire_id: page.props.classe?.enseignant_titulaire_id || null,
-    annee_scolaire_id: page.props.classe?.annee_scolaire_id || null,
     salle: page.props.classe?.salle || '',
     capacite_max: page.props.classe?.capacite_max || null,
     statut: page.props.classe?.statut || 'actif',
@@ -63,7 +61,6 @@ const form = useForm({
                                 :sections="sections"
                                 :cycles="cycles"
                                 :enseignants="enseignants"
-                                :anneesScolaires="anneesScolaires"
                                 :campuses="campuses"
                                 mode="show"
                             />

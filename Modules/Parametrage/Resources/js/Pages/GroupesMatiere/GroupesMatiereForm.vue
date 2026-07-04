@@ -17,8 +17,6 @@ const props = defineProps({
     sections: { type: Array, default: () => [] },
     cycles: { type: Array, default: () => [] },
     matieres: { type: Array, default: () => [] },
-    anneesScolaires: { type: Array, default: () => [] },
-    pays: { type: Array, default: () => [] },
 });
 
 const isReadOnly = computed(() => props.mode === 'show');
@@ -27,16 +25,37 @@ const statusOptions = [
     { id: 'inactif', libelle: 'Inactif' },
 ];
 
-// HÉRITAGE depuis École : Institution + Pays remontent automatiquement
+const autoLabel = (list, id) => {
+    if (!id || !list?.length) return '—';
+    const found = list.find((i) => String(i.id) === String(id));
+    return found?.libelle || found?.nom || '—';
+};
+const sectionLabel = computed(() => autoLabel(props.sections, props.form.section_id));
+const cycleLabel = computed(() => autoLabel(props.cycles, props.form.cycle_id));
+const niveauSelected = computed(() => !!props.form.niveau_id);
+
+// HÉRITAGE depuis École : Institution remonte automatiquement
 watch(() => props.form.ecole_id, (newEcoleId) => {
     if (!newEcoleId || isReadOnly.value) return;
-    const ecole = props.ecoles.find(e => String(e.id) === String(newEcoleId));
+    const ecole = props.ecoles.find((e) => String(e.id) === String(newEcoleId));
     if (!ecole) return;
     if (ecole.institution_id) props.form.institution_id = ecole.institution_id;
-    if (ecole.pays_id) props.form.pays_id = ecole.pays_id;
 });
 
-const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+// Cascade Niveau → Section + Cycle (auto-fill depuis niveau_etudes)
+watch(() => props.form.niveau_id, (newNiveauId) => {
+    if (isReadOnly.value) return;
+    if (!newNiveauId) {
+        props.form.section_id = null;
+        props.form.cycle_id = null;
+        return;
+    }
+    const niveau = props.niveaux.find((n) => String(n.id) === String(newNiveauId));
+    if (niveau) {
+        props.form.section_id = niveau.section_id ?? null;
+        props.form.cycle_id = niveau.cycle_id ?? null;
+    }
+});
 </script>
 
 <template>
@@ -57,7 +76,7 @@ const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
             </div>
         </div>
 
-        <!-- LIGNE 2 : École | Institution -->
+        <!-- LIGNE 2 : École | Institution (auto) -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.ecole') || 'École' }}</label>
@@ -89,7 +108,7 @@ const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
             </div>
         </div>
 
-        <!-- LIGNE 3 : Niveau | Section -->
+        <!-- LIGNE 3 : Niveau | Section (auto lecture seule) -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.niveau') || 'Niveau' }} <span class="text-danger">*</span></label>
@@ -106,30 +125,32 @@ const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         </div>
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }}</label>
-                <SearchableSelect
-                    v-model.number="form.section_id"
-                    :options="sections"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                <label>{{ t('fields.section') || 'Section' }}
+                    <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="sectionLabel"
+                    disabled
+                    style="background:#eef2f7; color:#64748b;"
                 />
                 <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
             </div>
         </div>
 
-        <!-- LIGNE 4 : Cycle | Matière 1 -->
+        <!-- LIGNE 4 : Cycle (auto lecture seule) | Matière 1 -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
-                <SearchableSelect
-                    v-model.number="form.cycle_id"
-                    :options="cycles"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
+                <label>{{ t('fields.cycle') || 'Cycle' }}
+                    <span v-if="niveauSelected" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span>
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    :value="cycleLabel"
+                    disabled
+                    style="background:#eef2f7; color:#64748b;"
                 />
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
@@ -149,7 +170,7 @@ const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
             </div>
         </div>
 
-        <!-- LIGNES 5-9 : Matière 2 → Matière 10 (par paires) -->
+        <!-- LIGNES 5-9 : Matière 2 → Matière 10 -->
         <div v-for="n in [2, 4, 6, 8, 10]" :key="`pair-${n}`" class="row g-3 col-12 mx-0 px-0">
             <div class="col-sm-6">
                 <div class="mb-3">
@@ -179,42 +200,10 @@ const matiereSlots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
             </div>
         </div>
 
-        <!-- APRÈS Matière 10 : Année scolaire | Pays -->
+        <!-- État -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année scolaire' }}</label>
-                <SearchableSelect
-                    v-model.number="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger"><strong>{{ form.errors.annee_scolaire_id }}</strong></span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays') || 'Pays' }}
-                    <span v-if="form.ecole_id" class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">hérité de l'école</span>
-                </label>
-                <SearchableSelect
-                    v-model.number="form.pays_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly || !!form.ecole_id"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
-            </div>
-        </div>
-
-        <!-- État physique -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.etat') || 'État physique' }}</label>
+                <label>{{ t('fields.etat') || 'État' }}</label>
                 <SearchableSelect
                     v-model="form.etat"
                     :options="statusOptions"

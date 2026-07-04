@@ -10,7 +10,6 @@ use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Niveau;
 use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
-use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Http\Controllers\Concerns\ProvidesParametrageLookups;
 use Modules\Parametrage\Http\Requests\StoreClasseRequest;
@@ -118,41 +117,12 @@ class ClasseController extends Controller
     public function show(Classe $classe)
     {
         try {
-            $classe->load(['ecole', 'niveau', 'section', 'cycle', 'enseignantTitulaire', 'anneeScolaire', 'campus']);
+            $classe->load(['ecole', 'niveau', 'section', 'cycle', 'enseignantTitulaire', 'campus']);
 
-            $ecoles = Ecole::where('statut', 'actif')
-                ->orderBy('nom')
-                ->get(['id', 'nom', 'code']);
-
-            $niveaux = Niveau::orderBy('ordre')
-                ->get(['id', 'libelle']);
-
-            $sections = Section::orderBy('libelle')
-                ->get(['id', 'libelle']);
-
-            $cycles = CycleEnseignement::orderBy('libelle')
-                ->get(['id', 'libelle']);
-
-            $enseignants = User::orderBy('nom')
-                ->get(['id', 'nom', 'prenoms']);
-
-            $anneesScolaires = AnneeScolaire::where('etat', 'actif')
-                ->orderBy('libelle', 'desc')
-                ->get(['id', 'libelle']);
-
-            $campuses = Campus::orderBy('nom')
-                ->get(['id', 'nom as libelle']);
-
-            return Inertia::render('Parametrage::Classes/Show', [
-                'classe' => $classe,
-                'ecoles' => $ecoles,
-                'niveaux' => $niveaux,
-                'sections' => $sections,
-                'cycles' => $cycles,
-                'enseignants' => $enseignants,
-                'anneesScolaires' => $anneesScolaires,
-                'campuses' => $campuses,
-            ]);
+            return Inertia::render('Parametrage::Classes/Show', array_merge(
+                $this->classeLookups(),
+                ['classe' => $classe]
+            ));
         } catch (\Exception $e) {
             \Log::error('ClasseController@show: ' . $e->getMessage());
             return back()->with('error', 'Erreur lors du chargement');
@@ -165,7 +135,7 @@ class ClasseController extends Controller
     public function edit(Classe $classe)
     {
         try {
-            $classe->load('ecole', 'niveau', 'section', 'cycle', 'enseignantTitulaire', 'anneeScolaire', 'campus');
+            $classe->load('ecole', 'niveau', 'section', 'cycle', 'enseignantTitulaire', 'campus');
             return Inertia::render('Parametrage::Classes/Edit', array_merge(
                 $this->classeLookups(),
                 ['classe' => $classe]
@@ -297,7 +267,6 @@ class ClasseController extends Controller
                 'section_id' => $classe->section_id,
                 'cycle_id' => $classe->cycle_id,
                 'niveau_id' => $classe->niveau_id,
-                'annee_scolaire_id' => $classe->annee_scolaire_id,
             ]);
         } catch (\Exception $e) {
             \Log::error('ClasseController@apiShow: ' . $e->getMessage());

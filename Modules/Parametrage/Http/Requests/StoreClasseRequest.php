@@ -25,7 +25,6 @@ class StoreClasseRequest extends FormRequest
             // Le formulaire liste les NiveauEtude (table niveaux_etudes), pas Niveau.
             'niveau_id' => 'nullable|exists:niveaux_etudes,id',
             'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-            'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
             // Enseignant et capacité
             'enseignant_titulaire_id' => 'nullable|exists:users,id',
             'capacite_max' => 'nullable|integer|min:1',

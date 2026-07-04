@@ -1,9 +1,8 @@
 <script setup>
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import { usePage } from '@inertiajs/vue3';
 const { t } = useI18n();
-const page = usePage();
 const props = defineProps({
     form: {
         type: Object,
@@ -15,12 +14,11 @@ const props = defineProps({
         validator: (value) => ['create', 'edit', 'show'].includes(value),
     },
 });
-const isReadOnly = props.mode === 'show';
+const isReadOnly = computed(() => props.mode === 'show');
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
-const paysOptions = page.props.pays || [];
 </script>
 <template>
     <div class="row g-3 custom-input">
@@ -71,23 +69,6 @@ const paysOptions = page.props.pays || [];
                 <input type="number" v-model.number="form.duree" class="form-control" :disabled="isReadOnly">
                 <span v-if="form.errors?.duree" class="text-danger">
                     <strong>{{ form.errors.duree }}</strong>
-                </span>
-            </div>
-        </div>
-        <!-- Pays -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.country') || 'Pays' }} <span v-if="!isReadOnly" class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model.number="form.pays_id"
-                    :options="paysOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_id" class="text-danger">
-                    <strong>{{ form.errors.pays_id }}</strong>
                 </span>
             </div>
         </div>

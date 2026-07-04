@@ -35,10 +35,6 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
     campuses: {
         type: Array,
         default: () => [],
@@ -55,7 +51,6 @@ const form = useForm({
     section_id: null,
     cycle_id: null,
     enseignant_titulaire_id: null,
-    annee_scolaire_id: null,
     capacite_max: null,
     capacite_actuelle: null,
     statut: 'actif',
@@ -108,7 +103,6 @@ const submitForm = () => {
                                     :sections="sections"
                                     :cycles="cycles"
                                     :enseignants="enseignants"
-                                    :anneesScolaires="anneesScolaires"
                                     :campuses="campuses"
                                     mode="create"
                                 />

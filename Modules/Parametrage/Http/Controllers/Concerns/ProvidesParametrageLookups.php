@@ -4,7 +4,6 @@ namespace Modules\Parametrage\Http\Controllers\Concerns;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
-use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Entities\Commune;
 use Modules\Parametrage\Entities\CycleEnseignement;
@@ -176,7 +175,6 @@ trait ProvidesParametrageLookups
                 'sections' => Section::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'cycles' => CycleEnseignement::orderBy('libelle')->get(['id', 'libelle'])->toArray(),
                 'enseignants' => User::orderBy('nom')->get(['id', 'nom', 'prenoms'])->toArray(),
-                'anneesScolaires' => AnneeScolaire::orderBy('libelle', 'desc')->get(['id', 'libelle'])->toArray(),
             ];
         });
     }
