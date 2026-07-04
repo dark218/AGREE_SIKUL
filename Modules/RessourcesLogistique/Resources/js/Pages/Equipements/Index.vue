@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -35,6 +36,11 @@ const etatOptions = [
     { id: 'mauvais', libelle: 'Mauvais' },
     { id: 'non_fonctionnel', libelle: 'Non fonctionnel' },
 ];
+
+const filterFields = computed(() => [
+    { key: 'categorie_id', type: 'select', placeholder: 'Catégorie', options: props.categories, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'etat', type: 'select', placeholder: 'État', options: etatOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+]);
 
 let searchTimeout;
 
@@ -123,38 +129,7 @@ watch(
 
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.categorie_id"
-                            :options="categories"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.categorie') || 'Catégorie'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="etatOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.etat') || 'État'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Tableau -->
                 <div class="card-body">

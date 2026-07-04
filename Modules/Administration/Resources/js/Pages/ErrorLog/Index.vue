@@ -7,6 +7,7 @@ import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 defineOptions({
@@ -25,6 +26,10 @@ const searchFilters = ref({
     module: props.filters?.module || '',
     methode: props.filters?.methode || '',
 });
+const filterFields = [
+    { key: 'module', type: 'text', placeholder: 'Module', icon: 'fa-search', width: '220px' },
+    { key: 'methode', type: 'text', placeholder: 'Méthode', width: '220px' },
+];
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -139,34 +144,7 @@ watch(
             <!-- Alert Messages -->
             <AlertMessage />
             <!-- Filtres de recherche -->
-            <div class="row m-0 mb-3">
-                <form class="row col-12" @submit.prevent="search">
-                    <div class="col-3 p-1">
-                        <input
-                            v-model="searchFilters.module"
-                            type="text"
-                            class="form-control search-slt"
-                            :placeholder="t('fields.module')"
-                        >
-                    </div>
-                    <div class="col-3 p-1">
-                        <input
-                            v-model="searchFilters.methode"
-                            type="text"
-                            class="form-control search-slt"
-                            :placeholder="t('fields.methode')"
-                        >
-                    </div>
-                    <div class="col-2 p-1">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" @click="resetFilters" class="btn btn-secondary ms-2">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
             <!-- Tableau des error logs -->
             <div class="card-body">
                 <div class="table-wrapper">

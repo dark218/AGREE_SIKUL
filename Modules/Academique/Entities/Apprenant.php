@@ -32,6 +32,7 @@ class Apprenant extends BaseModel
         'nationalite',
         'groupe_sanguin',
         'photo',
+        'genre_id',
         'adresse',
         'classe_id',
         'section_id',
@@ -114,6 +115,11 @@ class Apprenant extends BaseModel
             'apprenant_id',
             'accompagnateur_id'
         )->withPivot('est_principal')->withTimestamps();
+    }
+
+    public function genre(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Parametrage\Entities\Genre::class, 'genre_id');
     }
 
     // Relations - Academic

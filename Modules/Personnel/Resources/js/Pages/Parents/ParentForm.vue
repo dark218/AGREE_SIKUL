@@ -71,6 +71,64 @@ const etatOptions = [
 if (!props.form.apprenant_ids) props.form.apprenant_ids = [];
 if (!props.form.lien_parente) props.form.lien_parente = [];
 
+/**
+ * Auto-fill : quand l'utilisateur sélectionne un apprenant, on pré-remplit
+ * les champs Père / Mère / Tuteur / Responsable légal depuis les
+ * `nom_pere`, `nom_mere`, `nom_tuteur`, `nom_responsable_legal` saisis
+ * sur la fiche apprenant. On ne remplace que si le champ est encore vide,
+ * pour ne pas écraser une saisie manuelle en cours.
+ */
+const onApprenantSelected = ({ apprenant, isFirst }) => {
+    if (!apprenant || !isFirst) return; // n'auto-fill que sur la 1ère ligne (apprenant principal)
+
+    const fillIfEmpty = (target, value) => {
+        if (value && (!props.form[target] || String(props.form[target]).trim() === '')) {
+            props.form[target] = value;
+        }
+    };
+
+    // Père — apprenant.nom_pere ex "Jean DUPONT" → on split prénoms+nom au mieux
+    if (apprenant.nom_pere) {
+        const parts = apprenant.nom_pere.trim().split(/\s+/);
+        const nom = parts.length > 1 ? parts.pop() : parts[0];
+        const prenoms = parts.join(' ');
+        fillIfEmpty('pere_nom', nom);
+        fillIfEmpty('pere_prenoms', prenoms);
+        fillIfEmpty('pere_nom_complet', apprenant.nom_pere);
+    }
+
+    // Mère
+    if (apprenant.nom_mere) {
+        const parts = apprenant.nom_mere.trim().split(/\s+/);
+        const nom = parts.length > 1 ? parts.pop() : parts[0];
+        const prenoms = parts.join(' ');
+        fillIfEmpty('mere_nom', nom);
+        fillIfEmpty('mere_prenoms', prenoms);
+        fillIfEmpty('mere_nom_complet', apprenant.nom_mere);
+    }
+
+    // Tuteur 1
+    if (apprenant.nom_tuteur) {
+        const parts = apprenant.nom_tuteur.trim().split(/\s+/);
+        const nom = parts.length > 1 ? parts.pop() : parts[0];
+        const prenoms = parts.join(' ');
+        fillIfEmpty('tuteur1_nom', nom);
+        fillIfEmpty('tuteur1_prenoms', prenoms);
+        fillIfEmpty('tuteur1_nom_complet', apprenant.nom_tuteur);
+    }
+
+    // Responsable légal → Tuteur 2 si Tuteur 1 déjà rempli, sinon Tuteur 1
+    if (apprenant.nom_responsable_legal) {
+        const parts = apprenant.nom_responsable_legal.trim().split(/\s+/);
+        const nom = parts.length > 1 ? parts.pop() : parts[0];
+        const prenoms = parts.join(' ');
+        const targetPrefix = props.form.tuteur1_nom_complet ? 'tuteur2' : 'tuteur1';
+        fillIfEmpty(`${targetPrefix}_nom`, nom);
+        fillIfEmpty(`${targetPrefix}_prenoms`, prenoms);
+        fillIfEmpty(`${targetPrefix}_nom_complet`, apprenant.nom_responsable_legal);
+    }
+};
+
 // Auto-fill classe, ecole, institution, campus depuis le 1er apprenant sélectionné
 watch(() => props.form.apprenant_ids, (ids) => {
     if (!ids || ids.length === 0) return;
@@ -103,6 +161,7 @@ watch(() => props.form.apprenant_ids, (ids) => {
                     :apprenants="apprenants"
                     :show-lien="true"
                     :disabled="isReadOnly"
+                    @apprenant-selected="onApprenantSelected"
                 />
                 <span v-if="form.errors?.apprenant_ids" class="text-danger d-block mt-1">
                     <strong>{{ Array.isArray(form.errors.apprenant_ids) ? form.errors.apprenant_ids[0] : form.errors.apprenant_ids }}</strong>

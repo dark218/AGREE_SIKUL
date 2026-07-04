@@ -106,6 +106,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    genres: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const isReadOnly = props.mode === 'show';
@@ -424,20 +428,21 @@ const age = computed(() => {
             </div>
         </div>
 
-        <!-- Sexe -->
+        <!-- Genre -->
         <div class="col-sm-6">
             <div class="mb-3">
-                <label>{{ t('fields.sexe') || 'Sexe' }}</label>
+                <label>{{ t('fields.genre') || 'Genre' }}</label>
                 <SearchableSelect
-                    v-model="form.sexe"
-                    :options="sexeOptions"
+                    v-model="form.genre_id"
+                    :options="genres"
                     optionValue="id"
                     optionLabel="libelle"
                     :placeholder="t('actions.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.sexe" class="text-danger">
-                    <strong>{{ form.errors.sexe }}</strong>
+                <small class="text-muted">Paramétrable depuis Paramétrage → Genres</small>
+                <span v-if="form.errors?.genre_id" class="text-danger d-block">
+                    <strong>{{ form.errors.genre_id }}</strong>
                 </span>
             </div>
         </div>

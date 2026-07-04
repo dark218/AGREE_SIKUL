@@ -28,6 +28,7 @@ const props = defineProps({
     cycles: Array,
     niveaux: Array,
     classes: Array,
+    genres: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -38,6 +39,7 @@ const form = useForm({
     nom_restituer: '',
     nom_jeune_fille: '',
     gender: '',
+    genre_id: '',
     marital_status: '',
     date_of_birth: '',
     place_of_birth: '',
@@ -120,6 +122,7 @@ const submitForm = () => {
                                     :cycles="cycles"
                                     :niveaux="niveaux"
                                     :classes="classes"
+                                    :genres="genres"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
@@ -24,6 +25,10 @@ const searchFilters = ref({
 const statusOptions = [
     { id: 'actif', libelle: t('common.active') || 'Actif' },
     { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },
+];
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
 ];
 let searchTimeout;
 const performSearch = () => {
@@ -82,32 +87,12 @@ watch(
                 </div>
             </div>
             <AlertMessage />
-            <div class="row m-0">
-                <div style="width: 150px;">
-                    <input
-                        type="text"
-                        v-model="searchFilters.search"
-                        class="form-control form-control-sm"
-                        :placeholder="t('fields.search') || 'Rechercher'"
-                        style="height: 32px; font-size: 13px;"
-                    />
-                </div>
-                <div style="width: 150px;">
-                    <select v-model="searchFilters.statut" class="form-control form-control-sm" style="height: 32px;">
-                        <option value="">{{ t('fields.statut') || 'Statut' }}</option>
-                        <option value="actif">{{ t('common.active') || 'Actif' }}</option>
-                        <option value="non_actif">{{ t('common.inactive') || 'Inactif' }}</option>
-                    </select>
-                </div>
-                <div style="display: flex; gap: 5px;">
-                    <button @click="search" class="btn btn-sm btn-dark">
-                        <i class="fa fa-search"></i>
-                    </button>
-                    <button @click="resetFilters" class="btn btn-sm btn-dark">
-                        <i class="fa fa-refresh"></i>
-                    </button>
-                </div>
-            </div>
+            <FilterBar
+                v-model="searchFilters"
+                :fields="filterFields"
+                @search="search"
+                @reset="resetFilters"
+            ></FilterBar>
             <table class="table table-sm" v-if="page.props.cours?.data?.length">
                 <thead>
                     <tr>

@@ -40,7 +40,7 @@ const props = defineProps({
     maxRows: { type: Number, default: 10 },
 });
 
-const emit = defineEmits(['update:modelValue', 'update:lienParente']);
+const emit = defineEmits(['update:modelValue', 'update:lienParente', 'apprenant-selected']);
 
 // État interne : un tableau de lignes {apprenant_id, lien_parente}
 const rows = ref(
@@ -58,6 +58,25 @@ watch(rows, (v) => {
     if (props.showLien) {
         emit('update:lienParente', v.map((r) => r.lien_parente));
     }
+}, { deep: true });
+
+// Émet l'objet apprenant complet dès qu'une ligne change de valeur, pour que
+// le parent (form Parent/Tuteur/Accompagnateur) puisse auto-remplir les
+// noms de contact (nom_pere, nom_mere, nom_tuteur, etc.).
+const lastEmittedByRow = new Map();
+watch(rows, (v) => {
+    v.forEach((r, idx) => {
+        const last = lastEmittedByRow.get(idx);
+        if (r.apprenant_id && r.apprenant_id !== last) {
+            const apprenant = props.apprenants.find((a) => String(a.id) === String(r.apprenant_id));
+            if (apprenant) {
+                emit('apprenant-selected', { rowIndex: idx, apprenant, isFirst: idx === 0 });
+                lastEmittedByRow.set(idx, r.apprenant_id);
+            }
+        } else if (!r.apprenant_id) {
+            lastEmittedByRow.delete(idx);
+        }
+    });
 }, { deep: true });
 
 // École commune : dérivée du 1er apprenant sélectionné

@@ -10,6 +10,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const { can } = usePermissions();
@@ -36,6 +37,11 @@ const statutOptions = [
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
+];
+const filterFields = [
+    { key: 'enseignant', type: 'text', placeholder: 'Enseignant', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statutOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'etat', type: 'select', placeholder: 'État', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
 ];
 // Debounce timer for real-time search
 let searchTimeout;
@@ -172,48 +178,11 @@ watch(
             <AlertMessage />
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.enseignant"
-                            class="form-control form-control-sm"
-                            :placeholder="t('fields.enseignant')"
-                            style="height: 32px; font-size: 13px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.statut"
-                            :options="statutOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.statut') || 'Statut'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.status') || 'État'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                        <a :href="route('academique.pdf.absences-enseignants')" class="btn btn-danger btn-sm" target="_blank" title="Rapport absences" style="height: 32px; padding: 0 10px; display: flex; align-items: center;"><i class="fa fa-file-pdf"></i> PDF</a>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters">
+                    <template #actions>
+                        <a :href="route('academique.pdf.absences-enseignants')" class="fb-btn-pdf" target="_blank" title="PDF"><i class="fa fa-file-pdf"></i> PDF</a>
+                    </template>
+                </FilterBar>
                 <!-- Tableau -->
                 <div class="card-body">
                     <div class="table-wrapper">

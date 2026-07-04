@@ -10,6 +10,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 defineOptions({
     layout: DashboardLayout,
 });
@@ -25,6 +26,22 @@ const searchFilters = ref({
     type: props.filters?.type || '',
     statut: props.filters?.statut || '',
 });
+const typeOptions = [
+    { id: 'texte', libelle: 'Texte' },
+    { id: 'monetaire', libelle: 'Montant' },
+    { id: 'pourcentage', libelle: 'Pourcentage' },
+    { id: 'booleen', libelle: 'Booléen' },
+    { id: 'nombre', libelle: 'Nombre' },
+];
+const statutOptions = [
+    { id: 'actif', libelle: 'Actif' },
+    { id: 'inactif', libelle: 'Inactif' },
+];
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'type', type: 'select', placeholder: 'Tous les types', options: typeOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'statut', type: 'select', placeholder: 'Tous les statuts', options: statutOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 let searchTimeout;
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
@@ -111,58 +128,7 @@ watch(
             </div>
         </div>
         <AlertMessage />
-        <form @submit.prevent="search" class="filter-form row mb-3">
-            <div class="col-md-3">
-                <input
-                    v-model="searchFilters.search"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('common.search')"
-                />
-            </div>
-            <div class="col-md-3">
-                <StylishSelect
-                    v-model="searchFilters.type"
-                    :options="[
-                        { value: '', label: 'Tous les types' },
-                        { value: 'texte', label: 'Texte' },
-                        { value: 'monetaire', label: 'Montant' },
-                        { value: 'pourcentage', label: 'Pourcentage' },
-                        { value: 'booleen', label: 'Booléen' },
-                        { value: 'nombre', label: 'Nombre' },
-                    ]"
-                    option-value="value"
-                    option-label="label"
-                    :searchable="false"
-                />
-            </div>
-            <div class="col-md-2">
-                <StylishSelect
-                    v-model="searchFilters.statut"
-                    :options="[
-                        { value: '', label: 'Tous les statuts' },
-                        { value: 'actif', label: 'Actif' },
-                        { value: 'inactif', label: 'Inactif' },
-                    ]"
-                    option-value="value"
-                    option-label="label"
-                    :searchable="false"
-                />
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-secondary btn-block">
-                    <i class="fa fa-search"></i> {{ t('common.search') }}
-                </button>
-                <button type="button" @click="resetFilters" class="btn btn-secondary wrn-btn radius-0">
-                    <i class="fa fa-redo"></i> <i class="fa fa-sync"></i> {{ t('actions.reset') }}
-                </button>
-            </div>
-            <div class="col-md-2" v-if="filters.search || filters.type || filters.statut">
-                <Link :href="route('finances.configurations-finances.index')" class="btn btn-outline-secondary btn-block">
-                    {{ t('common.reset') }}
-                </Link>
-            </div>
-        </form>
+        <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
         <div class="table-responsive">
             <table class="custom-table">
                 <thead>

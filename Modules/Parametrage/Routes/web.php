@@ -307,6 +307,18 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::delete('/{titre_civilite}', [TitreCiviliteController::class, 'destroy'])->name('destroy');
     });
 
+    // Genres (M / F / Autre — configurable)
+    Route::prefix('genres')->name('genres.')->group(function () {
+        Route::get('/', [GenreController::class, 'index'])->name('index');
+        Route::get('/create', [GenreController::class, 'create'])->name('create');
+        Route::post('/', [GenreController::class, 'store'])->name('store');
+        Route::get('/{genre}', [GenreController::class, 'show'])->name('show');
+        Route::get('/{genre}/edit', [GenreController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{genre}', [GenreController::class, 'update'])->name('update');
+        Route::match(['put', 'post'], '/{genre}/statut', [GenreController::class, 'statut'])->name('statut');
+        Route::delete('/{genre}', [GenreController::class, 'destroy'])->name('destroy');
+    });
+
     // ============================================
     // CALENDRIER
     // ============================================

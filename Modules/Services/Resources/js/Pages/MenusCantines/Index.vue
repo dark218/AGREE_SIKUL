@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -8,6 +8,7 @@ import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 
 defineOptions({ layout: DashboardLayout });
@@ -25,6 +26,12 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+const filterFields = computed(() => [
+    { key: 'week_start_date', type: 'text', placeholder: 'Date de début', icon: 'fa-search', width: '220px' },
+    { key: 'service_cantine_id', type: 'select', placeholder: 'Service', options: props.servicesCantines, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'statut', type: 'select', placeholder: 'État', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+]);
 
 const searchFilters = ref({
     service_cantine_id: props.filters?.service_cantine_id || '',
@@ -118,46 +125,7 @@ watch(
 
             <div class="row m-0">
                 <!-- Filters -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; width: 100%; margin-bottom: 20px;">
-                    <div style="width: 200px;">
-                        <input
-                            v-model="searchFilters.week_start_date"
-                            type="date"
-                            class="form-control"
-                            @input="performSearch"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.service_cantine_id"
-                            :options="servicesCantines"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('common.service_cantine') || 'Service'"
-                            class="form-control-sm"
-                            style="height: 45px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.statut"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('common.statut') || 'État'"
-                            class="form-control-sm"
-                            style="height: 45px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 45px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 45px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Table -->
                 <div class="card-body">

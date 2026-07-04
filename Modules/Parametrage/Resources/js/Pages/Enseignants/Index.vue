@@ -4,6 +4,7 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePermissions } from '@/Composables/usePermissions';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
@@ -21,6 +22,14 @@ const searchFilters = ref({
     search: props.filters?.search || '',
     statut: props.filters?.statut || '',
 });
+const statusOptions = [
+    { id: 'actif', libelle: 'Actif' },
+    { id: 'inactif', libelle: 'Inactif' },
+];
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 let searchTimeout;
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
@@ -96,22 +105,8 @@ watch(
             </div>
             <AlertMessage />
             <div class="row m-0">
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <input type="text" v-model="searchFilters.search" class="form-control form-control-sm" :placeholder="t('fields.search')" style="height: 32px; font-size: 13px; width: 100%;" />
-                    </div>
-                    <div style="width: 150px;">
-                        <select v-model="searchFilters.statut" class="form-control form-control-sm" style="height: 32px; width: 100%;">
-                            <option value="">{{ t('fields.statut') || 'Statut' }}</option>
-                            <option value="actif">{{ t('common.active') || 'Actif' }}</option>
-                            <option value="inactif">{{ t('common.inactive') || 'Inactif' }}</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;"><i class="fa fa-search"></i></button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;"><i class="fa fa-redo"></i></button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters">
+                </FilterBar>
                 <div class="card-body">
                     <div class="table-wrapper">
                         <div class="table-responsive">

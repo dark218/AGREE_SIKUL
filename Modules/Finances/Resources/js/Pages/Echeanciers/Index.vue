@@ -10,6 +10,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 defineOptions({
     layout: DashboardLayout,
 });
@@ -24,6 +25,14 @@ const searchFilters = ref({
     search: props.filters?.search || '',
     statut: props.filters?.statut || '',
 });
+const statutOptions = [
+    { id: 'actif', libelle: 'Actif' },
+    { id: 'inactif', libelle: 'Inactif' },
+];
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'Tous les statuts', options: statutOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -41,6 +50,10 @@ function search() {
         preserveScroll: true,
     });
 }
+const resetFilters = () => {
+    Object.keys(searchFilters.value).forEach((k) => { searchFilters.value[k] = ''; });
+    router.get(route('finances.echeancier.index'));
+};
 function confirmDelete(item) {
     itemToDelete.value = item;
     showDeleteModal.value = true;
@@ -97,42 +110,7 @@ watch(
             </div>
         </div>
         <AlertMessage />
-        <form @submit.prevent="search" class="filter-form row mb-3">
-            <div class="col-md-4">
-                <input
-                    v-model="searchFilters.search"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('common.search')"
-                />
-            </div>
-            <div class="col-md-3">
-                <StylishSelect
-                    v-model="searchFilters.statut"
-                    :options="[
-                        { value: '', label: 'Tous les statuts' },
-                        { value: 'actif', label: 'Actif' },
-                        { value: 'inactif', label: 'Inactif' },
-                    ]"
-                    option-value="value"
-                    option-label="label"
-                    :searchable="false"
-                />
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-secondary btn-block">
-                    <i class="fa fa-search"></i> {{ t('common.search') }}
-                </button>
-                    <button type="button" @click="resetFilters" class="btn btn-secondary wrn-btn radius-0">
-                        <i class="fa fa-redo"></i> <i class="fa fa-sync"></i> {{ t('actions.reset') }}
-                    </button>
-            </div>
-            <div class="col-md-3" v-if="filters.search || filters.statut">
-                <Link :href="route('finances.echeancier.index')" class="btn btn-outline-secondary btn-block">
-                    {{ t('common.reset') }}
-                </Link>
-            </div>
-        </form>
+        <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
         <div class="table-responsive">
             <table class="custom-table">
                 <thead>

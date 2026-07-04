@@ -222,6 +222,7 @@ const DEFAULT_MENU_CONFIG = [
 
             // People & Events
             { menu_url: 'titres_civilites', libelle: 'Titres Civilité', libelle_en: 'Titles', icone: 'fas fa-user-tie' },
+            { menu_url: 'genres', libelle: 'Genres', libelle_en: 'Genders', icone: 'fas fa-venus-mars' },
             { menu_url: 'types_evenement', libelle: 'Types Événement', libelle_en: 'Event Types', icone: 'fas fa-calendar-alt' }
         ]
     },
@@ -269,7 +270,7 @@ const PARAMETRAGE_GROUPS = [
     { id: 'geographie', libelle: 'Géographie & Calendrier', libelle_en: 'Geography & Calendar', icone: 'fas fa-earth-africa',
       items: ['pays', 'regions', 'departements', 'communes', 'quartiers', 'zones', 'jours_feries'] },
     { id: 'personnes', libelle: 'Personnes & Événements', libelle_en: 'People & Events', icone: 'fas fa-user-tie',
-      items: ['titres_civilites', 'types_evenement'] },
+      items: ['titres_civilites', 'genres', 'types_evenement'] },
 ];
 
 /**

@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -23,6 +24,11 @@ const props = defineProps({
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
+];
+
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'État', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
 ];
 
 const searchFilters = ref({
@@ -139,36 +145,7 @@ watch(
 
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; width: 100%; margin-bottom: 20px;">
-                    <div style="width: 200px;">
-                        <input
-                            v-model="searchFilters.search"
-                            type="text"
-                            class="form-control"
-                            :placeholder="t('common.search') || 'Rechercher...'"
-                            @input="performSearch"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.statut"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('common.statut') || 'État'"
-                            class="form-control-sm"
-                            style="height: 45px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 45px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 45px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Tableau -->
                 <div class="card-body">

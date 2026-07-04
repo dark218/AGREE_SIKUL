@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 const page = usePage();
@@ -28,6 +29,10 @@ const searchFilters = ref({
     module_id: props.filters?.module_id || '',
     libelle: props.filters?.libelle || '',
 });
+const filterFields = computed(() => [
+    { key: 'module_id', type: 'select', placeholder: 'Module', options: props.modules, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'libelle', type: 'text', placeholder: 'Nom', icon: 'fa-search', width: '220px' },
+]);
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -50,6 +55,10 @@ function search() {
         preserveScroll: true,
     });
 }
+const resetFilters = () => {
+    Object.keys(searchFilters.value).forEach((k) => { searchFilters.value[k] = ''; });
+    router.get(route('administration.features.index'));
+};
 // Confirmation de suppression
 function confirmDelete(feature) {
     featureToDelete.value = feature;
@@ -108,30 +117,7 @@ watch(
             <!-- Alert Messages -->
             <AlertMessage />
             <!-- Filtres -->
-            <div class="row m-0 mb-3">
-                <form class="row col-12" @submit.prevent="search">
-                    <div class="col-4 p-1">
-                        <StylishSelect
-                            v-model="searchFilters.module_id"
-                            :options="modules"
-                            option-value="id"
-                            option-label="libelle"
-                            :placeholder="t('modules.administration.permissions.fields.module')"
-                        />
-                    </div>
-                    <div class="col-4 p-1">
-                        <input v-model="searchFilters.libelle" type="text" class="form-control search-slt" :placeholder="t('common.name')">
-                    </div>
-                    <div class="col-2 p-1">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-search"></i>
-                        </button>
-                    <button type="button" @click="resetFilters" class="btn btn-secondary wrn-btn radius-0">
-                        <i class="fa fa-redo"></i> <i class="fa fa-sync"></i> {{ t('actions.reset') }}
-                    </button>
-                    </div>
-                </form>
-            </div>
+            <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
             <!-- Tableau -->
             <div class="card-body">
                 <div class="table-wrapper">

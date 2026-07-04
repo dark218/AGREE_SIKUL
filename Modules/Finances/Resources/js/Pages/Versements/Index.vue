@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -153,6 +154,13 @@ watch(
 
 const anneesScolairesOptions = props.anneesScolaires.map(a => ({ id: a.id, libelle: a.libelle }));
 const ecolesOptions = props.ecoles.map(e => ({ id: e.id, libelle: e.nom }));
+
+const filterFields = [
+    { key: 'apprenant', type: 'text', placeholder: 'Apprenant', icon: 'fa-search', width: '220px' },
+    { key: 'ecole_id', type: 'select', placeholder: 'École', options: ecolesOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'annee_scolaire_id', type: 'select', placeholder: 'Année', options: anneesScolairesOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'etat', type: 'select', placeholder: 'État', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 </script>
 
 <template>
@@ -174,55 +182,7 @@ const ecolesOptions = props.ecoles.map(e => ({ id: e.id, libelle: e.nom }));
             <AlertMessage />
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.apprenant"
-                            placeholder="Apprenant"
-                            class="form-control form-control-sm"
-                            @input="performSearch"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.ecole_id"
-                            :options="ecolesOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            placeholder="École"
-                            clearable
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.annee_scolaire_id"
-                            :options="anneesScolairesOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            placeholder="Année"
-                            clearable
-                        />
-                    </div>
-                    <div style="width: 100px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            placeholder="État"
-                            clearable
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Table section -->
                 <div class="card-body">

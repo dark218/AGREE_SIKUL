@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 defineOptions({
@@ -26,6 +27,9 @@ const props = defineProps({
 const searchFilters = ref({
     user_id: props.filters?.user_id || '',
 });
+const filterFields = computed(() => [
+    { key: 'user_id', type: 'select', placeholder: 'Utilisateur', options: props.users, optionValue: 'id', optionLabel: 'name', width: '190px' },
+]);
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -162,25 +166,7 @@ watch(
             <!-- Alert Messages -->
             <AlertMessage />
             <!-- Filtres de recherche -->
-            <div class="row m-0 mb-3">
-                <form class="row col-12" @submit.prevent="search">
-                    <div class="col-4 p-1">
-                        
-                        <StylishSelect
-                            v-model="searchFilters.user_id"
-                            :options="users"
-                            option-value="id"
-                            option-label="name"
-                            :placeholder="t('modules.administration.sessions.selectUser')"
-                        />
-                    </div>
-                    <div class="col-2 p-1">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
             <!-- Tableau des sessions -->
             <div class="card-body">
                 <div class="table-wrapper">

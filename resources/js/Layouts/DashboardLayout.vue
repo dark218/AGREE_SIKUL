@@ -19,6 +19,12 @@ const isMobileSidebarOpen = ref(false);
 const showLogoutModal = ref(false);
 const page = usePage();
 
+// Indicateur de navigation Inertia (évite l'impression d'écran "figé")
+const isNavigating = ref(false);
+let navDelayTimer = null;
+let removeStartListener = null;
+let removeFinishListener = null;
+
 // Provide logout function pour les enfants
 provide('openLogoutModal', () => {
     showLogoutModal.value = true;
@@ -61,10 +67,26 @@ onMounted(() => {
     }
     window.addEventListener('resize', handleResize);
     handleResize();
+
+    // Écoute les navigations Inertia pour afficher un voile de chargement.
+    // Un délai de 200ms évite tout clignotement sur les pages rapides.
+    removeStartListener = router.on('start', () => {
+        navDelayTimer = setTimeout(() => {
+            isNavigating.value = true;
+        }, 200);
+    });
+
+    removeFinishListener = router.on('finish', () => {
+        clearTimeout(navDelayTimer);
+        isNavigating.value = false;
+    });
 });
 
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
+    clearTimeout(navDelayTimer);
+    if (removeStartListener) removeStartListener();
+    if (removeFinishListener) removeFinishListener();
 });
 </script>
 
@@ -91,8 +113,16 @@ onUnmounted(() => {
             <TheNavbar />
 
             <!-- Contenu de la page -->
-            <main class="dashboard-content">
+            <main class="dashboard-content" :class="{ 'is-navigating': isNavigating }">
                 <slot />
+
+                <!-- Voile de navigation (chargement d'une nouvelle page Inertia) -->
+                <Transition name="nav-veil-fade">
+                    <div v-if="isNavigating" class="nav-veil">
+                        <div class="nav-veil-spinner"></div>
+                        <span class="nav-veil-text">Chargement…</span>
+                    </div>
+                </Transition>
             </main>
         </div>
 
@@ -142,6 +172,63 @@ onUnmounted(() => {
     max-width: 100%;
     overflow-y: auto;
     overflow-x: auto;
+    position: relative;
+}
+
+/* Pendant la navigation : contenu légèrement atténué + curseur d'attente */
+.dashboard-content.is-navigating {
+    cursor: progress;
+}
+
+.dashboard-content.is-navigating > :not(.nav-veil) {
+    opacity: 0.55;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* Voile de navigation */
+.nav-veil {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(1px);
+}
+
+.nav-veil-spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid rgba(229, 89, 12, 0.2);
+    border-top-color: #E5590C;
+    border-radius: 50%;
+    animation: nav-veil-spin 0.7s linear infinite;
+}
+
+.nav-veil-text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #E5590C;
+    letter-spacing: 0.3px;
+}
+
+@keyframes nav-veil-spin {
+    to { transform: rotate(360deg); }
+}
+
+.nav-veil-fade-enter-active,
+.nav-veil-fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.nav-veil-fade-enter-from,
+.nav-veil-fade-leave-to {
+    opacity: 0;
 }
 
 /* Overlay mobile */

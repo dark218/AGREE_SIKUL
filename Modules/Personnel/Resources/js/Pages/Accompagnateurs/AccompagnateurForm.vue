@@ -45,6 +45,31 @@ const autoLabel = (list, id) => {
 const institutionLabel = computed(() => autoLabel(props.institutions, props.form.institution_id));
 const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
 
+/**
+ * Auto-fill : quand un apprenant est sélectionné, on pré-remplit le
+ * bloc "Accompagnant 1" avec le nom du responsable ou du tuteur défini
+ * sur la fiche apprenant. N'écrase pas les champs déjà saisis.
+ */
+const onApprenantSelected = ({ apprenant, isFirst }) => {
+    if (!apprenant || !isFirst) return;
+    const source = apprenant.nom_responsable_legal || apprenant.nom_tuteur || apprenant.nom_pere;
+    if (!source) return;
+
+    const parts = source.trim().split(/\s+/);
+    const nom = parts.length > 1 ? parts.pop() : parts[0];
+    const prenoms = parts.join(' ');
+
+    const setIfEmpty = (key, value) => {
+        if (value && (!props.form[key] || String(props.form[key]).trim() === '')) {
+            props.form[key] = value;
+        }
+    };
+    setIfEmpty('accompagnant1_nom', nom);
+    setIfEmpty('accompagnant1_prenoms', prenoms);
+    setIfEmpty('accompagnant1_nom_complet', source);
+    setIfEmpty('accompagnant1_lien', apprenant.nom_responsable_legal ? 'Responsable légal' : 'Tuteur');
+};
+
 // Photo preview states - initialiser avec les URLs existantes
 const photoPreview1 = ref(props.form?.accompagnant1_photo_url || null);
 const photoPreview2 = ref(props.form?.accompagnant2_photo_url || null);
@@ -129,6 +154,7 @@ const etatOptions = [
                 v-model="form.apprenant_ids"
                 :apprenants="apprenants"
                 :disabled="isReadOnly"
+                @apprenant-selected="onApprenantSelected"
             />
             <div v-if="form.errors?.apprenant_ids" class="text-danger small mt-1">
                 {{ Array.isArray(form.errors.apprenant_ids) ? form.errors.apprenant_ids[0] : form.errors.apprenant_ids }}

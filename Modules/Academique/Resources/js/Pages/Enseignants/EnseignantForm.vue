@@ -18,6 +18,7 @@ const props = defineProps({
     cycles: Array,
     niveaux: Array,
     classes: Array,
+    genres: { type: Array, default: () => [] },
 });
 
 const photoPreview = ref(null);
@@ -85,13 +86,16 @@ const age = computed(() => {
                 <input v-model="form.nom_jeune_fille" type="text" class="form-control" :disabled="isReadOnly" />
             </div>
             <div class="col-md-6 mb-20">
-                <label class="mb-10">{{ t('fields.gender') }}</label>
-                <select v-model="form.gender" class="form-control" :disabled="isReadOnly">
-                    <option value="">{{ t('actions.select') }}</option>
-                    <option value="M">Masculin</option>
-                    <option value="F">Féminin</option>
-                    <option value="Autre">Autre</option>
-                </select>
+                <label class="mb-10">{{ t('fields.gender') || 'Genre' }}</label>
+                <SearchableSelect
+                    v-model="form.genre_id"
+                    :options="genres"
+                    optionValue="id"
+                    optionLabel="libelle"
+                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <small class="text-muted">Paramétrable depuis Paramétrage → Genres</small>
             </div>
             <div class="col-md-6 mb-20">
                 <label class="mb-10">{{ t('fields.marital_status') }}</label>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePermissions } from '@/Composables/usePermissions';
@@ -10,6 +10,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -40,6 +41,13 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+const filterFields = computed(() => [
+    { key: 'section_id', type: 'select', placeholder: 'Section', options: props.sections, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'cycle_enseignement_id', type: 'select', placeholder: 'Cycle', options: props.cycles, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'niveau_id', type: 'select', placeholder: 'Niveau', options: props.niveaux, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'etat', type: 'select', placeholder: 'État', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+]);
 
 let searchTimeout;
 const showDeleteModal = ref(false);
@@ -160,60 +168,7 @@ watch(
 
             <div class="row m-0">
                 <!-- Filtres -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.section_id"
-                            :options="sections"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.section') || 'Section'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.cycle_enseignement_id"
-                            :options="cycles"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('common.cycle') || 'Cycle'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.niveau_id"
-                            :options="niveaux"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('common.niveau') || 'Niveau'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('common.status') || 'État'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Tableau -->
                 <div class="card-body">

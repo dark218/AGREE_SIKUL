@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
@@ -15,6 +16,15 @@ const { can } = usePermissions();
 const { isLoading, showDeleteLoader, hideLoader } = useLoader();
 const props = defineProps({ evaluations: Object, filters: Object });
 const searchFilters = ref({ search: props.filters?.search || '', type: props.filters?.type || '', statut: props.filters?.statut || '' });
+const typeOptions = [
+    { id: 'devoir', libelle: 'Devoir' },
+    { id: 'controle', libelle: 'Contrôle' },
+    { id: 'examen', libelle: 'Examen' },
+];
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'type', type: 'select', placeholder: 'Type', options: typeOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 let searchTimeout;
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
@@ -33,17 +43,12 @@ watch(() => searchFilters.value, () => { clearTimeout(searchTimeout); searchTime
             <Link :href="route('parametrage.evaluations.create')" class="btn btn-primary"><i class="fa fa-plus"></i> {{ t('actions.add') }}</Link>
         </div>
         <AlertMessage />
-        <div class="row m-0" style="gap: 8px; margin-bottom: 1rem;">
-            <input v-model="searchFilters.search" type="text" class="form-control form-control-sm" :placeholder="t('fields.search')" style="width: 150px; height: 32px;" />
-            <select v-model="searchFilters.type" class="form-control form-control-sm" style="width: 150px; height: 32px;">
-                <option value="">{{ t('fields.type') }}</option>
-                <option value="devoir">Devoir</option>
-                <option value="controle">Contrôle</option>
-                <option value="examen">Examen</option>
-            </select>
-            <button @click="search" class="btn btn-sm btn-dark"><i class="fa fa-search"></i></button>
-            <button @click="resetFilters" class="btn btn-sm btn-dark"><i class="fa fa-refresh"></i></button>
-        </div>
+        <FilterBar
+            v-model="searchFilters"
+            :fields="filterFields"
+            @search="search"
+            @reset="resetFilters"
+        ></FilterBar>
         <table class="table table-sm" v-if="page.props.evaluations?.data?.length">
             <thead><tr><th>{{ t('fields.code') }}</th><th>{{ t('fields.titre') }}</th><th>{{ t('fields.type') }}</th><th>{{ t('fields.date') }}</th><th>{{ t('fields.classe') }}</th><th>{{ t('fields.statut') }}</th><th>{{ t('actions.actions') }}</th></tr></thead>
             <tbody>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { useLoader } from '@/Composables/useLoader';
@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({
     layout: DashboardLayout,
@@ -49,6 +50,14 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+const filterFields = computed(() => [
+    { key: 'date_depense', type: 'text', placeholder: 'Date dépense', icon: 'fa-search', width: '220px' },
+    { key: 'nature_depense', type: 'text', placeholder: 'Nature dépense', width: '220px' },
+    { key: 'ecole_id', type: 'select', placeholder: 'École', options: props.ecoles, optionValue: 'id', optionLabel: 'nom', width: '190px' },
+    { key: 'annee_scolaire_id', type: 'select', placeholder: 'Année Scolaire', options: props.anneesScolaires, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'etat', type: 'select', placeholder: 'Tous', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+]);
 
 function search() {
     router.get(route('finances.achats-depenses.index'), searchFilters.value, {
@@ -182,66 +191,7 @@ watch(
 
             <div class="row m-0">
                 <!-- Filters -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; width: 100%; margin-bottom: 15px;">
-                    <div style="width: 150px;">
-                        <input
-                            type="date"
-                            v-model="searchFilters.date_depense"
-                            class="form-control form-control-sm"
-                            style="height: 32px; font-size: 13px;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.nature_depense"
-                            class="form-control form-control-sm"
-                            :placeholder="t('fields.nature_depense') || 'Nature dépense'"
-                            style="height: 32px; font-size: 13px;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.ecole_id"
-                            :options="ecoles"
-                            optionValue="id"
-                            optionLabel="nom"
-                            :placeholder="t('fields.ecole') || 'École'"
-                            style="height: 32px;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.annee_scolaire_id"
-                            :options="anneesScolaires"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.annee_scolaire') || 'Année Scolaire'"
-                            style="height: 32px;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="[
-                                { id: '', libelle: t('actions.all') || 'Tous' },
-                                { id: 'actif', libelle: 'Actif' },
-                                { id: 'inactif', libelle: 'Inactif' },
-                            ]"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            style="height: 32px;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Table -->
                 <div class="card-body" style="width: 100%;">

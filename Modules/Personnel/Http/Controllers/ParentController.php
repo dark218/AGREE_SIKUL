@@ -76,8 +76,15 @@ class ParentController extends Controller
         try {
             \Log::info('🔵 ParentController::create - Starting');
 
-            $apprenants = Apprenant::select('id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'institution_id', 'campus_id')
-                ->selectRaw("CONCAT(prenoms, ' ', nom) as libelle")
+            // Enrichi avec les noms de contacts pour auto-fill dans le form parent
+            $apprenants = Apprenant::select(
+                    'id', 'nom', 'prenoms', 'matricule',
+                    'classe_id', 'ecole_id', 'institution_id', 'campus_id',
+                    'nom_pere', 'nom_mere', 'nom_tuteur', 'nom_responsable_legal',
+                    'telephone', 'email', 'adresse'
+                )
+                ->selectRaw("CONCAT(prenoms, ' ', nom, ' (', COALESCE(matricule, ''), ')') as libelle")
+                ->whereNull('deleted_at')
                 ->orderBy('nom')
                 ->get();
 
@@ -265,8 +272,15 @@ class ParentController extends Controller
                 'campus',
             ])->findOrFail($id);
 
-            $apprenants = Apprenant::select('id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'institution_id', 'campus_id')
-                ->selectRaw("CONCAT(prenoms, ' ', nom) as libelle")
+            // Enrichi avec les noms de contacts pour auto-fill dans le form parent
+            $apprenants = Apprenant::select(
+                    'id', 'nom', 'prenoms', 'matricule',
+                    'classe_id', 'ecole_id', 'institution_id', 'campus_id',
+                    'nom_pere', 'nom_mere', 'nom_tuteur', 'nom_responsable_legal',
+                    'telephone', 'email', 'adresse'
+                )
+                ->selectRaw("CONCAT(prenoms, ' ', nom, ' (', COALESCE(matricule, ''), ')') as libelle")
+                ->whereNull('deleted_at')
                 ->orderBy('nom')
                 ->get();
 
@@ -309,8 +323,15 @@ class ParentController extends Controller
                 'est_principal' => (bool) $a->pivot->est_principal,
             ])->values()->all();
 
-            $apprenants = Apprenant::select('id', 'nom', 'prenoms', 'classe_id', 'ecole_id', 'institution_id', 'campus_id')
-                ->selectRaw("CONCAT(prenoms, ' ', nom) as libelle")
+            // Enrichi avec les noms de contacts pour auto-fill dans le form parent
+            $apprenants = Apprenant::select(
+                    'id', 'nom', 'prenoms', 'matricule',
+                    'classe_id', 'ecole_id', 'institution_id', 'campus_id',
+                    'nom_pere', 'nom_mere', 'nom_tuteur', 'nom_responsable_legal',
+                    'telephone', 'email', 'adresse'
+                )
+                ->selectRaw("CONCAT(prenoms, ' ', nom, ' (', COALESCE(matricule, ''), ')') as libelle")
+                ->whereNull('deleted_at')
                 ->orderBy('nom')
                 ->get();
 

@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
@@ -25,6 +26,9 @@ const activateMode = ref(false);
 const searchFilters = ref({
     search: props.filters?.search || '',
 });
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Recherche', icon: 'fa-search', width: '220px' },
+];
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -139,25 +143,7 @@ watch(
             <AlertMessage />
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.search"
-                            class="form-control form-control-sm"
-                            :placeholder="t('common.search') || 'Recherche'"
-                            style="height: 32px; font-size: 13px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
                 <!-- Tableau -->
                 <div class="card-body">
                     <div class="table-wrapper">

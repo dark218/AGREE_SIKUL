@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -9,6 +9,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -41,6 +42,13 @@ const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+const filterFields = computed(() => [
+    { key: 'ecole_id', type: 'select', placeholder: 'École', options: page.props.ecoles || [], optionValue: 'id', optionLabel: 'nom', width: '190px' },
+    { key: 'annee_scolaire_id', type: 'select', placeholder: 'Année scolaire', options: page.props.anneesScolaires || [], optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'niveau_id', type: 'select', placeholder: 'Niveau', options: page.props.niveauxEtudes || [], optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'etat', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+]);
 
 const closeModal = () => {
     showDeleteModal.value = false;
@@ -150,50 +158,7 @@ watch(
 
             <div class="row m-0">
                 <!-- Inline Filters -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 15px;">
-                    <div style="flex: 1; min-width: 180px;">
-                        <SearchableSelect
-                            v-model="searchFilters.ecole_id"
-                            :options="page.props.ecoles || []"
-                            optionValue="id"
-                            optionLabel="nom"
-                            :placeholder="t('fields.ecole') || 'École'"
-                        />
-                    </div>
-                    <div style="flex: 1; min-width: 180px;">
-                        <SearchableSelect
-                            v-model="searchFilters.annee_scolaire_id"
-                            :options="page.props.anneesScolaires || []"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.annee_scolaire') || 'Année scolaire'"
-                        />
-                    </div>
-                    <div style="flex: 1; min-width: 180px;">
-                        <SearchableSelect
-                            v-model="searchFilters.niveau_id"
-                            :options="page.props.niveauxEtudes || []"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.niveau_etude') || 'Niveau'"
-                        />
-                    </div>
-                    <div style="flex: 1; min-width: 180px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.status') || 'Statut'"
-                        />
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="height: 38px;">
-                        <i class="fa fa-search"></i>
-                    </button>
-                    <button type="button" @click="resetFilters" class="btn btn-secondary" style="height: 38px;">
-                        <i class="fa fa-redo"></i>
-                    </button>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <!-- Table -->
                 <div class="card-body">

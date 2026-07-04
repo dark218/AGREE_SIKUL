@@ -1,11 +1,12 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 
 defineOptions({ layout: DashboardLayout });
 
@@ -33,6 +34,13 @@ const resultatOptions = [
     { id: 'admis', libelle: 'Admis' },
     { id: 'refuse', libelle: 'Refusé' },
 ];
+
+const filterFields = computed(() => [
+    { key: 'examen_id', type: 'select', placeholder: 'Examen...', options: props.examens, optionValue: 'id', optionLabel: 'titre', width: '190px' },
+    { key: 'matiere_id', type: 'select', placeholder: 'Matière...', options: props.matieres, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'classe_id', type: 'select', placeholder: 'Classe...', options: props.classes, optionValue: 'id', optionLabel: 'nom', width: '190px' },
+    { key: 'resultat', type: 'select', placeholder: 'Verdict...', options: resultatOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+]);
 
 let searchTimeout;
 
@@ -110,62 +118,18 @@ watch(() => searchFilters.value, () => {
 
         <!-- Filtres -->
         <div class="filter-bar mt-3">
-            <form @submit.prevent="search" class="d-flex gap-2 align-items-start flex-wrap">
-                <div style="width: 220px;">
-                    <SearchableSelect
-                        v-model="searchFilters.examen_id"
-                        :options="examens"
-                        optionValue="id"
-                        optionLabel="titre"
-                        placeholder="Examen..."
-                        class="form-control-sm"
-                    />
-                </div>
-                <div style="width: 160px;">
-                    <SearchableSelect
-                        v-model="searchFilters.matiere_id"
-                        :options="matieres"
-                        optionValue="id"
-                        optionLabel="libelle"
-                        placeholder="Matière..."
-                        class="form-control-sm"
-                    />
-                </div>
-                <div style="width: 140px;">
-                    <SearchableSelect
-                        v-model="searchFilters.classe_id"
-                        :options="classes"
-                        optionValue="id"
-                        optionLabel="nom"
-                        placeholder="Classe..."
-                        class="form-control-sm"
-                    />
-                </div>
-                <div style="width: 130px;">
-                    <SearchableSelect
-                        v-model="searchFilters.resultat"
-                        :options="resultatOptions"
-                        optionValue="id"
-                        optionLabel="libelle"
-                        placeholder="Verdict..."
-                        class="form-control-sm"
-                    />
-                </div>
-                <button type="submit" class="btn btn-primary btn-sm" style="height: 32px;"><i class="fa fa-search"></i></button>
-                <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px;"><i class="fa fa-redo"></i></button>
-
-                <!-- Bouton PDF par classe -->
-                <div v-if="searchFilters.examen_id" style="margin-left: auto;">
+            <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters">
+                <template #actions>
                     <a
+                        v-if="searchFilters.examen_id"
                         :href="route('academique.resultats-examens.pdf-classe', searchFilters.examen_id)"
-                        class="btn btn-danger btn-sm"
+                        class="fb-btn-pdf"
                         target="_blank"
-                        style="height: 32px; display: flex; align-items: center; gap: 4px;"
                     >
                         <i class="fa fa-file-pdf"></i> Télécharger PV de classe
                     </a>
-                </div>
-            </form>
+                </template>
+            </FilterBar>
         </div>
 
         <!-- Tableau -->

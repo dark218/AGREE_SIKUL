@@ -60,6 +60,7 @@ class EnseignantController extends Controller
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
             'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
+            'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
         ]);
     }
 
@@ -76,6 +77,7 @@ class EnseignantController extends Controller
                 'nom_restituer' => 'nullable|string|max:100',
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
+                'genre_id' => 'nullable|exists:genres,id',
                 'marital_status' => 'nullable|string|max:50',
                 'date_of_birth' => 'nullable|date',
                 'place_of_birth' => 'nullable|string|max:100',
@@ -191,6 +193,7 @@ class EnseignantController extends Controller
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
             'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
+            'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
         ]);
     }
 
@@ -218,6 +221,7 @@ class EnseignantController extends Controller
             'cycles' => CycleEnseignement::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
             'niveaux' => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()->toArray(),
             'classes' => Classe::whereNull('deleted_at')->select('id', 'nom')->get()->toArray(),
+            'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
         ]);
     }
 
@@ -237,6 +241,7 @@ class EnseignantController extends Controller
                 'nom_restituer' => 'nullable|string|max:100',
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
+                'genre_id' => 'nullable|exists:genres,id',
                 'marital_status' => 'nullable|string|max:50',
                 'date_of_birth' => 'nullable|date',
                 'place_of_birth' => 'nullable|string|max:100',

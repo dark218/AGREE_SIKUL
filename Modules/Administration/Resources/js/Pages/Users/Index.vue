@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import StylishSelect from '@/Components/Common/StylishSelect.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 import { usePermissions } from '@/Composables/usePermissions';
 defineOptions({
@@ -47,6 +48,13 @@ const searchFilters = ref({
     kyc_status: props.filters?.kyc_status || '',
     statut: props.filters?.statut || '',
 });
+const filterFields = computed(() => [
+    { key: 'login', type: 'text', placeholder: 'Login', icon: 'fa-search', width: '220px' },
+    { key: 'email', type: 'text', placeholder: 'Email', width: '220px' },
+    { key: 'role_id', type: 'select', placeholder: 'Rôle', options: props.roles, optionValue: 'id', optionLabel: 'label', width: '190px' },
+    { key: 'kyc_status', type: 'select', placeholder: 'KYC', options: kycStatusOptions.value, optionValue: 'id', optionLabel: 'label', width: '190px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statutOptions.value, optionValue: 'id', optionLabel: 'label', width: '190px' },
+]);
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -188,60 +196,7 @@ watch(
             <!-- Alert Messages -->
             <AlertMessage />
             <!-- Filtres de recherche -->
-            <div class="row m-0 mb-3">
-                <form class="row col-12" @submit.prevent="search">
-                    <div class="col-2 p-1">
-                        <input
-                            v-model="searchFilters.login"
-                            type="text"
-                            class="form-control search-slt"
-                            :placeholder="t('fields.login')"
-                        >
-                    </div>
-                    <div class="col-2 p-1">
-                        <input
-                            v-model="searchFilters.email"
-                            type="text"
-                            class="form-control search-slt"
-                            :placeholder="t('fields.email')"
-                        >
-                    </div>
-                    <div class="col-2 p-1">
-                        <StylishSelect
-                            v-model="searchFilters.role_id"
-                            :options="roles"
-                            option-value="id"
-                            option-label="label"
-                            :placeholder="t('fields.role')"
-                        />
-                    </div>
-                    <div class="col-2 p-1">
-                        <StylishSelect
-                            v-model="searchFilters.kyc_status"
-                            :options="kycStatusOptions"
-                            option-value="id"
-                            option-label="label"
-                            placeholder="KYC"
-                            :searchable="false"
-                        />
-                    </div>
-                    <div class="col-2 p-1">
-                        <StylishSelect
-                            v-model="searchFilters.statut"
-                            :options="statutOptions"
-                            option-value="id"
-                            option-label="label"
-                            :placeholder="t('common.status')"
-                            :searchable="false"
-                        />
-                    </div>
-                    <div class="col-2 p-1">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
             <!-- Tableau des utilisateurs -->
             <div class="card-body">
                 <div class="table-wrapper">

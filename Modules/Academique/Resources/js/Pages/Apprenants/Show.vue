@@ -41,6 +41,7 @@ const props = defineProps({
     anneesScolaires: { type: Array, default: () => [], },
     typesApprenant: { type: Array, default: () => [], },
     categoriesApprenant: { type: Array, default: () => [], },
+    genres: { type: Array, default: () => [] },
 });
 const form = reactive({
     nom: page.props.apprenant?.nom || '',
@@ -55,6 +56,7 @@ const form = reactive({
     pays_naissance_id: page.props.apprenant?.pays_naissance_id || '',
     nationalite: page.props.apprenant?.nationalite || '',
     sexe: page.props.apprenant?.sexe || '',
+    genre_id: page.props.apprenant?.genre_id || '',
     groupe_sanguin: page.props.apprenant?.groupe_sanguin || '',
     photo: page.props.apprenant?.photo || null,
     classe_id: page.props.apprenant?.classe_id || '',
@@ -131,7 +133,7 @@ console.log('[Form date_depart_ecole]:', form.date_depart_ecole);
                                 :accompagnateurs="apprenant?.accompagnateurs || []"
                             />
 
-                            <ApprenantForm :form="form" :classes="classes" :sections="sections" :cycles="cycles" :ecoles="ecoles" :campuses="campuses" :communes="communes" :departements="departements" :regions="regions" :pays="pays" :quartiers="quartiers" :anneesScolaires="anneesScolaires" :typesApprenant="typesApprenant" :categoriesApprenant="categoriesApprenant" mode="show" />
+                            <ApprenantForm :form="form" :classes="classes" :sections="sections" :cycles="cycles" :ecoles="ecoles" :campuses="campuses" :communes="communes" :departements="departements" :regions="regions" :pays="pays" :quartiers="quartiers" :anneesScolaires="anneesScolaires" :typesApprenant="typesApprenant" :categoriesApprenant="categoriesApprenant" :genres="genres" mode="show" />
                             <div class="row mt-3">
                                 <div class="col">
                                     <div class="text-end">

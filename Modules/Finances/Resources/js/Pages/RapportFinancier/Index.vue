@@ -4,9 +4,8 @@ import { Head, router, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import { usePermissions } from '@/Composables/usePermissions'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
-import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
-import * as XLSX from 'xlsx'
+// jspdf / html2canvas / xlsx sont chargés dynamiquement au moment de l'export
+// pour ne pas alourdir le bundle de la page (voir exportPDF / exportExcel).
 
 defineOptions({ layout: DashboardLayout })
 
@@ -70,6 +69,12 @@ const getSoldeClass = () => {
 const exportPDF = async () => {
     isExporting.value = true
     try {
+        // Chargement à la demande des libs lourdes
+        const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+            import('jspdf'),
+            import('html2canvas'),
+        ])
+
         const element = reportRef.value
 
         // Cloner l'élément et retirer les gradients
@@ -121,8 +126,10 @@ const exportPDF = async () => {
 }
 
 // EXPORT EXCEL
-const exportExcel = () => {
+const exportExcel = async () => {
     try {
+        // Chargement à la demande de la lib xlsx
+        const XLSX = await import('xlsx')
         const wb = XLSX.utils.book_new()
 
         // Feuille 1: Tableau Principal

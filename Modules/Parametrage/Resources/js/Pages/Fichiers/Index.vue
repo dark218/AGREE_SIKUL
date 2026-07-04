@@ -10,6 +10,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const { can } = usePermissions();
@@ -31,6 +32,11 @@ const searchFilters = ref({
 const statusOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
+];
+const filterFields = [
+    { key: 'code', type: 'text', placeholder: 'Code', icon: 'fa-search', width: '220px' },
+    { key: 'libelle', type: 'text', placeholder: 'Libellé', width: '220px' },
+    { key: 'etat', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
 ];
 // Debounce timer for real-time search
 let searchTimeout;
@@ -139,45 +145,8 @@ watch(
             <AlertMessage />
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 150px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.code"
-                            class="form-control form-control-sm"
-                            :placeholder="t('fields.code')"
-                            style="height: 32px; font-size: 13px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.libelle"
-                            class="form-control form-control-sm"
-                            :placeholder="t('fields.label')"
-                            style="height: 32px; font-size: 13px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 150px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="statusOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.status') || 'Statut'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" @click="resetFilters" class="btn btn-secondary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters">
+                </FilterBar>
                 <!-- Tableau -->
                 <div class="card-body">
                     <div class="table-wrapper">

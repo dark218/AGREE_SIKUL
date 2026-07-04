@@ -22,7 +22,7 @@ class Enseignant extends BaseModel
         'user_id', 'num_enseignant', 'matricule',
         // Identité personnelle
         'nom', 'prenoms', 'nom_restituer', 'nom_jeune_fille',
-        'gender', 'marital_status', 'date_of_birth', 'place_of_birth',
+        'gender', 'genre_id', 'marital_status', 'date_of_birth', 'place_of_birth',
         'commune_id', 'department_id', 'region_id', 'country_id', 'nationalite',
         // Formation
         'highest_diploma', 'speciality', 'year_obtained', 'languages', 'teaching_speciality',
@@ -39,6 +39,11 @@ class Enseignant extends BaseModel
         'date_of_birth' => 'date',
         'languages' => 'array',
     ];
+
+    public function genre(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Parametrage\Entities\Genre::class, 'genre_id');
+    }
 
     public function user(): BelongsTo
     {

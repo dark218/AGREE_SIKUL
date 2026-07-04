@@ -8,6 +8,7 @@ import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import { useLoader } from '@/Composables/useLoader';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
@@ -15,6 +16,14 @@ const { can } = usePermissions();
 const { isLoading, showDeleteLoader, hideLoader } = useLoader();
 const props = defineProps({ seances: Object, filters: Object });
 const searchFilters = ref({ search: props.filters?.search || '', statut: props.filters?.statut || '' });
+const statusOptions = [
+    { id: 'actif', libelle: t('common.active') || 'Actif' },
+    { id: 'non_actif', libelle: t('common.inactive') || 'Inactif' },
+];
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher…', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 let searchTimeout;
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
@@ -38,16 +47,12 @@ watch(() => searchFilters.value, () => { clearTimeout(searchTimeout); searchTime
             <Link :href="route('parametrage.seances.create')" class="btn btn-primary"><i class="fa fa-plus"></i> {{ t('actions.add') }}</Link>
         </div>
         <AlertMessage />
-        <div class="row m-0" style="gap: 8px; margin-bottom: 1rem;">
-            <input v-model="searchFilters.search" type="text" class="form-control form-control-sm" :placeholder="t('fields.search')" style="width: 150px; height: 32px;" />
-            <select v-model="searchFilters.statut" class="form-control form-control-sm" style="width: 150px; height: 32px;">
-                <option value="">{{ t('fields.statut') }}</option>
-                <option value="actif">{{ t('common.active') }}</option>
-                <option value="non_actif">{{ t('common.inactive') }}</option>
-            </select>
-            <button @click="search" class="btn btn-sm btn-dark"><i class="fa fa-search"></i></button>
-            <button @click="resetFilters" class="btn btn-sm btn-dark"><i class="fa fa-refresh"></i></button>
-        </div>
+        <FilterBar
+            v-model="searchFilters"
+            :fields="filterFields"
+            @search="search"
+            @reset="resetFilters"
+        ></FilterBar>
         <table class="table table-sm" v-if="page.props.seances?.data?.length">
             <thead>
                 <tr>

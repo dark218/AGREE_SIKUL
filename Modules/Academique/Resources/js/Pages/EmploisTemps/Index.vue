@@ -10,6 +10,7 @@ import Pagination from '@/Components/Common/Pagination.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 defineOptions({ layout: DashboardLayout });
 const { t } = useI18n();
 const { can } = usePermissions();
@@ -51,6 +52,11 @@ const generateWeekOptions = () => {
     return options;
 };
 const weekOptions = generateWeekOptions();
+const filterFields = [
+    { key: 'search', type: 'text', placeholder: 'Rechercher', icon: 'fa-search', width: '220px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statutOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+    { key: 'week_number', type: 'select', placeholder: 'Semaine', options: weekOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
+];
 // Debounce timer for real-time search
 let searchTimeout;
 // Real-time search with debounce
@@ -181,47 +187,7 @@ watch(
             <AlertMessage />
             <div class="row m-0">
                 <!-- Filtres de recherche -->
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 120px;">
-                        <input
-                            type="text"
-                            v-model="searchFilters.search"
-                            class="form-control form-control-sm"
-                            :placeholder="t('fields.search') || 'Rechercher'"
-                            style="height: 32px; font-size: 13px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 120px;">
-                        <SearchableSelect
-                            v-model="searchFilters.statut"
-                            :options="statutOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.statut') || 'Statut'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="width: 180px;">
-                        <SearchableSelect
-                            v-model="searchFilters.week_number"
-                            :options="weekOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            :placeholder="t('fields.week_number') || 'Semaine'"
-                            class="form-control-sm"
-                            style="height: 32px; width: 100%;"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
                 <!-- Tableau -->
                 <div class="card-body">
                     <div class="table-wrapper">

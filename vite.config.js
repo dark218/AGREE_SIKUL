@@ -36,12 +36,29 @@ export default defineConfig({
         }
     },
     build: {
+        // Relève le seuil d'alerte (les vrais gros chunks sont désormais isolés ci-dessous)
+        chunkSizeWarningLimit: 700,
         rollupOptions: {
             external: [
                 /^\/assets\//,
                 /^\/backend\//,
                 /^\/images\//,
-            ]
+            ],
+            output: {
+                // Isole les grosses dépendances dans leurs propres chunks :
+                // chargées une seule fois puis mises en cache par le navigateur,
+                // au lieu d'être fusionnées dans app.js / les pages.
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) return;
+                    if (id.includes('firebase') || id.includes('@firebase')) return 'vendor-firebase';
+                    if (id.includes('xlsx')) return 'vendor-xlsx';
+                    if (id.includes('jspdf')) return 'vendor-jspdf';
+                    if (id.includes('html2canvas')) return 'vendor-html2canvas';
+                    if (id.includes('chart.js') || id.includes('vue-chartjs')) return 'vendor-charts';
+                    if (id.includes('leaflet')) return 'vendor-leaflet';
+                    if (id.includes('select2') || id.includes('jquery')) return 'vendor-jquery';
+                },
+            },
         }
     }
 });

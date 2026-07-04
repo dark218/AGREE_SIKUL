@@ -9,6 +9,31 @@ const props = defineProps({
     apprenants: { type: Array, default: () => [] },
 });
 const isReadOnly = props.mode === 'show';
+
+/**
+ * Auto-fill : quand un apprenant est sélectionné, on utilise son
+ * `nom_tuteur` (ou nom_responsable_legal en fallback) pour pré-remplir
+ * les champs nom/prénoms du tuteur en cours de création.
+ * N'écrase que les champs vides pour préserver la saisie manuelle.
+ */
+const onApprenantSelected = ({ apprenant, isFirst }) => {
+    if (!apprenant || !isFirst) return;
+    const source = apprenant.nom_tuteur || apprenant.nom_responsable_legal;
+    if (!source) return;
+
+    const parts = source.trim().split(/\s+/);
+    const nom = parts.length > 1 ? parts.pop() : parts[0];
+    const prenoms = parts.join(' ');
+
+    if (!props.form.nom || String(props.form.nom).trim() === '') props.form.nom = nom;
+    if (!props.form.prenoms || String(props.form.prenoms).trim() === '') props.form.prenoms = prenoms;
+    if (apprenant.telephone && (!props.form.telephone || String(props.form.telephone).trim() === '')) {
+        props.form.telephone = apprenant.telephone;
+    }
+    if (apprenant.email && (!props.form.email || String(props.form.email).trim() === '')) {
+        props.form.email = apprenant.email;
+    }
+};
 </script>
 <template>
     <div class="row g-3 custom-input">
@@ -48,6 +73,7 @@ const isReadOnly = props.mode === 'show';
                 v-model="form.apprenant_ids"
                 :apprenants="apprenants"
                 :disabled="isReadOnly"
+                @apprenant-selected="onApprenantSelected"
             />
             <div v-if="form.errors?.apprenant_ids" class="text-danger small mt-1">
                 {{ Array.isArray(form.errors.apprenant_ids) ? form.errors.apprenant_ids[0] : form.errors.apprenant_ids }}

@@ -3,12 +3,6 @@ import "../css/app.css";
 import "../css/modules.css";
 
 // --------------------------
-// Leaflet
-// --------------------------
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-
-// --------------------------
 // jQuery + Select2
 // --------------------------
 import $ from "jquery";
@@ -108,5 +102,10 @@ createInertiaApp({
             .component('Link', Link)
             .mount(el);
     },
-    progress: false,
+    progress: {
+        color: "#E5590C", // Orange de la marque
+        delay: 150,        // n'affiche la barre que si la navigation dépasse 150ms
+        includeCSS: true,
+        showSpinner: true, // petit spinner en haut à droite
+    },
 });

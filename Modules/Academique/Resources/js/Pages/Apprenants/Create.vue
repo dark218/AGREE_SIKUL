@@ -71,6 +71,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    genres: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -87,6 +88,7 @@ const form = useForm({
     pays_naissance_id: '',
     nationalite: '',
     sexe: '',
+    genre_id: '',
     groupe_sanguin: '',
     photo: null,
     // Section 2: Scolarité
@@ -203,6 +205,7 @@ const submitForm = (nextAction = null) => {
                                     :anneesScolaires="anneesScolaires"
                                     :typesApprenant="typesApprenant"
                                     :categoriesApprenant="categoriesApprenant"
+                                    :genres="genres"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

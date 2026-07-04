@@ -7,6 +7,7 @@ import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AlertMessage from '@/Components/Common/AlertMessage.vue';
 import Pagination from '@/Components/Common/Pagination.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FilterBar from '@/Components/Common/FilterBar.vue';
 import ConfirmModal from '@/Components/Common/ConfirmModal.vue';
 import FullPageLoader from '@/Components/Common/FullPageLoader.vue';
 import { useLoader } from '@/Composables/useLoader';
@@ -34,6 +35,10 @@ const etatOptions = [
     { id: 'actif', libelle: 'Actif' },
     { id: 'en-attente', libelle: 'En attente' },
     { id: 'clôturé', libelle: 'Clôturé' },
+];
+
+const filterFields = [
+    { key: 'etat', type: 'select', placeholder: 'État...', options: etatOptions, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
 ];
 
 let searchTimeout;
@@ -118,26 +123,7 @@ const deleteItem = () => {
 
             <!-- Filtres -->
             <div class="row m-0 mt-3">
-                <form @submit.prevent="search" style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap;">
-                    <div style="width: 160px;">
-                        <SearchableSelect
-                            v-model="searchFilters.etat"
-                            :options="etatOptions"
-                            optionValue="id"
-                            optionLabel="libelle"
-                            placeholder="État..."
-                            class="form-control-sm"
-                        />
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button type="submit" class="btn btn-primary btn-sm" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        <button type="button" class="btn btn-secondary btn-sm" @click="resetFilters" style="height: 32px; padding: 0 10px;">
-                            <i class="fa fa-redo"></i>
-                        </button>
-                    </div>
-                </form>
+                <FilterBar v-model="searchFilters" :fields="filterFields" @search="search" @reset="resetFilters"></FilterBar>
 
                 <div class="card-body">
                     <div class="table-wrapper">

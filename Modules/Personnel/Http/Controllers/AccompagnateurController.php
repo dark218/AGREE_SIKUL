@@ -82,11 +82,21 @@ class AccompagnateurController extends Controller
 
             // Apprenants avec école pour le composant multi-select
             $apprenants = \Modules\Academique\Entities\Apprenant::whereNull('deleted_at')
-                ->get(['id', 'nom', 'prenoms', 'matricule', 'ecole_id'])
+                ->get([
+                    'id', 'nom', 'prenoms', 'matricule', 'ecole_id',
+                    'nom_pere', 'nom_mere', 'nom_tuteur', 'nom_responsable_legal',
+                    'telephone', 'email',
+                ])
                 ->map(fn($a) => [
                     'id' => $a->id,
                     'libelle' => trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')) . ' (' . ($a->matricule ?? '') . ')',
                     'ecole_id' => $a->ecole_id,
+                    'nom_pere' => $a->nom_pere,
+                    'nom_mere' => $a->nom_mere,
+                    'nom_tuteur' => $a->nom_tuteur,
+                    'nom_responsable_legal' => $a->nom_responsable_legal,
+                    'telephone' => $a->telephone,
+                    'email' => $a->email,
                 ])->values();
 
             return Inertia::render('Personnel/Accompagnateurs/Create', [
@@ -255,11 +265,21 @@ class AccompagnateurController extends Controller
             $campuses = Campus::select('id', 'nom as libelle')->orderBy('nom')->get();
 
             $apprenants = \Modules\Academique\Entities\Apprenant::whereNull('deleted_at')
-                ->get(['id', 'nom', 'prenoms', 'matricule', 'ecole_id'])
+                ->get([
+                    'id', 'nom', 'prenoms', 'matricule', 'ecole_id',
+                    'nom_pere', 'nom_mere', 'nom_tuteur', 'nom_responsable_legal',
+                    'telephone', 'email',
+                ])
                 ->map(fn($a) => [
                     'id' => $a->id,
                     'libelle' => trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')) . ' (' . ($a->matricule ?? '') . ')',
                     'ecole_id' => $a->ecole_id,
+                    'nom_pere' => $a->nom_pere,
+                    'nom_mere' => $a->nom_mere,
+                    'nom_tuteur' => $a->nom_tuteur,
+                    'nom_responsable_legal' => $a->nom_responsable_legal,
+                    'telephone' => $a->telephone,
+                    'email' => $a->email,
                 ])->values();
 
             $editData = $accompagnateur->toArray();
