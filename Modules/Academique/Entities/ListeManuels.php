@@ -5,6 +5,7 @@ namespace Modules\Academique\Entities;
 use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ListeManuels extends BaseModel
@@ -17,6 +18,8 @@ class ListeManuels extends BaseModel
         'annee_scolaire_id',
         'ecole_id',
         'section_id',
+        'niveau_id',
+        'cycle_id',
         'type_manuel',
         'titre_manuel',
         'auteurs',
@@ -60,6 +63,46 @@ class ListeManuels extends BaseModel
     public function pays(): BelongsTo
     {
         return $this->belongsTo(\Modules\Parametrage\Entities\Pays::class, 'pays_id');
+    }
+
+    /**
+     * Relationship: Niveau
+     */
+    public function niveau(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Parametrage\Entities\Niveau::class, 'niveau_id');
+    }
+
+    /**
+     * Relationship: Cycle d'enseignement
+     */
+    public function cycle(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Parametrage\Entities\CycleEnseignement::class, 'cycle_id');
+    }
+
+    /**
+     * Bloc livres
+     */
+    public function livres(): HasMany
+    {
+        return $this->hasMany(ListeManuelsLivre::class, 'liste_manuels_id')->orderBy('ordre');
+    }
+
+    /**
+     * Bloc cahiers
+     */
+    public function cahiers(): HasMany
+    {
+        return $this->hasMany(ListeManuelsCahier::class, 'liste_manuels_id')->orderBy('ordre');
+    }
+
+    /**
+     * Bloc autres fournitures
+     */
+    public function fournitures(): HasMany
+    {
+        return $this->hasMany(ListeManuelsFourniture::class, 'liste_manuels_id')->orderBy('ordre');
     }
 
     /**

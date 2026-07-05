@@ -22,6 +22,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    niveaux: {
+        type: Array,
+        default: () => [],
+    },
+    cycles: {
+        type: Array,
+        default: () => [],
+    },
     pays: {
         type: Array,
         default: () => [],
@@ -34,12 +42,12 @@ const form = useForm({
     annee_scolaire_id: '',
     ecole_id: '',
     section_id: '',
-    type_manuel: '',
-    titre_manuel: '',
-    auteurs: '',
-    editeur: '',
-    annee_edition: '',
+    niveau_id: '',
+    cycle_id: '',
     pays_id: '',
+    livres: [],
+    cahiers: [],
+    fournitures: [],
     etat: 'actif',
 });
 
@@ -76,6 +84,8 @@ const submit = () => {
                                         :annees-scolaires="anneesScolaires"
                                         :ecoles="ecoles"
                                         :sections="sections"
+                                        :niveaux="niveaux"
+                                        :cycles="cycles"
                                         :pays="pays"
                                         mode="create"
                                     />

@@ -95,6 +95,7 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'cours', libelle: 'Cours', libelle_en: 'Courses', icone: 'fas fa-graduation-cap' },
             { menu_url: 'seances', libelle: 'Séances', libelle_en: 'Sessions', icone: 'fas fa-clock' },
             { menu_url: 'emplois-du-temps', libelle: 'Emplois du Temps', libelle_en: 'Timetables', icone: 'fas fa-calendar' },
+            { menu_url: 'listes-manuels', libelle: 'Manuels & Fournitures', libelle_en: 'Textbooks & Supplies', icone: 'fas fa-book' },
 
             // Évaluations
             { menu_url: 'evaluations', libelle: 'Évaluations', libelle_en: 'Evaluations', icone: 'fas fa-list-check' },
@@ -288,7 +289,7 @@ const ACADEMIQUE_GROUPS = [
     { id: 'gestion', libelle: 'Gestion Académique', libelle_en: 'Academic Management', icone: 'fas fa-users',
       items: ['apprenants', 'enseignants', 'tuteurs', 'matieres'] },
     { id: 'pedagogie', libelle: 'Pédagogie', libelle_en: 'Teaching', icone: 'fas fa-chalkboard-teacher',
-      items: ['cours', 'seances', 'emplois-du-temps'] },
+      items: ['cours', 'seances', 'emplois-du-temps', 'listes-manuels'] },
     { id: 'evaluations', libelle: 'Évaluations & Notes', libelle_en: 'Assessments & Grades', icone: 'fas fa-star',
       items: ['evaluations', 'notes', 'bulletins', 'moyennes-matieres'] },
     { id: 'travaux', libelle: 'Travaux', libelle_en: 'Assignments', icone: 'fas fa-list-check',

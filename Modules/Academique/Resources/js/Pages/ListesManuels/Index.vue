@@ -144,24 +144,26 @@ const handleConfirm = () => {
                             <table class="table table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>{{ t('fields.titre_manuel') || 'Titre' }}</th>
-                                        <th>{{ t('fields.auteurs') || 'Auteur(s)' }}</th>
-                                        <th>{{ t('fields.editeur') || 'Éditeur' }}</th>
-                                        <th>{{ t('fields.section') || 'Section' }}</th>
                                         <th>{{ t('fields.annee_scolaire') || 'Année scolaire' }}</th>
+                                        <th>{{ t('fields.school') || 'École' }}</th>
+                                        <th>{{ t('fields.section') || 'Section' }}</th>
+                                        <th>{{ t('fields.level') || 'Niveau' }}</th>
+                                        <th class="text-center">{{ t('fields.content') || 'Contenu' }}</th>
                                         <th>{{ t('common.status') || 'État' }}</th>
                                         <th class="text-center">{{ t('actions.actions') || 'Actions' }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="item in filteredListes" :key="item.id">
-                                        <td>
-                                            <strong>{{ item.titre_manuel }}</strong>
-                                        </td>
-                                        <td>{{ item.auteurs || '-' }}</td>
-                                        <td>{{ item.editeur || '-' }}</td>
-                                        <td>{{ item.section?.libelle || '-' }}</td>
                                         <td>{{ item.annee_scolaire?.libelle || '-' }}</td>
+                                        <td>{{ item.ecole?.nom || item.ecole?.libelle || '-' }}</td>
+                                        <td>{{ item.section?.libelle || item.section?.nom || '-' }}</td>
+                                        <td>{{ item.niveau?.libelle || item.niveau?.nom || '-' }}</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info me-1" title="Livres">{{ item.livres_count || 0 }} 📚</span>
+                                            <span class="badge bg-secondary me-1" title="Cahiers">{{ item.cahiers_count || 0 }} 📓</span>
+                                            <span class="badge bg-dark" title="Autres fournitures">{{ item.fournitures_count || 0 }} ✏️</span>
+                                        </td>
                                         <td>
                                             <span :class="['badge', item.etat === 'actif' ? 'bg-success' : 'bg-danger']">
                                                 {{ item.etat === 'actif' ? 'Actif' : 'Inactif' }}
@@ -202,15 +204,18 @@ const handleConfirm = () => {
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start mb-3">
-                                            <h6 class="card-title">{{ item.titre_manuel }}</h6>
+                                            <h6 class="card-title">{{ item.annee_scolaire?.libelle || 'Liste' }} — {{ item.niveau?.libelle || item.niveau?.nom || '' }}</h6>
                                             <span :class="['badge', item.etat === 'actif' ? 'bg-success' : 'bg-danger']">
                                                 {{ item.etat === 'actif' ? 'Actif' : 'Inactif' }}
                                             </span>
                                         </div>
-                                        <p class="mb-2"><strong>Auteur(s):</strong> {{ item.auteurs || '-' }}</p>
-                                        <p class="mb-2"><strong>Éditeur:</strong> {{ item.editeur || '-' }}</p>
-                                        <p class="mb-2"><strong>Section:</strong> {{ item.section?.libelle || '-' }}</p>
-                                        <p class="mb-3"><strong>Année scolaire:</strong> {{ item.annee_scolaire?.libelle || '-' }}</p>
+                                        <p class="mb-2"><strong>École:</strong> {{ item.ecole?.nom || item.ecole?.libelle || '-' }}</p>
+                                        <p class="mb-2"><strong>Section:</strong> {{ item.section?.libelle || item.section?.nom || '-' }}</p>
+                                        <p class="mb-3">
+                                            <span class="badge bg-info me-1">{{ item.livres_count || 0 }} livres</span>
+                                            <span class="badge bg-secondary me-1">{{ item.cahiers_count || 0 }} cahiers</span>
+                                            <span class="badge bg-dark">{{ item.fournitures_count || 0 }} fournitures</span>
+                                        </p>
                                         <div class="d-flex gap-2">
                                             <button type="button" class="btn btn-sm btn-secondary flex-grow-1" @click="viewItem(item.id)">
                                                 <i class="fa fa-eye"></i> Voir

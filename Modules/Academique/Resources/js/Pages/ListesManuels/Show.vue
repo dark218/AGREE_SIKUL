@@ -27,6 +27,14 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    niveaux: {
+        type: Array,
+        default: () => [],
+    },
+    cycles: {
+        type: Array,
+        default: () => [],
+    },
     pays: {
         type: Array,
         default: () => [],
@@ -37,16 +45,22 @@ const showConfirmModal = ref(false);
 const confirmAction = ref(null);
 const confirmMessage = ref('');
 
+const mapRows = (rows, keys) => (rows || []).map(r => {
+    const o = {};
+    keys.forEach(k => { o[k] = r[k] ?? ''; });
+    return o;
+});
+
 const form = useForm({
     annee_scolaire_id: props.manuel?.annee_scolaire_id || '',
     ecole_id: props.manuel?.ecole_id || '',
     section_id: props.manuel?.section_id || '',
-    type_manuel: props.manuel?.type_manuel || '',
-    titre_manuel: props.manuel?.titre_manuel || '',
-    auteurs: props.manuel?.auteurs || '',
-    editeur: props.manuel?.editeur || '',
-    annee_edition: props.manuel?.annee_edition || '',
+    niveau_id: props.manuel?.niveau_id || '',
+    cycle_id: props.manuel?.cycle_id || '',
     pays_id: props.manuel?.pays_id || '',
+    livres: mapRows(props.manuel?.livres, ['titre', 'sujet', 'langue', 'auteurs', 'editeurs', 'annee_edition']),
+    cahiers: mapRows(props.manuel?.cahiers, ['utilite', 'type_cahier', 'nombre_pages', 'quantite']),
+    fournitures: mapRows(props.manuel?.fournitures, ['utilite', 'designation', 'quantite', 'fournisseur']),
     etat: props.manuel?.etat || 'actif',
 });
 
@@ -93,6 +107,8 @@ const handleConfirm = () => {
                                     :annees-scolaires="anneesScolaires"
                                     :ecoles="ecoles"
                                     :sections="sections"
+                                    :niveaux="niveaux"
+                                    :cycles="cycles"
                                     :pays="pays"
                                     mode="show"
                                 />

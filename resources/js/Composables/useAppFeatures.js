@@ -52,6 +52,7 @@ const specialRoutes = {
     // Academique module
     'personnels-administratifs': 'academique.personnels_administratifs.index',
     'emplois-du-temps': 'academique.emplois_du_temps.index',
+    'listes-manuels': 'academique.listes-manuels.index',
     'exam-finance': 'academique.exam-finance.index',
     'planification-examens': 'academique.planification-examens.index',
     'examens-en-ligne': 'academique.examens-en-ligne.index',
