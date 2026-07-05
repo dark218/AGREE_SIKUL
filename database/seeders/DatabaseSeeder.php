@@ -24,6 +24,10 @@ class DatabaseSeeder extends Seeder
             CreateAllPermissionsSeeder::class, // Scanne le codebase et crée toutes les permissions `permission.check:*` réellement utilisées
             // RbacPermissionsSeeder::class, // Déjà inclus dans PermissionSeeder et RoleSeeder
 
+            // Fonctionnalités additionnelles (features menu + permissions + assignation aux rôles)
+            ListesManuelsFeatureSeeder::class,   // Liste des manuels et fournitures
+            BibliothequeFeaturesSeeder::class,   // Bibliothèque : structures, entrées, sorties, inventaire
+
             // Utilisateurs de base
             AgreeSikulUsersSeeder::class,
 

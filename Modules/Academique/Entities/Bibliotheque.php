@@ -43,6 +43,20 @@ class Bibliotheque extends BaseModel
         return $this->belongsTo(\Modules\Parametrage\Entities\Niveau::class, 'niveau_id');
     }
 
+    /**
+     * Mouvements d'entrée de ce livre (nommé ...Livres pour ne pas entrer en
+     * conflit avec la colonne "sorties").
+     */
+    public function entreesLivres()
+    {
+        return $this->hasMany(EntreeLivre::class, 'bibliotheque_id');
+    }
+
+    public function sortiesLivres()
+    {
+        return $this->hasMany(SortieLivre::class, 'bibliotheque_id');
+    }
+
     // Scopes
     public function scopeActif($query)
     {

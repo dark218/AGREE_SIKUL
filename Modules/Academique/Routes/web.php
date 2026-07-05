@@ -25,6 +25,10 @@ use Modules\Academique\Http\Controllers\ManuelController;
 use Modules\Academique\Http\Controllers\PassageController;
 use Modules\Academique\Http\Controllers\ClassesApprenantsController;
 use Modules\Academique\Http\Controllers\BibliothequeController;
+use Modules\Academique\Http\Controllers\BibliothequeStructureController;
+use Modules\Academique\Http\Controllers\EntreeLivreController;
+use Modules\Academique\Http\Controllers\SortieLivreController;
+use Modules\Academique\Http\Controllers\InventaireLivreController;
 use Modules\Academique\Http\Controllers\PlanificationExamenController;
 use Modules\Academique\Http\Controllers\ExamenEnLigneController;
 use Modules\Academique\Http\Controllers\QuestionExamenController;
@@ -390,6 +394,43 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::put('/{bibliotheque}/statut', [BibliothequeController::class, 'statut'])->name('statut');
         Route::delete('/{bibliotheque}', [BibliothequeController::class, 'destroy'])->name('destroy');
     });
+
+    // Bibliothèque - Liste des bibliothèques (structures / lieux)
+    Route::prefix('bibliotheque-structures')->name('bibliotheque-structures.')->group(function () {
+        Route::get('/', [BibliothequeStructureController::class, 'index'])->name('index');
+        Route::get('/create', [BibliothequeStructureController::class, 'create'])->name('create');
+        Route::post('/', [BibliothequeStructureController::class, 'store'])->name('store');
+        Route::get('/{bibliothequeStructure}', [BibliothequeStructureController::class, 'show'])->name('show');
+        Route::get('/{bibliothequeStructure}/edit', [BibliothequeStructureController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{bibliothequeStructure}', [BibliothequeStructureController::class, 'update'])->name('update');
+        Route::put('/{bibliothequeStructure}/statut', [BibliothequeStructureController::class, 'statut'])->name('statut');
+        Route::delete('/{bibliothequeStructure}', [BibliothequeStructureController::class, 'destroy'])->name('destroy');
+    });
+
+    // Bibliothèque - Entrées de livres
+    Route::prefix('entrees-livres')->name('entrees-livres.')->group(function () {
+        Route::get('/', [EntreeLivreController::class, 'index'])->name('index');
+        Route::get('/create', [EntreeLivreController::class, 'create'])->name('create');
+        Route::post('/', [EntreeLivreController::class, 'store'])->name('store');
+        Route::get('/{entreesLivre}', [EntreeLivreController::class, 'show'])->name('show');
+        Route::get('/{entreesLivre}/edit', [EntreeLivreController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{entreesLivre}', [EntreeLivreController::class, 'update'])->name('update');
+        Route::delete('/{entreesLivre}', [EntreeLivreController::class, 'destroy'])->name('destroy');
+    });
+
+    // Bibliothèque - Sorties de livres
+    Route::prefix('sorties-livres')->name('sorties-livres.')->group(function () {
+        Route::get('/', [SortieLivreController::class, 'index'])->name('index');
+        Route::get('/create', [SortieLivreController::class, 'create'])->name('create');
+        Route::post('/', [SortieLivreController::class, 'store'])->name('store');
+        Route::get('/{sortiesLivre}', [SortieLivreController::class, 'show'])->name('show');
+        Route::get('/{sortiesLivre}/edit', [SortieLivreController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{sortiesLivre}', [SortieLivreController::class, 'update'])->name('update');
+        Route::delete('/{sortiesLivre}', [SortieLivreController::class, 'destroy'])->name('destroy');
+    });
+
+    // Bibliothèque - Inventaire (calculé)
+    Route::get('/inventaire-livres', [InventaireLivreController::class, 'index'])->name('inventaire-livres.index');
 
     // Planification Examens
     Route::prefix('planification-examens')->name('planification-examens.')->group(function () {

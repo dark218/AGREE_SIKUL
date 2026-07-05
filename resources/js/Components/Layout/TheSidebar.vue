@@ -124,6 +124,12 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'mes-examens', libelle: 'Mes Examens', libelle_en: 'My Exams', icone: 'fas fa-graduation-cap' },
             { menu_url: 'exam-finance', libelle: 'Financements Examens', libelle_en: 'Exam Financing', icone: 'fas fa-coins' },
 
+            // Bibliothèque
+            { menu_url: 'bibliotheque-structures', libelle: 'Bibliothèques', libelle_en: 'Libraries', icone: 'fas fa-book-open' },
+            { menu_url: 'entrees-livres', libelle: 'Entrées de livres', libelle_en: 'Book Entries', icone: 'fas fa-arrow-down' },
+            { menu_url: 'sorties-livres', libelle: 'Sorties de livres', libelle_en: 'Book Exits', icone: 'fas fa-arrow-up' },
+            { menu_url: 'inventaire-livres', libelle: 'Inventaire', libelle_en: 'Inventory', icone: 'fas fa-boxes-stacked' },
+
             // Administration
             { menu_url: 'personnels-administratifs', libelle: 'Personnel Admin', libelle_en: 'Admin Staff', icone: 'fas fa-briefcase' }
         ]
@@ -300,6 +306,8 @@ const ACADEMIQUE_GROUPS = [
       items: ['absences-apprenants', 'absences-enseignants', 'presences', 'presences-seances', 'justificatifs-absences'] },
     { id: 'examens', libelle: 'Examens', libelle_en: 'Exams', icone: 'fas fa-file-pen',
       items: ['planification-examens', 'examens-en-ligne', 'mes-examens', 'exam-finance'] },
+    { id: 'bibliotheque', libelle: 'Bibliothèque', libelle_en: 'Library', icone: 'fas fa-book-open',
+      items: ['bibliotheque-structures', 'entrees-livres', 'sorties-livres', 'inventaire-livres'] },
     { id: 'administration', libelle: 'Administration', libelle_en: 'Administration', icone: 'fas fa-briefcase',
       items: ['personnels-administratifs'] },
 ];
