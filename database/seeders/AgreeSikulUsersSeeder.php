@@ -30,38 +30,59 @@ class AgreeSikulUsersSeeder extends Seeder
             unset($userData['role']);
 
             try {
-                // Créer l'utilisateur avec tous les champs requis
-                $uuid = (string) Str::uuid();
-                $userId = DB::table('users')->insertGetId(array_merge($userData, [
-                    'uuid' => $uuid,
-                    'full_login' => '+221' . $userData['login'], // Format: +221 (Sénégal) + numéro
-                    'qr_data' => $uuid,
-                    'alias_smil' => Str::slug($userData['nom'] . ' ' . $userData['prenoms']),
-                    'code_owner' => Str::random(20),
-                    'password' => Hash::make('password123'),
-                    'statut' => 'actif', // Obligatoire: défaut DB = 'non_actif' sinon compte inutilisable
-                    'kyc_status' => 'verifie',
-                    'remember_token' => Str::random(10),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]));
+                // Idempotent : on ne recrée pas un utilisateur déjà présent
+                // (le seeder peut être relancé sans casser sur la contrainte unique).
+                $existing = DB::table('users')
+                    ->where('login', $userData['login'])
+                    ->orWhere('email', $userData['email'])
+                    ->first();
 
-                // Assigner le rôle
+                if ($existing) {
+                    $userId = $existing->id;
+                    $this->command->info("↺ {$userData['email']} existe déjà (id {$userId}) — ignoré");
+                } else {
+                    // Créer l'utilisateur avec tous les champs requis
+                    $uuid = (string) Str::uuid();
+                    $userId = DB::table('users')->insertGetId(array_merge($userData, [
+                        'uuid' => $uuid,
+                        'full_login' => '+221' . $userData['login'], // Format: +221 (Sénégal) + numéro
+                        'qr_data' => $uuid,
+                        'alias_smil' => Str::slug($userData['nom'] . ' ' . $userData['prenoms']),
+                        'code_owner' => Str::random(20),
+                        'password' => Hash::make('password123'),
+                        'statut' => 'actif', // Obligatoire: défaut DB = 'non_actif' sinon compte inutilisable
+                        'kyc_status' => 'verifie',
+                        'remember_token' => Str::random(10),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]));
+                    $this->command->info("✅ {$userData['nom']} {$userData['prenoms']} créé (id {$userId})");
+                }
+
+                // Assigner le rôle (sans créer de doublon dans model_has_roles)
                 $roleId = DB::table('roles')->where('name', $role)->first()?->id;
                 if ($roleId) {
-                    DB::table('model_has_roles')->insert([
+                    $hasRole = DB::table('model_has_roles')->where([
                         'role_id' => $roleId,
                         'model_type' => 'App\\Models\\User',
                         'model_id' => $userId,
-                    ]);
-                    $this->command->info("✅ {$userData['nom']} {$userData['prenoms']} → {$role}");
+                    ])->exists();
+
+                    if (!$hasRole) {
+                        DB::table('model_has_roles')->insert([
+                            'role_id' => $roleId,
+                            'model_type' => 'App\\Models\\User',
+                            'model_id' => $userId,
+                        ]);
+                    }
+                    $this->command->info("   → rôle {$role}");
                 } else {
                     $this->command->warn("⚠️  Rôle '{$role}' introuvable pour {$userData['email']}");
                 }
             } catch (\Throwable $e) {
-                // Log complet (pas de troncature) + relance pour ne pas masquer les bugs
+                // On log mais on NE stoppe PAS tout le seeding pour un seul utilisateur.
                 $this->command->error("❌ {$userData['email']}: " . $e->getMessage());
-                throw $e;
+                continue;
             }
         }
 
