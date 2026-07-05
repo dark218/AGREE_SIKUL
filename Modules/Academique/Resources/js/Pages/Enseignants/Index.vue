@@ -23,6 +23,7 @@ const props = defineProps({
     filters: Object,
     categoriesFilter: { type: Array, default: () => [] },
     naturesContratFilter: { type: Array, default: () => [] },
+    statutsFilter: { type: Array, default: () => [] },
 });
 const deleteMode = ref(false);
 const deactivateMode = ref(false);
@@ -33,13 +34,20 @@ const searchFilters = ref({
     categorie_enseignant_id: props.filters?.categorie_enseignant_id || '',
     nature_contrat_id: props.filters?.nature_contrat_id || '',
 });
-const statusOptions = [
-    { id: 'actif', libelle: 'Actif' },
-    { id: 'inactif', libelle: 'Inactif' },
-];
+// Statuts employé (référentiel) : codes normalisés en minuscules pour matcher
+// la valeur stockée dans enseignants.statut (ex: 'stem_01').
+const statutsNormalises = (props.statutsFilter || []).map(s => ({ ...s, code: (s.code || '').toLowerCase() }));
+const statutMap = Object.fromEntries(statutsNormalises.map(s => [s.code, s.libelle]));
+// Affiche le libellé du statut (ex: 'Actif') au lieu du code brut ('stem_01').
+const statutLibelle = (code) => statutMap[(code || '').toLowerCase()] || code || '-';
+// Un statut est considéré "actif" si son libellé est "Actif" (pour la couleur + le toggle).
+const isActifStatut = (code) => {
+    const c = (code || '').toLowerCase();
+    return c === 'actif' || (statutLibelle(code) || '').toLowerCase() === 'actif';
+};
 const filterFields = [
     { key: 'search', type: 'text', placeholder: 'Rechercher', icon: 'fa-search', width: '220px' },
-    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '160px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statutsNormalises, optionValue: 'code', optionLabel: 'libelle', width: '160px' },
     { key: 'categorie_enseignant_id', type: 'select', placeholder: 'Catégorie', options: props.categoriesFilter, optionValue: 'id', optionLabel: 'libelle', width: '190px' },
     { key: 'nature_contrat_id', type: 'select', placeholder: 'Nature du contrat', options: props.naturesContratFilter, optionValue: 'id', optionLabel: 'libelle', width: '200px' },
 ];
@@ -161,7 +169,7 @@ const closeModal = () => {
                                             <td>{{ item.email || '-' }}</td>
                                             <td>{{ item.telephone || '-' }}</td>
                                             <td>{{ item.fonction?.libelle || '-' }}</td>
-                                            <td><span class="badge" :class="item.statut === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + item.statut) }}</span></td>
+                                            <td><span class="badge" :class="isActifStatut(item.statut) ? 'bg-success' : 'bg-secondary'">{{ statutLibelle(item.statut) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
                                                     <Link :href="route('academique.enseignants.show', item.id)" class="btn btn-secondary" :title="t('actions.view')">
@@ -173,7 +181,7 @@ const closeModal = () => {
                                                     <button @click="confirmDelete(item)" class="btn btn-danger" :title="t('actions.delete')">
                                                         <span class="fa fa-trash"></span>
                                                     </button>
-                                                    <button v-if="item.statut === 'actif'" @click="confirmDeactivate(item)" class="btn btn-danger" :title="t('actions.deactivate')">
+                                                    <button v-if="isActifStatut(item.statut)" @click="confirmDeactivate(item)" class="btn btn-danger" :title="t('actions.deactivate')">
                                                         <span class="fa fa-ban"></span>
                                                     </button>
                                                     <button v-else @click="confirmActivate(item)" class="btn btn-success" :title="t('actions.activate')">

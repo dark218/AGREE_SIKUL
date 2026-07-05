@@ -74,6 +74,8 @@ class EnseignantController extends Controller
             // Listes d'options pour les filtres (petites tables de référence)
             'categoriesFilter' => CategorieEnseignant::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
             'naturesContratFilter' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            // Référentiel des statuts employé (pour afficher le libellé et filtrer)
+            'statutsFilter' => StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle']),
         ]);
     }
 
