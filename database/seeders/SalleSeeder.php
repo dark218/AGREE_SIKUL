@@ -71,6 +71,9 @@ class SalleSeeder extends Seeder
             ],
         ];
 
-        DB::table('salles')->insert($salles);
+        // Idempotent : on met à jour la salle si le code existe déjà, sinon on l'insère.
+        foreach ($salles as $salle) {
+            DB::table('salles')->updateOrInsert(['code' => $salle['code']], $salle);
+        }
     }
 }
