@@ -104,9 +104,42 @@ class EnseignantController extends Controller
         ]);
     }
 
+    /**
+     * Normalise les clés étrangères OPTIONNELLES avant validation :
+     *  - '' (chaîne vide envoyée par un select vidé) -> null
+     *  - id orphelin (n'existe plus en base) -> null
+     * Évite l'erreur "… id sélectionné est invalide" sur des champs non obligatoires.
+     */
+    private function normalizeForeignKeys(Request $request): void
+    {
+        // 1) Toute clé se terminant par _id et valant '' devient null.
+        foreach ($request->all() as $key => $value) {
+            if (is_string($value) && $value === '' && str_ends_with($key, '_id')) {
+                $request->merge([$key => null]);
+            }
+        }
+
+        // 2) Clés étrangères géographiques/référentielles optionnelles :
+        //    un id inexistant est ramené à null au lieu de bloquer l'enregistrement.
+        $optional = [
+            'commune_id'    => 'communes',
+            'department_id' => 'departements',
+            'region_id'     => 'regions',
+            'country_id'    => 'pays',
+            'genre_id'      => 'genres',
+        ];
+        foreach ($optional as $field => $table) {
+            $val = $request->input($field);
+            if ($val !== null && $val !== '' && !\DB::table($table)->where('id', $val)->exists()) {
+                $request->merge([$field => null]);
+            }
+        }
+    }
+
     public function store(Request $request)
     {
         try {
+            $this->normalizeForeignKeys($request);
             $validated = $request->validate([
                 // user_id est désormais optionnel : si absent, un User sera auto-créé
                 // à partir du nom/prénom/email/téléphone saisis dans le formulaire.
@@ -299,8 +332,9 @@ class EnseignantController extends Controller
         \Log::info('📨 Request all: ' . json_encode($request->all()));
 
         try {
+            $this->normalizeForeignKeys($request);
             $validated = $request->validate([
-                'user_id' => 'required|exists:users,id|unique:enseignants,user_id,' . $enseignant->id,
+                'user_id' => 'nullable|exists:users,id|unique:enseignants,user_id,' . $enseignant->id,
                 'matricule' => 'nullable|unique:enseignants,matricule,' . $enseignant->id,
                 'num_enseignant' => 'nullable|string|max:50|unique:enseignants,num_enseignant,' . $enseignant->id,
                 'nom' => 'nullable|string|max:100',

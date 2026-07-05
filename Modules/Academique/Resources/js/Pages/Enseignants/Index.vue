@@ -165,7 +165,7 @@ const closeModal = () => {
                                 <tbody>
                                     <template v-if="enseignants?.data && enseignants?.data.length > 0">
                                         <tr v-for="item in enseignants?.data" :key="item.id">
-                                            <td>{{ item.user?.prenoms || '' }} {{ item.user?.nom || '' }}</td>
+                                            <td>{{ (item.prenoms || item.user?.prenoms || '') }} {{ (item.nom || item.user?.nom || '') }}</td>
                                             <td>{{ item.email || '-' }}</td>
                                             <td>{{ item.telephone || '-' }}</td>
                                             <td>{{ item.fonction?.libelle || '-' }}</td>
