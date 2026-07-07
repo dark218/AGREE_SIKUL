@@ -28,6 +28,12 @@ class DatabaseSeeder extends Seeder
             ListesManuelsFeatureSeeder::class,   // Liste des manuels et fournitures
             BibliothequeFeaturesSeeder::class,   // Bibliothèque : structures, entrées, sorties, inventaire
 
+            // §10.7 : référentiels du module RessourcesLogistique (catégories
+            // Équipements/Documents/Fournitures + bibliothèque par défaut).
+            // Sans ce seed, les dropdowns "Catégorie" sont vides et la création
+            // d'équipement/document/fourniture est bloquée.
+            RessourcesLogistiqueReferentielsSeeder::class,
+
             // Utilisateurs de base
             AgreeSikulUsersSeeder::class,
 

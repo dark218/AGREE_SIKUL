@@ -39,7 +39,7 @@ class OuvrageController extends Controller
                     'titre' => $ouvrage->titre,
                     'auteur' => $ouvrage->auteur,
                     'isbn' => $ouvrage->isbn,
-                    'bibliotheque' => $ouvrage->bibliotheque?->titre_manuel,
+                    'bibliotheque' => $ouvrage->bibliotheque?->nom,
                     'statut' => $ouvrage->statut,
                 ]);
 
@@ -57,7 +57,7 @@ class OuvrageController extends Controller
     {
         try {
             $bibliotheques = \Modules\RessourcesLogistique\Entities\Bibliotheque::where('etat', 'actif')
-                ->select('id', 'titre_manuel as libelle')->get()->toArray();
+                ->select('id', 'nom as libelle')->get()->toArray();
 
             return Inertia::render('RessourcesLogistique::Ouvrages/Create', [
                 'bibliotheques' => $bibliotheques,
@@ -100,7 +100,7 @@ class OuvrageController extends Controller
         try {
             $ouvrage->load('bibliotheque', 'exemplaires');
             $bibliotheques = \Modules\RessourcesLogistique\Entities\Bibliotheque::where('etat', 'actif')
-                ->select('id', 'titre_manuel as libelle')->get()->toArray();
+                ->select('id', 'nom as libelle')->get()->toArray();
 
             return Inertia::render('RessourcesLogistique::Ouvrages/Show', [
                 'ouvrage' => $ouvrage,
@@ -116,7 +116,7 @@ class OuvrageController extends Controller
     {
         try {
             $bibliotheques = \Modules\RessourcesLogistique\Entities\Bibliotheque::where('etat', 'actif')
-                ->select('id', 'titre_manuel as libelle')->get()->toArray();
+                ->select('id', 'nom as libelle')->get()->toArray();
 
             return Inertia::render('RessourcesLogistique::Ouvrages/Edit', [
                 'ouvrage' => $ouvrage->load('bibliotheque'),

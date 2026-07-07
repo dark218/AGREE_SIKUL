@@ -24,7 +24,17 @@ const props = defineProps({
     ecolesFilter: { type: Array, default: () => [] },
     cyclesFilter: { type: Array, default: () => [] },
     anneesFilter: { type: Array, default: () => [] },
+    statutsFilter: { type: Array, default: () => [] },
 });
+// Statuts apprenant (référentiel) : codes normalisés pour matcher la valeur
+// stockée dans apprenants.statut (ex: 'stap_01').
+const statutsNormalises = (props.statutsFilter || []).map(s => ({ ...s, code: (s.code || '').toLowerCase() }));
+const statutMap = Object.fromEntries(statutsNormalises.map(s => [s.code, s.libelle]));
+const statutLibelle = (code) => statutMap[(code || '').toLowerCase()] || code || '-';
+const isActifStatut = (code) => {
+    const c = (code || '').toLowerCase();
+    return c === 'actif' || (statutLibelle(code) || '').toLowerCase() === 'actif';
+};
 const deleteMode = ref(false);
 const deactivateMode = ref(false);
 const activateMode = ref(false);
@@ -42,7 +52,7 @@ const statusOptions = [
 ];
 const filterFields = [
     { key: 'search', type: 'text', placeholder: 'Rechercher un apprenant…', icon: 'fa-search', width: '240px' },
-    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '160px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statutsNormalises, optionValue: 'code', optionLabel: 'libelle', width: '160px' },
     { key: 'classe_id', type: 'select', placeholder: 'Classe', options: props.classesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
     { key: 'ecole_id', type: 'select', placeholder: 'École', options: props.ecolesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
     { key: 'cycle_id', type: 'select', placeholder: 'Cycle', options: props.cyclesFilter, optionValue: 'id', optionLabel: 'libelle', width: '170px' },
@@ -182,7 +192,7 @@ const closeModal = () => {
                                             <td>{{ item.email || '-' }}</td>
                                             <td>{{ item.telephone || '-' }}</td>
                                             <td>{{ item.classe?.nom || '-' }}</td>
-                                            <td><span class="badge" :class="item.statut === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + item.statut) }}</span></td>
+                                            <td><span class="badge" :class="isActifStatut(item.statut) ? 'bg-success' : 'bg-secondary'">{{ statutLibelle(item.statut) }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
                                                     <Link :href="route('academique.apprenants.show', item.id)" class="btn btn-secondary" :title="t('actions.view')">
@@ -208,7 +218,7 @@ const closeModal = () => {
                                                     <button @click="confirmDelete(item)" class="btn btn-danger" :title="t('actions.delete')">
                                                         <span class="fa fa-trash"></span>
                                                     </button>
-                                                    <button v-if="item.statut === 'actif'" @click="confirmDeactivate(item)" class="btn btn-danger" :title="t('actions.deactivate')">
+                                                    <button v-if="isActifStatut(item.statut)" @click="confirmDeactivate(item)" class="btn btn-danger" :title="t('actions.deactivate')">
                                                         <span class="fa fa-ban"></span>
                                                     </button>
                                                     <button v-else @click="confirmActivate(item)" class="btn btn-success" :title="t('actions.activate')">
@@ -247,7 +257,7 @@ const closeModal = () => {
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>
-                                            <span class="mobile-card-value"><span class="badge" :class="item.statut === 'actif' ? 'bg-success' : 'bg-danger'">{{ t('common.' + item.statut) }}</span></span>
+                                            <span class="mobile-card-value"><span class="badge" :class="isActifStatut(item.statut) ? 'bg-success' : 'bg-secondary'">{{ statutLibelle(item.statut) }}</span></span>
                                         </div>
                                         <div class="mobile-card-actions">
                                             <Link :href="route('academique.apprenants.show', item.id)" class="btn btn-secondary btn-sm" :title="t('actions.view')">
@@ -273,7 +283,7 @@ const closeModal = () => {
                                             <button @click="confirmDelete(item)" class="btn btn-danger btn-sm" :title="t('actions.delete')">
                                                 <span class="fa fa-trash"></span>
                                             </button>
-                                            <button v-if="item.statut === 'actif'" @click="confirmDeactivate(item)" class="btn btn-danger btn-sm" :title="t('actions.deactivate')">
+                                            <button v-if="isActifStatut(item.statut)" @click="confirmDeactivate(item)" class="btn btn-danger btn-sm" :title="t('actions.deactivate')">
                                                 <span class="fa fa-ban"></span>
                                             </button>
                                             <button v-else @click="confirmActivate(item)" class="btn btn-success btn-sm" :title="t('actions.activate')">

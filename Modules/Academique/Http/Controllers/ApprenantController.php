@@ -102,6 +102,8 @@ class ApprenantController extends Controller
             'ecolesFilter' => Ecole::whereNull('deleted_at')->orderBy('nom')->get(['id', 'nom as libelle']),
             'cyclesFilter' => CycleEnseignement::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
             'anneesFilter' => AnneeScolaire::whereNull('deleted_at')->orderBy('libelle', 'desc')->get(['id', 'libelle']),
+            // Référentiel des statuts apprenant (pour afficher le libellé et filtrer)
+            'statutsFilter' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle']),
         ]);
     }
 
@@ -138,6 +140,49 @@ class ApprenantController extends Controller
         ]);
     }
 
+    /**
+     * Normalise les clés étrangères OPTIONNELLES avant validation :
+     *  - '' (select vidé) -> null
+     *  - id orphelin (n'existe plus) -> null
+     * Évite l'erreur "… id sélectionné est invalide" sur des champs non obligatoires.
+     */
+    private function normalizeForeignKeys(Request $request): void
+    {
+        // 1) Toute clé se terminant par _id et valant '' devient null.
+        foreach ($request->all() as $key => $value) {
+            if (is_string($value) && $value === '' && str_ends_with($key, '_id')) {
+                $request->merge([$key => null]);
+            }
+        }
+
+        // 2) Clés étrangères optionnelles : un id inexistant -> null.
+        $optional = [
+            'genre_id' => 'genres',
+            'classe_id' => 'classes',
+            'section_id' => 'sections',
+            'cycle_id' => 'cycles_enseignement',
+            'ecole_id' => 'ecoles',
+            'campus_id' => 'campuses',
+            'annee_scolaire_id' => 'annees_scolaires',
+            'type_apprenant_id' => 'type_apprenants',
+            'quartier_id' => 'quartiers',
+            'commune_naissance_id' => 'communes',
+            'departement_naissance_id' => 'departements',
+            'region_naissance_id' => 'regions',
+            'pays_naissance_id' => 'pays',
+            'commune_residence_id' => 'communes',
+            'departement_residence_id' => 'departements',
+            'region_residence_id' => 'regions',
+            'pays_residence_id' => 'pays',
+        ];
+        foreach ($optional as $field => $table) {
+            $val = $request->input($field);
+            if ($val !== null && $val !== '' && !\DB::table($table)->where('id', $val)->exists()) {
+                $request->merge([$field => null]);
+            }
+        }
+    }
+
     public function store(Request $request)
     {
         \Log::info('=== APPRENANT STORE DEBUG START ===');
@@ -145,6 +190,7 @@ class ApprenantController extends Controller
         \Log::info('Request headers:', $request->headers->all());
 
         try {
+            $this->normalizeForeignKeys($request);
             // §UX : le référentiel `statuts_apprenants` peut contenir des codes
             // en majuscule (ACTIF), minuscule (actif) ou Titlecase (Actif)
             // selon les seeders / imports historiques. On ne touche PAS la
@@ -336,6 +382,7 @@ class ApprenantController extends Controller
     public function update(Request $request, Apprenant $apprenant)
     {
         try {
+            $this->normalizeForeignKeys($request);
             // §UX : idem store() — voir commentaire strtoupper().
             if ($request->filled('statut')) {
                 $request->merge(['statut' => strtoupper((string) $request->input('statut'))]);
