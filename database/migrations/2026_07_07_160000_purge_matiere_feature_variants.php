@@ -5,37 +5,99 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * §10.5 renforcement — Purge complète de la feature Menu "Matière" du sidebar.
+ * §10 renforcement — Purge globale de toutes les features de menu retirées
+ * lors des refactos Phase 1 à Phase 3.
  *
- * Contexte : la migration `2026_07_04_230000_drop_matieres_table_and_rbac`
- * purgeait uniquement `feature.menu_url = 'matieres'`. En prod on trouve
- * potentiellement des variantes (`matiere` singulier, ou entrées créées à
- * la main). Cette migration ratisse plus large et purge :
+ * Contexte : plusieurs migrations spécifiques purgent leur propre feature
+ * (matieres, absences_apprenants, justificatifs, bibliothèque, manuels...).
+ * En prod on retrouve toutefois des variantes de menu_url ou libellé qui
+ * n'étaient pas dans la liste initiale — d'où le "menu Matière" qui
+ * réapparaissait dans le sidebar.
  *
- *   - feature dont menu_url ∈ {matieres, matiere}
- *   - feature dont libelle = 'Matière' (module Académique id 25 uniquement,
- *     pour ne pas casser un futur "Matière Unité")
- *   - permissions Spatie associées (role_has_permissions + model_has_permissions)
+ * Cette migration liste EXHAUSTIVEMENT toutes les variantes retirées et les
+ * purge en une passe idempotente (peut être rejouée sans effet).
  *
- * Idempotente : peut être rejouée sans effet sur une DB déjà nettoyée.
- * Non destructive côté user : pas de suppression de user/role/apprenant.
+ * Purges :
+ *   - feature dont menu_url ∈ liste ci-dessous
+ *   - feature dont libelle exact ∈ liste ci-dessous (belt-and-suspenders)
+ *   - permissions Spatie liées (via feature_id historique + naming {slug}-*)
+ *   - role_has_permissions + model_has_permissions (orphelins)
+ *
+ * NB : les tables physiques (matieres, absences_apprenants, etc.) sont déjà
+ * droppées par leurs migrations dédiées — ici on ne touche QUE au menu/RBAC.
  */
 return new class extends Migration
 {
+    /**
+     * §10.5 : URLs retirées (fallback DEFAULT_MENU_CONFIG dans TheSidebar.vue).
+     * Chaque entrée est une VARIANTE potentielle du même menu (URL évolutive,
+     * kebab / snake / pluriel / singulier).
+     */
+    private const RETIRED_MENU_URLS = [
+        // Matières (table `matieres` droppée — remplacée par MatiereUnite)
+        'matieres', 'matiere',
+        // Absences Apprenants (Presence est source unique)
+        'absences-apprenants', 'absences_apprenants', 'absence-apprenants', 'absence_apprenants',
+        // Justificatifs Absences (redondant avec justificatif_path)
+        'justificatifs-absences', 'justificatifs_absences', 'justificatifs', 'justificatif-absences',
+        // Niveaux (doublon NiveauEtude — canonique = niveaux-etudes)
+        'niveaux', 'niveau',
+        // Catégorie Apprenant (doublon TypeApprenant + StatutApprenant)
+        'categorie-apprenants', 'categorie_apprenants', 'categories-apprenants', 'categories_apprenants',
+        // Zones (référentiel dormant)
+        'zones', 'zone', 'kpi-zones', 'kpi_zones',
+        // Civilités (fusion → titres-civilites)
+        'civilites', 'civilite',
+        // Langues (dormant, stockage JSON dans enseignants.languages)
+        'langues', 'langue',
+        // Types de contrat (fusion → natures-contrat)
+        'types-contrats', 'types_contrats', 'type-contrat', 'type_contrat',
+        // Menus canteen (doublon MenuCantine — canonique = services-cantine)
+        'menus', 'menu',
+        // Bibliothèque acad (recréée sous RessourcesLogistique — schéma différent)
+        'bibliotheque', 'bibliotheques',
+        'catalogue-livres', 'catalogue_livres',
+        'entrees-livres', 'entrees_livres',
+        'sorties-livres', 'sorties_livres',
+        'inventaire-livres', 'inventaire_livres', 'inventaires-livres',
+        // Manuels standalone (fusionné dans ListeManuels)
+        'manuels', 'manuel', 'livres-manuels',
+        // Services doublons singulier (Phase 4.6c — canoniques pluriel)
+        'passages-cantine', 'passages_cantine',
+        'inscriptions-cantine', 'inscriptions_cantine',
+        'inscriptions-transport', 'inscriptions_transport',
+        'consultations-infirmerie', 'consultations_infirmerie',
+        // Types Établissements Spé (fusion)
+        'types-etablissements-spe', 'types_etablissements_spe',
+    ];
+
+    /**
+     * Libellés exacts à cibler dans le module Académique (id 25) uniquement,
+     * pour ne pas dégommer des features homonymes d'autres modules.
+     */
+    private const RETIRED_ACADEMIQUE_LIBELLES = [
+        'Matière', 'Matières',
+        'Absences Apprenants', 'Absence Apprenants', 'Absence Apprenant',
+        'Justificatifs Absences', 'Justificatifs',
+        'Niveau', 'Niveaux',
+        'Catégorie Apprenant', 'Catégories Apprenants',
+        'Langues', 'Civilités', 'Types de contrat',
+        'Manuels', 'Menu',
+    ];
+
     public function up(): void
     {
         if (!Schema::hasTable('feature')) {
             return;
         }
 
-        // 1. Sélectionne les features "Matière" (variantes URL + libellé exact
-        //    dans le module Académique).
+        // 1. Sélectionne les features retirées (URLs + libellés Académique).
         $featureIds = DB::table('feature')
             ->where(function ($q) {
-                $q->whereIn('menu_url', ['matieres', 'matiere'])
+                $q->whereIn('menu_url', self::RETIRED_MENU_URLS)
                   ->orWhere(function ($qq) {
                       $qq->where('module_id', 25) // Académique
-                         ->where('libelle', 'Matière');
+                         ->whereIn('libelle', self::RETIRED_ACADEMIQUE_LIBELLES);
                   });
             })
             ->pluck('id')
@@ -45,16 +107,13 @@ return new class extends Migration
             return;
         }
 
-        // 2. Coupe les permissions Spatie liées (patterns `{menu_url}-{action}`
-        //    ET colonne feature_id historique).
+        // 2. Coupe les permissions Spatie liées (feature_id historique + naming).
         if (Schema::hasTable('permissions')) {
-            // Via feature_id (schéma historique custom)
             $permIds = Schema::hasColumn('permissions', 'feature_id')
                 ? DB::table('permissions')->whereIn('feature_id', $featureIds)->pluck('id')->all()
                 : [];
 
-            // Via naming convention Spatie (menu_url-action)
-            foreach (['matieres', 'matiere'] as $slug) {
+            foreach (self::RETIRED_MENU_URLS as $slug) {
                 $ids = DB::table('permissions')
                     ->where('name', 'like', $slug . '-%')
                     ->pluck('id')->all();
@@ -73,12 +132,15 @@ return new class extends Migration
             }
         }
 
-        // 3. Purge les features.
+        // 3. Purge les features (les tables physiques sont déjà droppées par
+        //    les migrations spécifiques, donc pas de risque d'orphelin).
         DB::table('feature')->whereIn('id', $featureIds)->delete();
     }
 
     public function down(): void
     {
-        // Aucune restauration : la feature Matière ne doit pas réapparaître.
+        // Aucune restauration — ces menus ne doivent jamais réapparaître.
+        // Si vraiment nécessaire (revert), utiliser TFeatureSeeder de la
+        // révision précédente.
     }
 };
