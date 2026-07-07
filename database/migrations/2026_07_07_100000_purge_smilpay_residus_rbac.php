@@ -54,11 +54,21 @@ return new class extends Migration
             ->all();
 
         // 2. Purge Spatie permissions liées (patterns `{menu_url}-{action}`).
+        //    On coupe d'abord role_has_permissions pour éviter les orphelins.
         if (Schema::hasTable('permissions') && !empty($featureMenuUrls)) {
             foreach ($featureMenuUrls as $slug) {
-                DB::table('permissions')
+                $permIds = DB::table('permissions')
                     ->where('name', 'like', $slug . '-%')
-                    ->delete();
+                    ->pluck('id')->all();
+                if (!empty($permIds)) {
+                    if (Schema::hasTable('role_has_permissions')) {
+                        DB::table('role_has_permissions')->whereIn('permission_id', $permIds)->delete();
+                    }
+                    if (Schema::hasTable('model_has_permissions')) {
+                        DB::table('model_has_permissions')->whereIn('permission_id', $permIds)->delete();
+                    }
+                    DB::table('permissions')->whereIn('id', $permIds)->delete();
+                }
             }
         }
 

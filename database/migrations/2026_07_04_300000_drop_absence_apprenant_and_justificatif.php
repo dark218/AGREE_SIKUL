@@ -22,6 +22,8 @@ return new class extends Migration
             if (Schema::hasTable($table)) {
                 $count = DB::table($table)->count();
                 if ($count === 0) {
+                    // Drop les FK entrantes avant le drop de table.
+                    $this->dropIncomingForeignKeys($table);
                     Schema::drop($table);
                 } else {
                     logger()->warning(
@@ -50,5 +52,24 @@ return new class extends Migration
     public function down(): void
     {
         // Rollback non trivial.
+    }
+
+    private function dropIncomingForeignKeys(string $targetTable): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT TABLE_NAME AS source_table, CONSTRAINT_NAME
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_NAME = ?
+               AND CONSTRAINT_NAME != 'PRIMARY'",
+            [$connection, $connection, $targetTable]
+        );
+        foreach ($rows as $r) {
+            try {
+                DB::statement("ALTER TABLE `{$r->source_table}` DROP FOREIGN KEY `{$r->CONSTRAINT_NAME}`");
+            } catch (\Throwable $e) {}
+        }
     }
 };

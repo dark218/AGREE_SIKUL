@@ -22,12 +22,36 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        Schema::dropIfExists('menus');
+        if (Schema::hasTable('menus')) {
+            // Drop FK entrantes d'abord (ex: passages_cantine.menu_id → menus.id
+            // dans certaines migrations Modules/Services).
+            $this->dropIncomingForeignKeys('menus');
+            Schema::dropIfExists('menus');
+        }
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
     public function down(): void
     {
         // Aucune restauration — MenuCantine couvre le besoin fonctionnel.
+    }
+
+    private function dropIncomingForeignKeys(string $targetTable): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT TABLE_NAME AS source_table, CONSTRAINT_NAME
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_NAME = ?
+               AND CONSTRAINT_NAME != 'PRIMARY'",
+            [$connection, $connection, $targetTable]
+        );
+        foreach ($rows as $r) {
+            try {
+                DB::statement("ALTER TABLE `{$r->source_table}` DROP FOREIGN KEY `{$r->CONSTRAINT_NAME}`");
+            } catch (\Throwable $e) {}
+        }
     }
 };

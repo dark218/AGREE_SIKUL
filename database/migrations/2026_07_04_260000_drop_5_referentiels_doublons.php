@@ -7,14 +7,15 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Phase 1.4 — Suppression de 5 CRUD doublons du module Paramétrage :
  *   - `niveaux` (doublon `niveaux_etudes`)
- *   - `zones` (référentiel dormant, 0 FK)
+ *   - `zones` (référentiel dormant, seule FK entrante = résidu SmilPay `kpi_zones`)
  *   - `langues` (référentiel dormant, 0 FK — les enseignants stockent
  *     leurs langues dans le JSON `languages`)
  *   - `categorie_apprenants` (doublon TypeApprenant + StatutApprenant)
  *   - `types_etablissements_spe` (doublon TypeEtablissement, déjà masqué)
  *
- * Toutes les tables sont vides ou n'ont AUCUNE FK entrante — on drop
- * en toute sécurité.
+ * Les FK entrantes (venant d'autres tables) sont automatiquement droppées
+ * avant le drop de la table cible. Nécessaire pour zones qui a un FK depuis
+ * `kpi_zones` (résidu SmilPay analytique).
  *
  * Purge aussi les permissions RBAC associées.
  */
@@ -38,8 +39,13 @@ return new class extends Migration
 
     public function up(): void
     {
-        // 1. Drop des tables (safety : chacune ne doit pas avoir de lignes).
-        //    On log un warning si des lignes existent au lieu de bloquer.
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+        // 1. Drop des tables. Chaque drop :
+        //    a. Vérifie que la table existe et est vide (safety)
+        //    b. Drop toutes les FK entrantes venant d'autres tables
+        //       (ex: kpi_zones.zone_id → zones.id, résidu SmilPay)
+        //    c. Drop la table
         foreach (self::TABLES_TO_DROP as $table) {
             if (!Schema::hasTable($table)) {
                 continue;
@@ -52,6 +58,7 @@ return new class extends Migration
                 );
                 continue;
             }
+            $this->dropIncomingForeignKeys($table);
             Schema::drop($table);
         }
 
@@ -67,10 +74,39 @@ return new class extends Migration
             }
             DB::table('feature')->whereIn('id', $featureIds)->delete();
         }
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
     public function down(): void
     {
         // Rollback non trivial.
+    }
+
+    /**
+     * Drop toutes les foreign key qui pointent VERS la table cible depuis
+     * d'autres tables. Nécessaire avant `DROP TABLE` (MySQL 3730 sinon).
+     *
+     * Note : on drop la FK sur la table SOURCE (celle qui référence).
+     */
+    private function dropIncomingForeignKeys(string $targetTable): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT TABLE_NAME AS source_table, CONSTRAINT_NAME
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_NAME = ?
+               AND CONSTRAINT_NAME != 'PRIMARY'",
+            [$connection, $connection, $targetTable]
+        );
+        foreach ($rows as $r) {
+            try {
+                DB::statement("ALTER TABLE `{$r->source_table}` DROP FOREIGN KEY `{$r->CONSTRAINT_NAME}`");
+            } catch (\Throwable $e) {
+                // Ignoré — peut avoir été droppée par une migration antérieure.
+            }
+        }
     }
 };

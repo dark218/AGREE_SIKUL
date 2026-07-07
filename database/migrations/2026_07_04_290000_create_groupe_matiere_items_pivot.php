@@ -59,6 +59,15 @@ return new class extends Migration
         }
 
         // 3. Drop les 10 colonnes matiereN_id de groupes_matieres.
+        //    Ces colonnes ont probablement des FK vers matieres/matieres_unites.
+        //    On drop les FK d'abord pour éviter MySQL 3730.
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        for ($i = 1; $i <= 10; $i++) {
+            $col = "matiere{$i}_id";
+            if (Schema::hasColumn('groupes_matieres', $col)) {
+                $this->dropForeignKeyOnColumn('groupes_matieres', $col);
+            }
+        }
         Schema::table('groupes_matieres', function (Blueprint $table) {
             for ($i = 1; $i <= 10; $i++) {
                 $col = "matiere{$i}_id";
@@ -67,10 +76,30 @@ return new class extends Migration
                 }
             }
         });
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
     public function down(): void
     {
         // Rollback non trivial.
+    }
+
+    private function dropForeignKeyOnColumn(string $table, string $column): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT CONSTRAINT_NAME
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?
+               AND REFERENCED_TABLE_NAME IS NOT NULL",
+            [$connection, $table, $column]
+        );
+        foreach ($rows as $r) {
+            try {
+                DB::statement("ALTER TABLE `{$table}` DROP FOREIGN KEY `{$r->CONSTRAINT_NAME}`");
+            } catch (\Throwable $e) {}
+        }
     }
 };

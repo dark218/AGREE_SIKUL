@@ -64,7 +64,16 @@ return new class extends Migration
             }
         }
 
-        // 3. Drop les 21 colonnes de affectations_enseignants
+        // 3. Drop les 21 colonnes de affectations_enseignants.
+        //    Ces colonnes ont des FK depuis la migration précédente (2026_07_04_220000
+        //    enrich_matieres_unites_and_repoint_fks) → drop FK d'abord, sinon MySQL 3730.
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        for ($i = 1; $i <= 21; $i++) {
+            $col = "matiere_{$i}_id";
+            if (Schema::hasColumn('affectations_enseignants', $col)) {
+                $this->dropForeignKeyOnColumn('affectations_enseignants', $col);
+            }
+        }
         Schema::table('affectations_enseignants', function (Blueprint $table) {
             for ($i = 1; $i <= 21; $i++) {
                 $col = "matiere_{$i}_id";
@@ -73,6 +82,29 @@ return new class extends Migration
                 }
             }
         });
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    /**
+     * Drop toutes les foreign keys définies SUR une colonne donnée.
+     */
+    private function dropForeignKeyOnColumn(string $table, string $column): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT CONSTRAINT_NAME
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?
+               AND REFERENCED_TABLE_NAME IS NOT NULL",
+            [$connection, $table, $column]
+        );
+        foreach ($rows as $r) {
+            try {
+                DB::statement("ALTER TABLE `{$table}` DROP FOREIGN KEY `{$r->CONSTRAINT_NAME}`");
+            } catch (\Throwable $e) {}
+        }
     }
 
     public function down(): void

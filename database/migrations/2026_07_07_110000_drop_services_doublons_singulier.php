@@ -35,11 +35,33 @@ return new class extends Migration
 
         foreach (self::DOUBLONS_A_DROP as $table) {
             if (Schema::hasTable($table)) {
+                // Drop FK entrantes d'abord — évite MySQL 3730 si des tables
+                // partenaires (menu_id, passages, etc.) référencent ces doublons.
+                $this->dropIncomingForeignKeys($table);
                 Schema::dropIfExists($table);
             }
         }
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    private function dropIncomingForeignKeys(string $targetTable): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT TABLE_NAME AS source_table, CONSTRAINT_NAME
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_SCHEMA = ?
+               AND REFERENCED_TABLE_NAME = ?
+               AND CONSTRAINT_NAME != 'PRIMARY'",
+            [$connection, $connection, $targetTable]
+        );
+        foreach ($rows as $r) {
+            try {
+                DB::statement("ALTER TABLE `{$r->source_table}` DROP FOREIGN KEY `{$r->CONSTRAINT_NAME}`");
+            } catch (\Throwable $e) {}
+        }
     }
 
     public function down(): void
