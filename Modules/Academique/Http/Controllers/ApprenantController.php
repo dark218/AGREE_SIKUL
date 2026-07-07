@@ -302,7 +302,7 @@ class ApprenantController extends Controller
     {
         $apprenant->load(
             'user', 'classe', 'section', 'cycle', 'ecole', 'campus', 'anneeScolaire',
-            'typeApprenant', 'categorieApprenant', 'communeNaissance', 'departementNaissance',
+            'typeApprenant', 'communeNaissance', 'departementNaissance',
             'regionNaissance', 'paysNaissance', 'quartier', 'communeResidence',
             'departementResidence', 'regionResidence', 'paysResidence',
             // Contacts humains (parents, tuteurs, accompagnateurs) — récupérés en Show pour la nouvelle section

@@ -2661,3 +2661,97 @@ textarea {
     font-size: inherit;
     line-height: inherit;
 }
+
+/* ============================================================================
+   §UI Select2 Multiple — override GLOBAL avec !important.
+   Le CSS scoped-less du composant Select2Multiple.vue est parfois shadow par
+   select2.min.css qui est chargé au même moment via Vite. On force ici avec
+   !important sur les propriétés critiques (min-height, font-size).
+   ============================================================================ */
+.select2-container--default .select2-selection--multiple {
+    min-height: 90px !important;
+    padding: 8px 10px !important;
+    line-height: 1.5 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    background-color: #fff !important;
+    font-size: 14px !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    padding: 0 !important;
+    line-height: 1.5 !important;
+    max-height: 320px !important;
+    overflow-y: auto !important;
+    min-height: 74px !important;
+    align-content: flex-start !important;
+    width: 100% !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    line-height: 1.5 !important;
+    padding: 6px 12px 6px 10px !important;
+    margin: 3px 0 !important;
+    background-color: #eff6ff !important;
+    color: #1e40af !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.06) !important;
+    float: none !important; /* select2 met parfois float:left qui casse flex */
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__display {
+    padding-left: 6px !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #1e40af !important;
+    margin-right: 6px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    border: none !important;
+    background: transparent !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #dc2626 !important;
+    background: transparent !important;
+}
+.select2-container--default .select2-selection--multiple .select2-search--inline {
+    float: none !important;
+}
+.select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field {
+    margin-top: 6px !important;
+    line-height: 1.5 !important;
+    font-size: 14px !important;
+    min-width: 200px !important;
+    height: auto !important;
+}
+/* Dropdown des options */
+.select2-container--default .select2-results__option {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0b5697 !important;
+    color: #fff !important;
+}
+.select2-dropdown {
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+.select2-search--dropdown .select2-search__field {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    border-radius: 6px !important;
+    border: 1px solid #d1d5db !important;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #0b5697 !important;
+    box-shadow: 0 0 0 2px rgba(11, 86, 151, 0.15) !important;
+}
