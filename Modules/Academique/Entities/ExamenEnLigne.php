@@ -4,6 +4,7 @@ namespace Modules\Academique\Entities;
 
 use App\Models\BaseModel;
 use Illuminate\Support\Facades\Hash;
+use Modules\Parametrage\Entities\MatiereUnite;
 
 class ExamenEnLigne extends BaseModel
 {
