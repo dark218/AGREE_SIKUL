@@ -119,6 +119,12 @@ class CoursController extends Controller
             \Log::info('🚀 CoursController::store() démarré');
             \Log::info('📨 Données reçues:', $request->all());
 
+            // §UX : Cours utilise actif/inactif lowercase — mais le SearchableSelect
+            // peut renvoyer "Actif" (Titlecase) selon l'option source.
+            if ($request->filled('statut')) {
+                $request->merge(['statut' => strtolower((string) $request->input('statut'))]);
+            }
+
             $validated = $request->validate([
                 'matiere_id' => 'required|exists:matieres_unites,id',
                 'classe_id' => 'required|exists:classes,id',
@@ -282,6 +288,10 @@ class CoursController extends Controller
     public function update(Request $request, Cours $cours)
     {
         try {
+            // §UX : idem store() — normalise statut en lowercase.
+            if ($request->filled('statut')) {
+                $request->merge(['statut' => strtolower((string) $request->input('statut'))]);
+            }
             $validated = $request->validate([
                 'matiere_id' => 'required|exists:matieres_unites,id',
                 'classe_id' => 'required|exists:classes,id',

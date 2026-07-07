@@ -292,8 +292,10 @@ const PARAMETRAGE_GROUPS = [
  * Sous-groupes (sous-modules) du module Académique.
  */
 const ACADEMIQUE_GROUPS = [
+    // §10.5 : Menu "Matières" retiré (table `matieres` droppée) — Matières Unités
+    //         reste sous Paramétrage → Enseignement → Matières Unités.
     { id: 'gestion', libelle: 'Gestion Académique', libelle_en: 'Academic Management', icone: 'fas fa-users',
-      items: ['apprenants', 'enseignants', 'tuteurs', 'matieres'] },
+      items: ['apprenants', 'enseignants', 'tuteurs'] },
     { id: 'pedagogie', libelle: 'Pédagogie', libelle_en: 'Teaching', icone: 'fas fa-chalkboard-teacher',
       items: ['cours', 'seances', 'emplois-du-temps', 'listes-manuels'] },
     { id: 'evaluations', libelle: 'Évaluations & Notes', libelle_en: 'Assessments & Grades', icone: 'fas fa-star',

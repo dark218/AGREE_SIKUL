@@ -82,7 +82,8 @@ class TFeatureSeeder extends Seeder
             ['id' => 50, 'libelle' => 'Enseignant', 'libelle_en' => 'Teachers', 'module_id' => 25, 'menu_url' => 'enseignants', 'icone' => 'fas fa-chalkboard-user', 'ordre' => 9, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 51, 'libelle' => 'Évaluation', 'libelle_en' => 'Evaluations', 'module_id' => 25, 'menu_url' => 'evaluations', 'icone' => 'fas fa-list-check', 'ordre' => 10, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 52, 'libelle' => 'Inscription', 'libelle_en' => 'Enrollments', 'module_id' => 25, 'menu_url' => 'inscriptions', 'icone' => 'fas fa-clipboard-check', 'ordre' => 11, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 54, 'libelle' => 'Matière', 'libelle_en' => 'Subjects', 'module_id' => 25, 'menu_url' => 'matieres', 'icone' => 'fas fa-book-open', 'ordre' => 13, 'created_at' => now(), 'updated_at' => now()],
+            // §10.5 : Feature `Matière` (menu_url=matieres) retirée — table
+            //         droppée, remplacée par MatiereUnite sous Paramétrage.
             ['id' => 55, 'libelle' => 'Moyenne Matière', 'libelle_en' => 'Subject Averages', 'module_id' => 25, 'menu_url' => 'moyennes-matieres', 'icone' => 'fas fa-chart-bar', 'ordre' => 14, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 56, 'libelle' => 'Note', 'libelle_en' => 'Grades', 'module_id' => 25, 'menu_url' => 'notes', 'icone' => 'fas fa-star', 'ordre' => 15, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 57, 'libelle' => 'Personnel Administratif', 'libelle_en' => 'Admin Staff', 'module_id' => 25, 'menu_url' => 'personnels-administratifs', 'icone' => 'fas fa-briefcase', 'ordre' => 16, 'created_at' => now(), 'updated_at' => now()],
