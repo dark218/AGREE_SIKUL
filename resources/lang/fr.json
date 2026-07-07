@@ -72,8 +72,13 @@
         "deactivate": "Désactiver",
         "activate": "Activer",
         "preview": "Aperçu",
-        "download": "Télécharger"
+        "download": "Télécharger",
+        "previous": "Précédent",
+        "next": "Suivant"
     },
+    "actions.previous": "Précédent",
+    "actions.next": "Suivant",
+    "actions.create": "Créer",
     "actions.activate": "Activer",
     "actions.back": "Retour",
     "actions.choose_file": "Choisir un fichier",
@@ -123,7 +128,9 @@
     "code_owner": "Code propriétaire",
     "code_parrain": "Code parrain",
     "commission": "Commission",
+    "common.step": "Étape",
     "common": {
+        "step": "Étape",
         "show": "Afficher",
         "confirm": "Confirmer",
         "edit": "Modifier",

@@ -66,7 +66,9 @@ class EnseignantController extends Controller
             $query->where('nature_contrat_id', $request->input('nature_contrat_id'));
         }
 
-        $enseignants = $query->with('user')->paginate(10)->withQueryString();
+        // §UI Index : on eager-load `fonction` pour afficher son libellé dans
+        // la colonne Fonction (sans N+1). `user` pour le fallback nom/prénoms.
+        $enseignants = $query->with(['user', 'fonction'])->paginate(10)->withQueryString();
 
         return Inertia::render('Academique::Enseignants/Index', [
             'enseignants' => $enseignants,

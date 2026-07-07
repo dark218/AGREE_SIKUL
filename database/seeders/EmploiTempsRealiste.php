@@ -88,7 +88,9 @@ class EmploiTempsRealiste extends Seeder
             'libelle_affichage' => 'Classe 6ème A - Emploi du temps complet',
             'ecole_id' => $ecole->id,
             'annee_scolaire_id' => $annee->id,
-            'niveau_id' => DB::table('niveaux')->where('code', '6')->first()?->id ?? 1,
+            'niveau_id' => \Schema::hasTable('niveaux_etudes')
+                ? (DB::table('niveaux_etudes')->where('code', '6')->first()?->id ?? 1)
+                : 1,
             'statut' => 'actif',
             'created_at' => now(),
             'updated_at' => now()

@@ -119,14 +119,28 @@ class HomeController extends Controller
             'semestre1' => '1er Semestre', 'semestre2' => '2e Semestre', 'annuel' => 'Annuel',
         ];
 
-        // Absences
-        $absences = DB::table('absences_apprenants')
-            ->where('apprenant_id', $apprenant->id)
-            ->leftJoin('matieres_unites', 'absences_apprenants.matiere_id', '=', 'matieres_unites.id')
-            ->select('absences_apprenants.*', 'matieres_unites.libelle as matiere_libelle')
-            ->orderBy('absences_apprenants.date_debut', 'desc')
-            ->limit(10)
-            ->get();
+        // §3.3 : Presence source unique — absences = statut IN ('absent','malade','permis').
+        //        Fallback rétro-compat : lit encore `absences_apprenants` si présente.
+        if (\Schema::hasTable('presences')) {
+            $absences = DB::table('presences')
+                ->where('apprenant_id', $apprenant->id)
+                ->whereIn('statut', ['absent', 'malade', 'permis'])
+                ->leftJoin('matieres_unites', 'presences.matiere_id', '=', 'matieres_unites.id')
+                ->select('presences.*', 'matieres_unites.libelle as matiere_libelle')
+                ->orderBy('presences.date_seance', 'desc')
+                ->limit(10)
+                ->get();
+        } elseif (\Schema::hasTable('absences_apprenants')) {
+            $absences = DB::table('absences_apprenants')
+                ->where('apprenant_id', $apprenant->id)
+                ->leftJoin('matieres_unites', 'absences_apprenants.matiere_id', '=', 'matieres_unites.id')
+                ->select('absences_apprenants.*', 'matieres_unites.libelle as matiere_libelle')
+                ->orderBy('absences_apprenants.date_debut', 'desc')
+                ->limit(10)
+                ->get();
+        } else {
+            $absences = collect();
+        }
 
         // Emploi du temps
         $edt = DB::table('emplois_temps')
@@ -150,7 +164,14 @@ class HomeController extends Controller
             'ecole' => $ecole->nom ?? '—',
             'moyenne_generale' => $dernierBulletin->moyenne_generale ?? null,
             'rang' => $dernierBulletin->rang ?? null,
-            'absences_count' => DB::table('absences_apprenants')->where('apprenant_id', $apprenant->id)->count(),
+            'absences_count' => \Schema::hasTable('presences')
+                ? DB::table('presences')
+                    ->where('apprenant_id', $apprenant->id)
+                    ->whereIn('statut', ['absent', 'malade', 'permis'])
+                    ->count()
+                : (\Schema::hasTable('absences_apprenants')
+                    ? DB::table('absences_apprenants')->where('apprenant_id', $apprenant->id)->count()
+                    : 0),
             'notes_count' => DB::table('notes')->where('apprenant_id', $apprenant->id)->count(),
 
             'dernieres_notes' => $notes->map(fn($n) => [

@@ -62,3 +62,61 @@ onBeforeUnmount(() => {
   }
 });
 </script>
+
+<!--
+  §UI : Styles globaux (non-scoped) pour améliorer la lisibilité des Select2
+  multi-select. Objectifs :
+    - Zone d'affichage type textarea : min-height + hauteur qui grandit avec
+      le nombre de tags (au lieu d'écraser sur une seule ligne).
+    - Wrap des tags longs sur plusieurs lignes.
+    - Tags qui gardent leur libellé complet lisible (pas de troncature agressive).
+  Ces styles doivent être GLOBAUX car select2 injecte ses éléments hors du
+  scope Vue du composant.
+-->
+<style>
+.select2-container--default .select2-selection--multiple {
+    min-height: 44px;
+    padding: 4px 6px 2px 6px;
+    line-height: 1.4;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #fff;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 0;
+    line-height: 1.4;
+    max-height: 220px;
+    overflow-y: auto;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.4;
+    padding: 4px 10px 4px 8px;
+    margin: 2px 0;
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    font-size: 13px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__display {
+    padding-left: 4px;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: #1e40af;
+    margin-right: 4px;
+}
+.select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field {
+    margin-top: 4px;
+    line-height: 1.4;
+}
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #0b5697;
+    box-shadow: 0 0 0 2px rgba(11, 86, 151, 0.15);
+}
+</style>

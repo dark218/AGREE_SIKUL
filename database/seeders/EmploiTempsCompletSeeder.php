@@ -29,20 +29,24 @@ class EmploiTempsCompletSeeder extends Seeder
             ['code' => '3', 'libelle' => '3ème', 'ordre' => 4],
         ];
 
-        foreach ($niveaux_data as $n) {
-            // Chercher d'abord
-            $existing = DB::table('niveaux')->where('code', $n['code'])->where('ecole_id', $ecole->id)->first();
-            if ($existing) {
-                $niveaux[$n['code']] = $existing->id;
-            } else {
-                $id = DB::table('niveaux')->insertGetId(array_merge($n, [
-                    'ecole_id' => $ecole->id,
-                    'statut' => 'actif',
-                    'source_system' => 'manual',
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]));
-                $niveaux[$n['code']] = $id;
+        // §1.1 : niveaux → niveaux_etudes. Skip si absente.
+        $niveauxTable = \Schema::hasTable('niveaux_etudes') ? 'niveaux_etudes' : null;
+        if ($niveauxTable) {
+            foreach ($niveaux_data as $n) {
+                // Chercher d'abord
+                $existing = DB::table($niveauxTable)->where('code', $n['code'])->where('ecole_id', $ecole->id)->first();
+                if ($existing) {
+                    $niveaux[$n['code']] = $existing->id;
+                } else {
+                    $id = DB::table($niveauxTable)->insertGetId(array_merge($n, [
+                        'ecole_id'      => $ecole->id,
+                        'etat'          => 'actif',
+                        'source_system' => 'manual',
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
+                    ]));
+                    $niveaux[$n['code']] = $id;
+                }
             }
         }
 

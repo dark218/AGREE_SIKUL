@@ -68,8 +68,13 @@
         "cancel": "Cancel",
         "save": "Save",
         "deactivate": "Deactivate",
-        "activate": "Activate"
+        "activate": "Activate",
+        "previous": "Previous",
+        "next": "Next"
     },
+    "actions.previous": "Previous",
+    "actions.next": "Next",
+    "actions.create": "Create",
     "actions.activate": "Activate",
     "actions.back": "Back",
     "actions.deactivate": "Deactivate",
@@ -117,7 +122,9 @@
     "code_owner": "Owner code",
     "code_parrain": "Referral code",
     "commission": "Commission",
+    "common.step": "Step",
     "common": {
+        "step": "Step",
         "save": "Save",
         "cancel": "Cancel",
         "name": "Name",

@@ -165,7 +165,11 @@ const closeModal = () => {
                                 <tbody>
                                     <template v-if="enseignants?.data && enseignants?.data.length > 0">
                                         <tr v-for="item in enseignants?.data" :key="item.id">
-                                            <td>{{ (item.prenoms || item.user?.prenoms || '') }} {{ (item.nom || item.user?.nom || '') }}</td>
+                                            <!-- §UI : nom_restituer prioritaire (nom d'usage / marital),
+                                                 sinon concaténation prénoms + nom (avec fallback user.*). -->
+                                            <td>{{ item.nom_restituer && item.nom_restituer.trim()
+                                                ? item.nom_restituer
+                                                : `${(item.prenoms || item.user?.prenoms || '')} ${(item.nom || item.user?.nom || '')}`.trim() || '-' }}</td>
                                             <td>{{ item.email || '-' }}</td>
                                             <td>{{ item.telephone || '-' }}</td>
                                             <td>{{ item.fonction?.libelle || '-' }}</td>

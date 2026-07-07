@@ -231,6 +231,21 @@ function onSubmit() {
 .form-stepper {
     background: #fff;
     border-radius: 8px;
+    /* §UI : padding global pour éviter que les inputs collent aux bords
+       de la card parente. Responsive : 16px mobile → 32px desktop. */
+    padding: 20px 24px;
+}
+
+@media (min-width: 992px) {
+    .form-stepper {
+        padding: 24px 32px;
+    }
+}
+
+@media (max-width: 640px) {
+    .form-stepper {
+        padding: 16px 12px;
+    }
 }
 
 .stepper-header {

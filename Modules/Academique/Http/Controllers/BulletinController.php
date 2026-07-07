@@ -607,8 +607,10 @@ class BulletinController extends Controller
             $classe = $bulletin->classe;
             if (!$classe) return 'bulletin';
 
-            // Détecter via le cycle du niveau
-            $niveau = \DB::table('niveaux')->where('id', $classe->niveau_id)->first();
+            // §1.1 : niveaux → niveaux_etudes (canonique).
+            $niveau = \Schema::hasTable('niveaux_etudes')
+                ? \DB::table('niveaux_etudes')->where('id', $classe->niveau_id)->first()
+                : null;
             $cycle = $niveau->cycle ?? null;
 
             if ($cycle === 'primaire') return 'bulletin-primaire';

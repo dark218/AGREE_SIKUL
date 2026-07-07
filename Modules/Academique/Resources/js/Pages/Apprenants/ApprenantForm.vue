@@ -159,7 +159,7 @@ const yesNoOptions = [
 // Steps déclaratifs
 const steps = [
     { key: 'identite',  label: 'Identité',         icon: 'fas fa-id-badge',       requiredFields: ['nom', 'prenoms'] },
-    { key: 'sante',     label: 'Sanitaire',        icon: 'fas fa-heart-pulse' },
+    { key: 'sante',     label: 'Sanitaire',        icon: 'fas fa-heartbeat' },
     { key: 'scolarite', label: 'Scolarité',        icon: 'fas fa-graduation-cap', requiredFields: ['matricule', 'classe_id'] },
     { key: 'famille',   label: 'Famille & Contact', icon: 'fas fa-users' },
     { key: 'suivi',     label: 'Hébergement & Suivi', icon: 'fas fa-clipboard-list' },

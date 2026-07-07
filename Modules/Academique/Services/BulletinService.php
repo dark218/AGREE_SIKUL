@@ -114,15 +114,39 @@ class BulletinService
             'semestre1' => '1er Semestre', 'semestre2' => '2ème Semestre', 'annuel' => 'Annuel',
         ];
 
-        // Absences
-        $absJust = \DB::table('absences_apprenants')
-            ->where('apprenant_id', $apprenant->id)
-            ->where('statut', 'justifiee')
-            ->sum('nombre_heures');
-        $absNonJust = \DB::table('absences_apprenants')
-            ->where('apprenant_id', $apprenant->id)
-            ->where('statut', 'non_justifiee')
-            ->sum('nombre_heures');
+        // §3.3 : Presence = source unique. On compte les séances où l'apprenant
+        //        est marqué absent/malade/permis. 'permis' = justifié (autorisation
+        //        officielle). 'malade' = justifié via certificat médical. 'absent'
+        //        seul = non justifié tant qu'un justificatif_path n'est pas fourni.
+        //        Fallback rétro-compat : lit `absences_apprenants` si encore présente.
+        if (\Schema::hasTable('presences')) {
+            $absJust = \DB::table('presences')
+                ->where('apprenant_id', $apprenant->id)
+                ->where(function ($q) {
+                    $q->whereIn('statut', ['malade', 'permis'])
+                      ->orWhere(function ($qq) {
+                          $qq->where('statut', 'absent')->whereNotNull('justificatif_path');
+                      });
+                })
+                ->count();
+            $absNonJust = \DB::table('presences')
+                ->where('apprenant_id', $apprenant->id)
+                ->where('statut', 'absent')
+                ->whereNull('justificatif_path')
+                ->count();
+        } elseif (\Schema::hasTable('absences_apprenants')) {
+            $absJust = \DB::table('absences_apprenants')
+                ->where('apprenant_id', $apprenant->id)
+                ->where('statut', 'justifiee')
+                ->sum('nombre_heures');
+            $absNonJust = \DB::table('absences_apprenants')
+                ->where('apprenant_id', $apprenant->id)
+                ->where('statut', 'non_justifiee')
+                ->sum('nombre_heures');
+        } else {
+            $absJust = 0;
+            $absNonJust = 0;
+        }
 
         return [
             'id' => $bulletin->id,

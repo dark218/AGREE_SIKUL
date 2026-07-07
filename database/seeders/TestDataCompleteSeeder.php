@@ -296,35 +296,36 @@ class TestDataCompleteSeeder extends Seeder
         }
 
         // =============================================
-        // 7. ABSENCES APPRENANTS (30 absences)
+        // 7. ABSENCES APPRENANTS (30 marqués absents dans `presences`)
+        // §3.3 : Presence est la source unique. `absences_apprenants` est droppée
+        //        si vide. On seede des lignes `presences` avec statut ∈ {absent,
+        //        malade, permis}.
         // =============================================
         try {
-            if (DB::table('absences_apprenants')->count() === 0) {
-                $motifs = ['Maladie', 'Raison familiale', 'Non justifiée', 'Retard transport', 'Rendez-vous médical'];
+            if (\Schema::hasTable('presences')
+                && DB::table('presences')->whereIn('statut', ['absent', 'malade', 'permis'])->count() === 0
+                && !empty($matiereIds)) {
+                $statutsAbs = ['absent', 'malade', 'permis'];
+                $motifs     = ['Maladie', 'Raison familiale', 'Non justifiée', 'Retard transport', 'Rendez-vous médical'];
                 for ($i = 0; $i < 30; $i++) {
-                    $appId = $apprenants[array_rand($apprenants)];
-                    $app = DB::table('apprenants')->where('id', $appId)->first();
-                    $dateDebut = date('Y-m-d H:i:s', strtotime('-' . rand(1, 60) . ' days 08:00'));
-                    $dateFin = date('Y-m-d H:i:s', strtotime('-' . rand(1, 60) . ' days 16:00'));
-                    DB::table('absences_apprenants')->insert([
+                    $appId     = $apprenants[array_rand($apprenants)];
+                    $app       = DB::table('apprenants')->where('id', $appId)->first();
+                    $dateSeanc = date('Y-m-d', strtotime('-' . rand(1, 60) . ' days'));
+                    DB::table('presences')->insert([
                         'apprenant_id' => $appId,
-                        'classe_id' => $app->classe_id,
-                        'matiere_id' => $matiereIds[array_rand($matiereIds)],
-                        'date_debut' => $dateDebut,
-                        'date_fin' => $dateFin,
-                        'nombre_heures' => rand(2, 8),
-                        'nombre_jours' => 1,
-                        'motif' => $motifs[array_rand($motifs)],
-                        'statut' => ['en_attente', 'justifiee', 'non_justifiee'][rand(0, 2)],
-                        'etat' => 'actif',
-                        'created_at' => $now,
-                        'updated_at' => $now,
+                        'classe_id'    => $app->classe_id ?? null,
+                        'matiere_id'   => $matiereIds[array_rand($matiereIds)],
+                        'date_seance'  => $dateSeanc,
+                        'statut'       => $statutsAbs[array_rand($statutsAbs)],
+                        'motif'        => $motifs[array_rand($motifs)],
+                        'created_at'   => $now,
+                        'updated_at'   => $now,
                     ]);
                 }
-                $this->command->info('✅ 30 absences apprenants créées');
+                $this->command->info('✅ 30 absences seedées dans `presences`');
             }
         } catch (\Throwable $e) {
-            $this->command->warn('⚠️  Absences apprenants: ' . $e->getMessage());
+            $this->command->warn('⚠️  Absences apprenants (presences): ' . $e->getMessage());
         }
 
         // =============================================

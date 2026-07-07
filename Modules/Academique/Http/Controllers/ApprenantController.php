@@ -109,6 +109,13 @@ class ApprenantController extends Controller
         \Log::info('Request headers:', $request->headers->all());
 
         try {
+            // §UX : normalise le statut avant validation. Le référentiel
+            // StatutApprenant peut contenir des codes en majuscule (ACTIF) ou
+            // minuscule (actif) selon les seeders. On uniformise en amont plutôt
+            // que d'énumérer 10 variantes dans la règle `in:`.
+            if ($request->filled('statut')) {
+                $request->merge(['statut' => strtoupper((string) $request->input('statut'))]);
+            }
             \Log::info('Validating request data...');
             $validated = $request->validate([
                 'matricule' => 'required|unique:apprenants',
@@ -162,8 +169,9 @@ class ApprenantController extends Controller
                 'date_entree_ecole' => 'nullable|date',
                 'date_depart_ecole' => 'nullable|date',
                 'motif_depart_ecole' => 'nullable|string|max:500',
-                // Accepte codes majuscules du référentiel + valeurs legacy minuscules
-                'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne,ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
+                // §UX : statut est normalisé en amont via strtoupper() —
+                // on ne liste que les codes canoniques du référentiel StatutApprenant.
+                'statut' => 'required|in:ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
             ]);
 
             \Log::info('Validation passed!', ['validated_data' => $validated]);
@@ -292,6 +300,10 @@ class ApprenantController extends Controller
     public function update(Request $request, Apprenant $apprenant)
     {
         try {
+            // §UX : idem store() — voir commentaire strtoupper().
+            if ($request->filled('statut')) {
+                $request->merge(['statut' => strtoupper((string) $request->input('statut'))]);
+            }
             $validated = $request->validate([
                 'matricule' => 'required|unique:apprenants,matricule,' . $apprenant->id,
                 'nom' => 'required|string|max:255',
@@ -344,8 +356,9 @@ class ApprenantController extends Controller
                 'date_entree_ecole' => 'nullable|date',
                 'date_depart_ecole' => 'nullable|date',
                 'motif_depart_ecole' => 'nullable|string|max:500',
-                // Accepte codes majuscules du référentiel + valeurs legacy minuscules
-                'statut' => 'required|in:actif,suspendu,exclu,diplome,abandonne,ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
+                // §UX : statut est normalisé en amont via strtoupper() —
+                // on ne liste que les codes canoniques du référentiel StatutApprenant.
+                'statut' => 'required|in:ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
             ]);
 
             // Upload de la nouvelle photo : remplace l'ancienne et supprime le fichier

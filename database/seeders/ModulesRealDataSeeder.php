@@ -336,38 +336,41 @@ class ModulesRealDataSeeder extends Seeder
             $this->command->warn('⚠️  Services cantine: ' . $e->getMessage());
         }
 
-        // C.2 Menus (semaine courante)
+        // C.2 Menus (semaine courante). §10.6 : table canonique = menu_cantines.
         try {
             $serviceCantineId = DB::table('services_cantines')->value('id');
-            if ($serviceCantineId && DB::table('menus')->count() === 0) {
+            if ($serviceCantineId && \Schema::hasTable('menu_cantines')
+                && DB::table('menu_cantines')->count() === 0) {
                 $jours = [
                     ['lundi',    'Thiéboudienne (riz au poisson)', 'Salade de fruits'],
-                    ['mardi',    'Yassa poulet', 'Yaourt'],
-                    ['mercredi', 'Mafé (viande sauce arachide)', 'Banane'],
-                    ['jeudi',    'Poulet braisé et attiéké', 'Pastèque'],
-                    ['vendredi', 'Couscous au mouton', 'Dessert maison'],
+                    ['mardi',    'Yassa poulet',                    'Yaourt'],
+                    ['mercredi', 'Mafé (viande sauce arachide)',    'Banane'],
+                    ['jeudi',    'Poulet braisé et attiéké',        'Pastèque'],
+                    ['vendredi', 'Couscous au mouton',              'Dessert maison'],
                 ];
-                $start = date('Y-m-d', strtotime('monday this week'));
-                $end   = date('Y-m-d', strtotime('friday this week'));
-                foreach ($jours as $i => [$jour, $plat, $dessert]) {
-                    DB::table('menus')->insert([
+                $start       = date('Y-m-d', strtotime('monday this week'));
+                $end         = date('Y-m-d', strtotime('friday this week'));
+                $weekNumber  = (int) date('W', strtotime($start));
+                $year        = (int) date('o', strtotime($start));
+                foreach ($jours as [$jour, $plat, $dessert]) {
+                    DB::table('menu_cantines')->insert([
+                        'service_cantine_id' => $serviceCantineId,
                         'week_start_date'    => $start,
                         'week_end_date'      => $end,
                         'week_name'          => 'Semaine du ' . date('d/m', strtotime($start)),
+                        'week_number'        => $weekNumber,
+                        'year'               => $year,
                         'jour'               => $jour,
-                        'service_cantine_id' => $serviceCantineId,
-                        'date'               => date('Y-m-d', strtotime("monday this week +$i days")),
-                        'plat_principal'     => $plat,
-                        'accompagnement'     => 'Légumes de saison',
+                        'entree'             => 'Légumes de saison',
+                        'plat'               => $plat,
                         'dessert'            => $dessert,
                         'remarques'          => 'Menu équilibré',
-                        'prix_cents'         => 150000,
                         'statut'             => 'actif',
                         'created_at'         => now(),
                         'updated_at'         => now(),
                     ]);
                 }
-                $this->command->info('✅ Menus de la semaine créés');
+                $this->command->info('✅ Menus de la semaine créés (menu_cantines)');
             }
         } catch (\Throwable $e) {
             $this->command->warn('⚠️  Menus: ' . $e->getMessage());
