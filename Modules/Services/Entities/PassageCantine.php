@@ -11,7 +11,11 @@ class PassageCantine extends BaseModel
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'passages_cantine';
+    // Table PLURIEL (schéma canonique avec heure_passage).
+    // La table `passages_cantine` (singulier) est un doublon obsolète créé
+    // par une migration Modules/Services parallèle — schéma différent
+    // (menu_id/statut au lieu de heure_passage).
+    protected $table = 'passages_cantines';
 
     protected $fillable = [
         'inscription_cantine_id',
@@ -21,7 +25,9 @@ class PassageCantine extends BaseModel
 
     protected $casts = [
         'date_passage' => 'date',
-        'heure_passage' => 'time',
+        // Note : 'time' n'est pas un cast Laravel natif (Laravel <11).
+        // On garde `heure_passage` en string (format HH:MM:SS) — MySQL le
+        // convertit correctement au INSERT.
     ];
 
     // Relations

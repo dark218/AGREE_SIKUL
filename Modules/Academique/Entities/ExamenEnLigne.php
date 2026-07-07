@@ -3,6 +3,7 @@
 namespace Modules\Academique\Entities;
 
 use App\Models\BaseModel;
+use Illuminate\Support\Facades\Hash;
 
 class ExamenEnLigne extends BaseModel
 {
@@ -65,6 +66,33 @@ class ExamenEnLigne extends BaseModel
         self::STATUT_TERMINE,
         self::STATUT_CORRIGE,
     ];
+
+    // Mutator sécurité — hash automatique du mot de passe examen.
+    // Fix §10.1 : mot_de_passe stocké en clair est une faille sécurité.
+    // Idempotent : si déjà hashé ($2y$… bcrypt), pas de re-hash.
+    public function setMotDePasseAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['mot_de_passe'] = null;
+            return;
+        }
+        // Détecte un hash bcrypt existant pour éviter le double-hash sur update.
+        if (is_string($value) && preg_match('/^\$2[aby]\$/', $value)) {
+            $this->attributes['mot_de_passe'] = $value;
+            return;
+        }
+        $this->attributes['mot_de_passe'] = Hash::make($value);
+    }
+
+    /**
+     * Vérifie qu'un mot de passe fourni matche le hash stocké.
+     * À utiliser au démarrage de l'examen côté apprenant.
+     */
+    public function checkMotDePasse(string $plain): bool
+    {
+        if (!$this->mot_de_passe) return true; // pas de mot de passe → accès libre
+        return Hash::check($plain, $this->mot_de_passe);
+    }
 
     // Relations
 

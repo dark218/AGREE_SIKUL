@@ -94,9 +94,11 @@ return new class extends Migration
                 continue;
             }
             $this->dropForeignIfExists($tableName, 'matiere_id');
+            // Le FK SET NULL exige que la colonne soit NULLABLE. Certaines tables
+            // (cours, etc.) ont matiere_id NOT NULL → MySQL erreur 1830 sinon.
+            // ALTER COLUMN direct pour éviter la dépendance à doctrine/dbal.
+            $this->makeColumnNullable($tableName, 'matiere_id');
             Schema::table($tableName, function (Blueprint $t) use ($tableName) {
-                // Certaines tables ont onDelete('cascade'), d'autres 'set null' — on met
-                // 'set null' partout pour éviter la perte d'historique.
                 $t->foreign('matiere_id')
                     ->references('id')->on('matieres_unites')
                     ->nullOnDelete();
@@ -111,6 +113,7 @@ return new class extends Migration
                     continue;
                 }
                 $this->dropForeignIfExists('affectations_enseignants', $col);
+                $this->makeColumnNullable('affectations_enseignants', $col);
                 Schema::table('affectations_enseignants', function (Blueprint $t) use ($col) {
                     $t->foreign($col)
                         ->references('id')->on('matieres_unites')
@@ -151,6 +154,33 @@ return new class extends Migration
             } catch (\Throwable $e) {
                 // ignore
             }
+        }
+    }
+
+    /**
+     * Rend une colonne NULLABLE via ALTER COLUMN direct — évite la
+     * dépendance à doctrine/dbal requise par `$table->change()`.
+     * Idempotente : no-op si déjà NULLABLE.
+     */
+    private function makeColumnNullable(string $tableName, string $columnName): void
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $col = DB::select(
+            "SELECT COLUMN_TYPE, IS_NULLABLE
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = ?
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?",
+            [$connection, $tableName, $columnName]
+        );
+        if (empty($col)) return;
+        if (strtoupper($col[0]->IS_NULLABLE) === 'YES') return;
+
+        $type = $col[0]->COLUMN_TYPE;
+        try {
+            DB::statement("ALTER TABLE `{$tableName}` MODIFY `{$columnName}` {$type} NULL");
+        } catch (\Throwable $e) {
+            // ignore — la contrainte NOT NULL peut être maintenue par un check ailleurs
         }
     }
 };

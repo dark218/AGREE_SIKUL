@@ -28,49 +28,59 @@ const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 
+const slotsToPaiements = (item) => {
+    const list = [];
+    for (let i = 1; i <= 6; i++) {
+        const date    = item[`date_paiement_${i}`];
+        const montant = item[`montant_paiement_${i}`];
+        if (date || montant) {
+            list.push({ nature: item.mode_paiement || '', montant: Number(montant) || 0, date: date || '', reference: '' });
+        }
+    }
+    return list;
+};
+
+const paiementsToSlots = (paiements) => {
+    const slots = {};
+    for (let i = 1; i <= 6; i++) {
+        const p = paiements[i - 1] || {};
+        slots[`date_paiement_${i}`]    = p.date    || null;
+        slots[`montant_paiement_${i}`] = p.montant || null;
+    }
+    return slots;
+};
+
 const form = useForm({
-    annee_scolaire_id: props.item?.annee_scolaire_id || '',
-    section_id: props.item?.section_id || '',
-    ecole_id: props.item?.ecole_id || '',
-    campus_id: props.item?.campus_id || '',
-    date_depense: props.item?.date_depense || '',
-    nature_depense: props.item?.nature_depense || '',
-    tiers_fournisseur: props.item?.tiers_fournisseur || '',
+    annee_scolaire_id:  props.item?.annee_scolaire_id  || '',
+    section_id:         props.item?.section_id         || '',
+    ecole_id:           props.item?.ecole_id           || '',
+    campus_id:          props.item?.campus_id          || '',
+    date_depense:       props.item?.date_depense       || '',
+    nature_depense:     props.item?.nature_depense     || '',
+    tiers_fournisseur:  props.item?.tiers_fournisseur  || '',
     numero_identifiant: props.item?.numero_identifiant || '',
-    type_piece: props.item?.type_piece || '',
-    reference_piece: props.item?.reference_piece || '',
+    type_piece:         props.item?.type_piece         || '',
+    reference_piece:    props.item?.reference_piece    || '',
     intitule_operation: props.item?.intitule_operation || '',
-    montant: props.item?.montant || '',
-    mode_paiement: props.item?.mode_paiement || '',
-    date_paiement_1: props.item?.date_paiement_1 || '',
-    montant_paiement_1: props.item?.montant_paiement_1 || '',
-    date_paiement_2: props.item?.date_paiement_2 || '',
-    montant_paiement_2: props.item?.montant_paiement_2 || '',
-    date_paiement_3: props.item?.date_paiement_3 || '',
-    montant_paiement_3: props.item?.montant_paiement_3 || '',
-    date_paiement_4: props.item?.date_paiement_4 || '',
-    montant_paiement_4: props.item?.montant_paiement_4 || '',
-    date_paiement_5: props.item?.date_paiement_5 || '',
-    montant_paiement_5: props.item?.montant_paiement_5 || '',
-    date_paiement_6: props.item?.date_paiement_6 || '',
-    montant_paiement_6: props.item?.montant_paiement_6 || '',
-    montant_total_paye: props.item?.montant_total_paye || '',
-    restant_a_payer: props.item?.restant_a_payer || '',
-    etat: props.item?.etat || 'actif',
+    montant_total:      props.item?.montant            || props.item?.montant_total || 0,
+    mode_paiement:      props.item?.mode_paiement      || '',
+    paiements:          slotsToPaiements(props.item || {}),
+    total_paye:         props.item?.montant_total_paye || 0,
+    restant_a_payer:    props.item?.restant_a_payer    || 0,
+    etat:               props.item?.etat               || 'actif',
 });
 
 const submitForm = () => {
     showUpdateLoader();
-    form.put(route('finances.achats-depenses.update', props.item.id), {
-        onSuccess: () => {
-            setTimeout(() => {
-                hideLoader();
-            }, 500);
-        },
-        onError: () => {
-            hideLoader();
-        }
-    });
+    form
+        .transform((data) => ({
+            ...data,
+            ...paiementsToSlots(data.paiements || []),
+        }))
+        .put(route('finances.achats-depenses.update', props.item.id), {
+            onSuccess: () => setTimeout(() => hideLoader(), 500),
+            onError: () => hideLoader(),
+        });
 };
 </script>
 
@@ -92,34 +102,26 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <AchatDepenseForm
                                     :form="form"
                                     :annees-scolaires="anneesScolaires"
                                     :sections="sections"
                                     :ecoles="ecoles"
-                                    :campuses="campuses"
                                     mode="edit"
+                                    @submit="submitForm"
                                 />
-                                <!-- Buttons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('finances.achats-depenses.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('finances.achats-depenses.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

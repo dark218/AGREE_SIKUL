@@ -26,35 +26,62 @@ const props = defineProps({
     campuses: Array,
 });
 
+const slotsToRevenus = (item) => {
+    const list = [];
+    const nommes = ['uniforme', 'tenue_mercredi', 'tenue_sport'];
+    for (const nature of nommes) {
+        if (item?.[nature]) {
+            list.push({ nature, montant: Number(item[nature]) || 0, date: '', reference: '' });
+        }
+    }
+    for (let i = 1; i <= 6; i++) {
+        const montant = item?.[`autre${i}`];
+        if (montant) {
+            list.push({ nature: 'autre', montant: Number(montant) || 0, date: '', reference: '' });
+        }
+    }
+    return list;
+};
+
+const revenusToSlots = (revenus) => {
+    const slots = {
+        uniforme: null, tenue_mercredi: null, tenue_sport: null,
+        autre1: null, autre2: null, autre3: null, autre4: null, autre5: null, autre6: null,
+    };
+    let autreIdx = 1;
+    for (const r of revenus) {
+        const nature = r.nature || '';
+        if (nature === 'uniforme')            slots.uniforme       = r.montant;
+        else if (nature === 'tenue_mercredi') slots.tenue_mercredi = r.montant;
+        else if (nature === 'tenue_sport')    slots.tenue_sport    = r.montant;
+        else if (autreIdx <= 6) {
+            slots[`autre${autreIdx}`] = r.montant;
+            autreIdx++;
+        }
+    }
+    return slots;
+};
+
 const form = useForm({
     annee_scolaire_id: props.autreRevenu?.annee_scolaire_id || null,
-    niveau_id: props.autreRevenu?.niveau_id || null,
-    ecole_id: props.autreRevenu?.ecole_id || null,
-    campus_id: props.autreRevenu?.campus_id || null,
-    uniforme: props.autreRevenu?.uniforme || null,
-    tenue_mercredi: props.autreRevenu?.tenue_mercredi || null,
-    tenue_sport: props.autreRevenu?.tenue_sport || null,
-    autre1: props.autreRevenu?.autre1 || null,
-    autre2: props.autreRevenu?.autre2 || null,
-    autre3: props.autreRevenu?.autre3 || null,
-    autre4: props.autreRevenu?.autre4 || null,
-    autre5: props.autreRevenu?.autre5 || null,
-    autre6: props.autreRevenu?.autre6 || null,
-    etat: props.autreRevenu?.etat || 'actif',
+    niveau_id:         props.autreRevenu?.niveau_id         || null,
+    ecole_id:          props.autreRevenu?.ecole_id          || null,
+    campus_id:         props.autreRevenu?.campus_id         || null,
+    revenus:           slotsToRevenus(props.autreRevenu || {}),
+    etat:              props.autreRevenu?.etat || 'actif',
 });
 
 const submitForm = () => {
     showUpdateLoader();
-    form.put(route('finances.autres-revenus.update', props.autreRevenu.id), {
-        onSuccess: () => {
-            setTimeout(() => {
-                hideLoader();
-            }, 500);
-        },
-        onError: () => {
-            hideLoader();
-        }
-    });
+    form
+        .transform((data) => ({
+            ...data,
+            ...revenusToSlots(data.revenus || []),
+        }))
+        .put(route('finances.autres-revenus.update', props.autreRevenu.id), {
+            onSuccess: () => setTimeout(() => hideLoader(), 500),
+            onError: () => hideLoader(),
+        });
 };
 </script>
 
@@ -75,7 +102,8 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <AutreRevenuForm
                                     :form="form"
                                     :annees-scolaires="anneesScolaires"
@@ -83,26 +111,18 @@ const submitForm = () => {
                                     :ecoles="ecoles"
                                     :campuses="campuses"
                                     mode="edit"
+                                    @submit="submitForm"
                                 />
-                                <!-- Buttons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('finances.autres-revenus.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('finances.autres-revenus.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

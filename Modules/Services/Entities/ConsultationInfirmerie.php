@@ -12,7 +12,10 @@ class ConsultationInfirmerie extends BaseModel
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'consultations_infirmerie';
+    // Table PLURIEL (schéma canonique avec infirmier_id/diagnostic/traitement).
+    // La table `consultations_infirmerie` (singulier) est un doublon obsolète
+    // créé par une migration Modules/Services parallèle — schéma différent.
+    protected $table = 'consultations_infirmeries';
 
     protected $fillable = [
         'apprenant_id',

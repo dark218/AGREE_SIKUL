@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Services\Http\Controllers\ServiceCantineController;
-use Modules\Services\Http\Controllers\MenuController;
 use Modules\Services\Http\Controllers\MenuCantineController;
 use Modules\Services\Http\Controllers\InscriptionCantineController;
 use Modules\Services\Http\Controllers\PassageCantineController;
@@ -100,18 +99,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::put('/{service}/statut', [ServiceCantineController::class, 'statut'])->name('statut');
     });
 
-    // Menus
-    Route::prefix('menus')->name('menus.')->group(function () {
-        Route::get('/', [MenuController::class, 'index'])->name('index');
-        Route::get('/create', [MenuController::class, 'create'])->name('create');
-        Route::post('/', [MenuController::class, 'store'])->name('store');
-        Route::get('/{menu}', [MenuController::class, 'show'])->name('show');
-        Route::get('/{menu}/edit', [MenuController::class, 'edit'])->name('edit');
-        Route::match(['put', 'post'], '/{menu}', [MenuController::class, 'update'])->name('update');
-        Route::delete('/{menu}', [MenuController::class, 'destroy'])->name('destroy');
-        Route::put('/{menu}/statut', [MenuController::class, 'statut'])->name('statut');
-        Route::get('/{menu}/pdf', [MenuController::class, 'exportPdf'])->name('pdf');
-    })->where('menu', '\d+');
+    // Menus (routes retirées §10.6 : Menu doublon de MenuCantine — voir routes menus-cantine ci-dessous).
 
     // Menus Cantine (Weekly)
     Route::prefix('menus-cantine')->name('menu-cantines.')->group(function () {

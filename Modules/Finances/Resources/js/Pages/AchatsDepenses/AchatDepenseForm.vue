@@ -1,400 +1,226 @@
+<!--
+  AchatDepenseForm.vue — Refonte §10.4.
+  Historique : 400 lignes / 24 champs dont 12 slots paiements
+  (date_paiement_1..6 + montant_paiement_1..6) → 3 steps + ChampsPaiement dynamique.
+
+  Steps :
+    1. Contexte scolarité (année, section, école)
+    2. Dépense (date, nature, tiers, pièces, intitulé, mode, montant, restant)
+    3. Paiements (ChampsPaiement dynamique max 6 lignes + statut)
+
+  Le mapping array → 12 slots hardcodés est fait au submit dans Create/Edit.
+-->
+
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import FormStepper from '@/Components/Common/FormStepper.vue';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import ChampsPaiement from '@/Components/Common/ChampsPaiement.vue';
 
 const { t } = useI18n();
 
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
-    mode: {
-        type: String,
-        default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
-    },
+    form:            { type: Object, required: true },
+    anneesScolaires: { type: Array,  default: () => [] },
+    sections:        { type: Array,  default: () => [] },
+    ecoles:          { type: Array,  default: () => [] },
+    mode:            { type: String, default: 'create', validator: (v) => ['create', 'edit', 'show'].includes(v) },
 });
 
-const isReadOnly = props.mode === 'show';
+const emit = defineEmits(['submit']);
 
-const autoLabel = (list, id) => {
-    if (!id || !list?.length) return '—';
-    const found = list.find(item => String(item.id) === String(id));
-    return found?.libelle || found?.nom || found?.label || '—';
-};
+const isReadOnly = computed(() => props.mode === 'show');
+const currentStep = ref(0);
 
-const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
+if (!Array.isArray(props.form.paiements)) props.form.paiements = [];
+
+const num = (v) => Number(v) || 0;
+
+const totalPaye = computed(() =>
+    (props.form.paiements || []).reduce((s, p) => s + num(p.montant), 0)
+);
+const restantAPayer = computed(() =>
+    Math.max(0, num(props.form.montant_total) - totalPaye.value)
+);
+
+watch(totalPaye,      (v) => { props.form.total_paye      = v; });
+watch(restantAPayer,  (v) => { props.form.restant_a_payer = v; });
 
 const etatOptions = [
-    { id: 'actif', libelle: 'Actif' },
+    { id: 'actif',   libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
+];
+
+const modesPaiement = [
+    { code: 'especes',      libelle: 'Espèces' },
+    { code: 'cheque',       libelle: 'Chèque' },
+    { code: 'virement',     libelle: 'Virement' },
+    { code: 'mobile_money', libelle: 'Mobile Money' },
+    { code: 'carte',        libelle: 'Carte bancaire' },
+];
+
+const steps = [
+    { key: 'contexte', label: 'Contexte scolarité', icon: 'fas fa-calendar-check', requiredFields: ['annee_scolaire_id', 'ecole_id'] },
+    { key: 'depense',  label: 'Dépense',           icon: 'fas fa-file-invoice',    requiredFields: ['date_depense', 'intitule_operation'] },
+    { key: 'paiement', label: 'Paiements & Statut', icon: 'fas fa-money-check-alt', requiredFields: ['etat'] },
 ];
 </script>
 
 <template>
-    <div class="row g-3 custom-input">
-        <!-- Section 1: Informations générales -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-0">{{ t('common.basic_information') || 'Informations générales' }}</h5>
-        </div>
+    <FormStepper
+        v-model="currentStep"
+        :steps="steps"
+        :form="form"
+        persist-key="achat-depense-form"
+        @submit="$emit('submit')"
+    >
+        <!-- STEP 1 : CONTEXTE -->
+        <template #contexte>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label>Année scolaire <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.annee_scolaire_id"
+                        :options="anneesScolaires"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                        :disabled="isReadOnly"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>Section</label>
+                    <SearchableSelect
+                        v-model="form.section_id"
+                        :options="sections"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                        :disabled="isReadOnly"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>École <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.ecole_id"
+                        :options="ecoles"
+                        optionValue="id"
+                        optionLabel="nom"
+                        :placeholder="t('actions.select')"
+                        :disabled="isReadOnly"
+                    />
+                </div>
+            </div>
+        </template>
 
-        <!-- Année Scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année Scolaire' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
+        <!-- STEP 2 : DÉPENSE -->
+        <template #depense>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label>Date <span class="text-danger">*</span></label>
+                    <input v-model="form.date_depense" :disabled="isReadOnly" type="date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Nature de la dépense</label>
+                    <input v-model="form.nature_depense" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Tiers / Fournisseur</label>
+                    <input v-model="form.tiers_fournisseur" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
 
-        <!-- Section -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }}</label>
-                <SearchableSelect
-                    v-model="form.section_id"
-                    :options="sections"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.section_id" class="text-danger">
-                    <strong>{{ form.errors.section_id }}</strong>
-                </span>
-            </div>
-        </div>
+                <div class="col-md-4">
+                    <label>N° identifiant</label>
+                    <input v-model="form.numero_identifiant" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Type de pièce</label>
+                    <input v-model="form.type_piece" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Référence pièce</label>
+                    <input v-model="form.reference_piece" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
 
-        <!-- École -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ecole') || 'École' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.ecole_id"
-                    :options="ecoles"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="nom"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.ecole_id" class="text-danger">
-                    <strong>{{ form.errors.ecole_id }}</strong>
-                </span>
-            </div>
-        </div>
+                <div class="col-12">
+                    <label>Intitulé de l'opération <span class="text-danger">*</span></label>
+                    <input v-model="form.intitule_operation" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
 
-        <!-- Campus (auto — déduit de l'école) -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
+                <div class="col-md-4">
+                    <label>Mode de paiement</label>
+                    <select v-model="form.mode_paiement" :disabled="isReadOnly" class="form-control">
+                        <option value="">-- Sélectionner --</option>
+                        <option v-for="m in modesPaiement" :key="m.code" :value="m.code">{{ m.libelle }}</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>Montant total</label>
+                    <input v-model.number="form.montant_total" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Restant à payer <span class="badge bg-secondary">auto</span></label>
+                    <input :value="restantAPayer.toFixed(2)" type="text" class="form-control" readonly disabled />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Date Dépense -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_depense') || 'Date de dépense' }}</label>
-                <input type="date" v-model="form.date_depense" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_depense" class="text-danger">
-                    <strong>{{ form.errors.date_depense }}</strong>
-                </span>
+        <!-- STEP 3 : PAIEMENTS DYNAMIQUES -->
+        <template #paiement>
+            <div class="row g-3">
+                <div class="col-12">
+                    <ChampsPaiement
+                        v-model="form.paiements"
+                        :types-versement="modesPaiement"
+                        :disabled="isReadOnly"
+                        :max-lignes="6"
+                        label-singulier="Paiement"
+                    />
+                </div>
+                <hr class="mt-3" />
+                <div class="col-md-6">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary">
+                        <strong class="text-primary">Total payé : {{ totalPaye.toFixed(2) }}</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-warning bg-opacity-10 rounded border border-warning">
+                        <strong class="text-warning">Restant : {{ restantAPayer.toFixed(2) }}</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>État <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.etat"
+                        :options="etatOptions"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                        :disabled="isReadOnly"
+                    />
+                </div>
             </div>
-        </div>
-
-        <!-- Nature de Dépense -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nature_depense') || 'Nature de dépense' }}</label>
-                <input type="text" v-model="form.nature_depense" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.nature_depense" class="text-danger">
-                    <strong>{{ form.errors.nature_depense }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 2: Détails de l'opération -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.operation_details') || 'Détails de l\'opération' }}</h5>
-        </div>
-
-        <!-- Tiers / Fournisseur -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.tiers_fournisseur') || 'Tiers / Fournisseur' }}</label>
-                <input type="text" v-model="form.tiers_fournisseur" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.tiers_fournisseur" class="text-danger">
-                    <strong>{{ form.errors.tiers_fournisseur }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- N° Identifiant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.numero_identifiant') || 'N° Identifiant' }}</label>
-                <input type="text" v-model="form.numero_identifiant" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.numero_identifiant" class="text-danger">
-                    <strong>{{ form.errors.numero_identifiant }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Type de Pièce -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.type_piece') || 'Type de pièce' }}</label>
-                <input type="text" v-model="form.type_piece" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.type_piece" class="text-danger">
-                    <strong>{{ form.errors.type_piece }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Référence Pièce -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.reference_piece') || 'Référence pièce' }}</label>
-                <input type="text" v-model="form.reference_piece" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.reference_piece" class="text-danger">
-                    <strong>{{ form.errors.reference_piece }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Intitulé Opération -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.intitule_operation') || 'Intitulé opération' }}</label>
-                <input type="text" v-model="form.intitule_operation" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.intitule_operation" class="text-danger">
-                    <strong>{{ form.errors.intitule_operation }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Mode de Paiement -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.mode_paiement') || 'Mode de paiement' }}</label>
-                <input type="text" v-model="form.mode_paiement" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.mode_paiement" class="text-danger">
-                    <strong>{{ form.errors.mode_paiement }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 3: Montants -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.amounts') || 'Montants' }}</h5>
-        </div>
-
-        <!-- Montant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant') || 'Montant' }}</label>
-                <input type="number" v-model.number="form.montant" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant" class="text-danger">
-                    <strong>{{ form.errors.montant }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Montant Total Payé -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_total_paye') || 'Montant total payé' }}</label>
-                <input type="number" v-model.number="form.montant_total_paye" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_total_paye" class="text-danger">
-                    <strong>{{ form.errors.montant_total_paye }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Restant à Payer -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.restant_a_payer') || 'Restant à payer' }}</label>
-                <input type="number" v-model.number="form.restant_a_payer" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.restant_a_payer" class="text-danger">
-                    <strong>{{ form.errors.restant_a_payer }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 4: Paiements -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.payments') || 'Paiements' }}</h5>
-        </div>
-
-        <!-- Paiement 1 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement') || 'Date paiement' }} 1</label>
-                <input type="date" v-model="form.date_paiement_1" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_1" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_1}}</strong>
-                </span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_paiement') || 'Montant paiement' }} 1</label>
-                <input type="number" v-model.number="form.montant_paiement_1" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_paiement_1" class="text-danger">
-                    <strong>{{ form.errors.montant_paiement_1}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Paiement 2 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement') || 'Date paiement' }} 2</label>
-                <input type="date" v-model="form.date_paiement_2" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_2" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_2}}</strong>
-                </span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_paiement') || 'Montant paiement' }} 2</label>
-                <input type="number" v-model.number="form.montant_paiement_2" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_paiement_2" class="text-danger">
-                    <strong>{{ form.errors.montant_paiement_2}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Paiement 3 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement') || 'Date paiement' }} 3</label>
-                <input type="date" v-model="form.date_paiement_3" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_3" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_3}}</strong>
-                </span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_paiement') || 'Montant paiement' }} 3</label>
-                <input type="number" v-model.number="form.montant_paiement_3" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_paiement_3" class="text-danger">
-                    <strong>{{ form.errors.montant_paiement_3}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Paiement 4 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement') || 'Date paiement' }} 4</label>
-                <input type="date" v-model="form.date_paiement_4" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_4" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_4}}</strong>
-                </span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_paiement') || 'Montant paiement' }} 4</label>
-                <input type="number" v-model.number="form.montant_paiement_4" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_paiement_4" class="text-danger">
-                    <strong>{{ form.errors.montant_paiement_4}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Paiement 5 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement') || 'Date paiement' }} 5</label>
-                <input type="date" v-model="form.date_paiement_5" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_5" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_5}}</strong>
-                </span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_paiement') || 'Montant paiement' }} 5</label>
-                <input type="number" v-model.number="form.montant_paiement_5" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_paiement_5" class="text-danger">
-                    <strong>{{ form.errors.montant_paiement_5}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Paiement 6 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement') || 'Date paiement' }} 6</label>
-                <input type="date" v-model="form.date_paiement_6" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_6" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_6}}</strong>
-                </span>
-            </div>
-        </div>
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.montant_paiement') || 'Montant paiement' }} 6</label>
-                <input type="number" v-model.number="form.montant_paiement_6" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.montant_paiement_6" class="text-danger">
-                    <strong>{{ form.errors.montant_paiement_6}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 5: État -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.state') || 'État' }}</h5>
-        </div>
-
-        <!-- État -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.etat') || 'État' }}</label>
-                <SearchableSelect
-                    v-model="form.etat"
-                    :options="etatOptions"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.etat" class="text-danger">
-                    <strong>{{ form.errors.etat }}</strong>
-                </span>
-            </div>
-        </div>
-    </div>
+        </template>
+    </FormStepper>
 </template>
+
+<style scoped>
+.form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+}
+.form-control:focus {
+    border-color: #0b5697;
+    box-shadow: 0 0 0 0.2rem rgba(11, 86, 151, 0.15);
+}
+label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+</style>

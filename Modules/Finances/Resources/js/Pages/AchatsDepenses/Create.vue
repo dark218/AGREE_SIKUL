@@ -39,37 +39,39 @@ const form = useForm({
     type_piece: '',
     reference_piece: '',
     intitule_operation: '',
-    montant: '',
+    montant_total: 0,
     mode_paiement: '',
-    date_paiement_1: '',
-    montant_paiement_1: '',
-    date_paiement_2: '',
-    montant_paiement_2: '',
-    date_paiement_3: '',
-    montant_paiement_3: '',
-    date_paiement_4: '',
-    montant_paiement_4: '',
-    date_paiement_5: '',
-    montant_paiement_5: '',
-    date_paiement_6: '',
-    montant_paiement_6: '',
-    montant_total_paye: '',
-    restant_a_payer: '',
+    paiements: [], // array dynamique — mappé vers slots 1..6 au submit
+    total_paye: 0,
+    restant_a_payer: 0,
     etat: 'actif',
 });
 
+/**
+ * Map la liste dynamique `paiements[]` vers les 12 slots hardcodés
+ * `date_paiement_1..6` + `montant_paiement_1..6` attendus par le controller.
+ */
+const paiementsToSlots = (paiements) => {
+    const slots = {};
+    for (let i = 1; i <= 6; i++) {
+        const p = paiements[i - 1] || {};
+        slots[`date_paiement_${i}`]    = p.date    || null;
+        slots[`montant_paiement_${i}`] = p.montant || null;
+    }
+    return slots;
+};
+
 const submitForm = () => {
     showStoreLoader();
-    form.post(route('finances.achats-depenses.store'), {
-        onSuccess: () => {
-            setTimeout(() => {
-                hideLoader();
-            }, 500);
-        },
-        onError: () => {
-            hideLoader();
-        }
-    });
+    form
+        .transform((data) => ({
+            ...data,
+            ...paiementsToSlots(data.paiements || []),
+        }))
+        .post(route('finances.achats-depenses.store'), {
+            onSuccess: () => setTimeout(() => hideLoader(), 500),
+            onError: () => hideLoader(),
+        });
 };
 </script>
 
@@ -91,34 +93,26 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <AchatDepenseForm
                                     :form="form"
                                     :annees-scolaires="anneesScolaires"
                                     :sections="sections"
                                     :ecoles="ecoles"
-                                    :campuses="campuses"
                                     mode="create"
+                                    @submit="submitForm"
                                 />
-                                <!-- Buttons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('finances.achats-depenses.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('finances.achats-depenses.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

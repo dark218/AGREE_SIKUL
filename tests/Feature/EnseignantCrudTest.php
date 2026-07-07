@@ -48,6 +48,7 @@ class EnseignantCrudTest extends TestCase
         // Vérifie que la migration 2026_07_04_120000_change_users_role_to_string
         // a bien passé la colonne en VARCHAR.
         $user = User::create([
+            'uuid'       => \Illuminate\Support\Str::uuid()->toString(),
             'nom'        => 'TEST',
             'prenoms'    => 'Enseignant',
             'email'      => 'test-ens@example.com',

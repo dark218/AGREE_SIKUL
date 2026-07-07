@@ -80,7 +80,9 @@ class ServiceCantine extends BaseModel
 
     public function menus(): HasMany
     {
-        return $this->hasMany(Menu::class, 'service_cantine_id');
+        // Migration §10.6 : Menu (table `menus`) supprimée, MenuCantine
+        // (`menu_cantines`) est la source canonique unique.
+        return $this->hasMany(MenuCantine::class, 'service_cantine_id');
     }
 
     public function inscriptions(): HasMany

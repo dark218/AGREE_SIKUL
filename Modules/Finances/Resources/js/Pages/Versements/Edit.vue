@@ -14,88 +14,70 @@ const { t } = useI18n();
 const { isLoading, loaderMessage, loaderSubMessage, loaderVariant, showUpdateLoader, hideLoader } = useLoader();
 
 const isCollapsed = ref(false);
-
-const toggleCollapse = () => {
-    isCollapsed.value = !isCollapsed.value;
-};
+const toggleCollapse = () => { isCollapsed.value = !isCollapsed.value; };
 
 const props = defineProps({
-    item: {
-        type: Object,
-        required: true,
-    },
-    apprenants: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    niveaux: {
-        type: Array,
-        default: () => [],
-    },
-    classes: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
+    item:            { type: Object, required: true },
+    apprenants:      { type: Array,  default: () => [] },
+    anneesScolaires: { type: Array,  default: () => [] },
+    niveaux:         { type: Array,  default: () => [] },
+    classes:         { type: Array,  default: () => [] },
+    ecoles:          { type: Array,  default: () => [] },
+    campuses:        { type: Array,  default: () => [] },
 });
+
+/**
+ * Reconstruit un tableau `versements[]` depuis les slots hardcodés 1..12
+ * pour l'édition — cohérent avec le mapping inverse au submit.
+ */
+const slotsToVersements = (item) => {
+    const list = [];
+    for (let i = 1; i <= 12; i++) {
+        const nature  = item[`nature_versement_${i}`];
+        const montant = item[`montant_versement_${i}`];
+        if (nature || montant) {
+            list.push({ nature: nature || '', montant: Number(montant) || 0, date: '', reference: '' });
+        }
+    }
+    return list;
+};
+
+const versementsToSlots = (versements) => {
+    const slots = {};
+    for (let i = 1; i <= 12; i++) {
+        const v = versements[i - 1] || {};
+        slots[`nature_versement_${i}`]  = v.nature  || null;
+        slots[`montant_versement_${i}`] = v.montant || null;
+    }
+    return slots;
+};
 
 const form = useForm({
     annee_scolaire_id: props.item.annee_scolaire_id || null,
-    apprenant_id: props.item.apprenant_id || null,
-    niveau_id: props.item.niveau_id || null,
-    classe_id: props.item.classe_id || null,
-    ecole_id: props.item.ecole_id || null,
-    campus_id: props.item.campus_id || null,
-    frais_dossier: props.item.frais_dossier || null,
-    frais_inscription: props.item.frais_inscription || null,
-    frais_scolarite: props.item.frais_scolarite || null,
-    total_paye: props.item.total_paye || null,
-    restant_a_payer: props.item.restant_a_payer || null,
-    nature_versement_1: props.item.nature_versement_1 || null,
-    montant_versement_1: props.item.montant_versement_1 || null,
-    nature_versement_2: props.item.nature_versement_2 || null,
-    montant_versement_2: props.item.montant_versement_2 || null,
-    nature_versement_3: props.item.nature_versement_3 || null,
-    montant_versement_3: props.item.montant_versement_3 || null,
-    nature_versement_4: props.item.nature_versement_4 || null,
-    montant_versement_4: props.item.montant_versement_4 || null,
-    nature_versement_5: props.item.nature_versement_5 || null,
-    montant_versement_5: props.item.montant_versement_5 || null,
-    nature_versement_6: props.item.nature_versement_6 || null,
-    montant_versement_6: props.item.montant_versement_6 || null,
-    nature_versement_7: props.item.nature_versement_7 || null,
-    montant_versement_7: props.item.montant_versement_7 || null,
-    nature_versement_8: props.item.nature_versement_8 || null,
-    montant_versement_8: props.item.montant_versement_8 || null,
-    nature_versement_9: props.item.nature_versement_9 || null,
-    montant_versement_9: props.item.montant_versement_9 || null,
-    nature_versement_10: props.item.nature_versement_10 || null,
-    montant_versement_10: props.item.montant_versement_10 || null,
-    nature_versement_11: props.item.nature_versement_11 || null,
-    montant_versement_11: props.item.montant_versement_11 || null,
-    nature_versement_12: props.item.nature_versement_12 || null,
-    montant_versement_12: props.item.montant_versement_12 || null,
-    etat: props.item.etat || 'actif',
+    apprenant_id:      props.item.apprenant_id      || null,
+    niveau_id:         props.item.niveau_id         || null,
+    classe_id:         props.item.classe_id         || null,
+    ecole_id:          props.item.ecole_id          || null,
+    campus_id:         props.item.campus_id         || null,
+    frais_dossier:     props.item.frais_dossier     || 0,
+    frais_inscription: props.item.frais_inscription || 0,
+    frais_scolarite:   props.item.frais_scolarite   || 0,
+    total_paye:        props.item.total_paye        || 0,
+    restant_a_payer:   props.item.restant_a_payer   || 0,
+    versements:        slotsToVersements(props.item),
+    etat:              props.item.etat || 'actif',
 });
 
 const submitForm = () => {
     showUpdateLoader();
-    form.put(route('finances.versements.update', props.item.id), {
-        onFinish: () => {
-            hideLoader();
-        }
-    });
+    form
+        .transform((data) => ({
+            ...data,
+            ...versementsToSlots(data.versements || []),
+        }))
+        .put(route('finances.versements.update', props.item.id), {
+            onFinish: () => hideLoader(),
+        });
 };
 </script>
 
@@ -116,7 +98,8 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <VersementForm
                                     :form="form"
                                     :apprenants="props.apprenants"
@@ -126,39 +109,23 @@ const submitForm = () => {
                                     :ecoles="props.ecoles"
                                     :campuses="props.campuses"
                                     mode="edit"
+                                    @submit="submitForm"
                                 />
-
-                                <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('finances.versements.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('finances.versements.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Loader pleine page -->
-        <FullPageLoader
-            :show="isLoading"
-            :message="loaderMessage"
-            :sub-message="loaderSubMessage"
-            :variant="loaderVariant"
-        />
+        <FullPageLoader :show="isLoading" :message="loaderMessage" :sub-message="loaderSubMessage" :variant="loaderVariant" />
     </div>
 </template>

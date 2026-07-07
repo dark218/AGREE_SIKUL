@@ -13,7 +13,10 @@ class InscriptionTransport extends BaseModel
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'inscriptions_transport';
+    // Table PLURIEL (schéma canonique avec point_ramassage + enum statut
+    // active/suspendue/annulee). `inscriptions_transport` (singulier) est un
+    // doublon obsolète créé par Modules/Services parallèle.
+    protected $table = 'inscriptions_transports';
 
     protected $fillable = [
         'service_transport_id',
@@ -39,21 +42,21 @@ class InscriptionTransport extends BaseModel
         return $this->belongsTo(AnneeScolaire::class, 'annee_scolaire_id');
     }
 
-    // Scopes
+    // Scopes — enum DB : active, suspendue, annulee
     public function scopeActif($query)
     {
-        return $query->where('statut', 'actif');
+        return $query->where('statut', 'active');
     }
 
-    public function scopeInactif($query)
+    public function scopeSuspendue($query)
     {
-        return $query->where('statut', 'inactif');
+        return $query->where('statut', 'suspendue');
     }
 
     // Méthodes métier
     public function isActif(): bool
     {
-        return $this->statut === 'actif';
+        return $this->statut === 'active';
     }
 
     public function getFormattedPointRamassage(): string

@@ -15,7 +15,9 @@ class InscriptionCantine extends BaseModel
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'inscriptions_cantine';
+    // Table PLURIEL (schéma canonique). La table `inscriptions_cantine`
+    // (singulier) est un doublon obsolète créé par Modules/Services parallèle.
+    protected $table = 'inscriptions_cantines';
 
     protected $fillable = [
         'service_cantine_id',

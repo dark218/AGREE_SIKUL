@@ -20,16 +20,20 @@ class TuteurCrudTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
+        $apprenant = Apprenant::create([
+            'matricule' => 'TUT-APP-01', 'nom' => 'X', 'prenoms' => 'Y', 'statut' => 'actif',
+        ]);
 
         $tuteur = Tuteur::create([
-            'user_id'    => $user->id,
-            'relation'   => 'oncle',
-            'profession' => 'Ingénieur',
+            'apprenant_id' => $apprenant->id, // colonne NOT NULL legacy — pivot pour multi
+            'user_id'      => $user->id,
+            'relation'     => 'autre', // enum : pere/mere/tuteur_legal/grand_parent/autre
+            'profession'   => 'Ingénieur',
         ]);
 
         $this->assertDatabaseHas('tuteurs', [
             'user_id'  => $user->id,
-            'relation' => 'oncle',
+            'relation' => 'autre',
         ]);
         $this->assertSame($user->id, $tuteur->user_id);
     }
@@ -40,10 +44,14 @@ class TuteurCrudTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $a1 = Apprenant::create(['matricule' => 'FRAT-01', 'nom' => 'A', 'prenoms' => 'B', 'statut' => 'actif', 'ecole_id' => 1]);
-        $a2 = Apprenant::create(['matricule' => 'FRAT-02', 'nom' => 'A', 'prenoms' => 'C', 'statut' => 'actif', 'ecole_id' => 1]);
+        $a1 = Apprenant::create(['matricule' => 'FRAT-01', 'nom' => 'A', 'prenoms' => 'B', 'statut' => 'actif']);
+        $a2 = Apprenant::create(['matricule' => 'FRAT-02', 'nom' => 'A', 'prenoms' => 'C', 'statut' => 'actif']);
 
-        $tuteur = Tuteur::create(['user_id' => $user->id, 'relation' => 'pere']);
+        $tuteur = Tuteur::create([
+            'apprenant_id' => $a1->id, // colonne NOT NULL legacy
+            'user_id'      => $user->id,
+            'relation'     => 'pere',
+        ]);
         $tuteur->apprenants()->sync([
             $a1->id => ['relation' => 'pere', 'est_principal' => true],
             $a2->id => ['relation' => 'pere', 'est_principal' => false],
@@ -62,7 +70,10 @@ class TuteurCrudTest extends TestCase
     public function la_relation_apprenants_est_belongs_to_many(): void
     {
         $user = User::factory()->create();
-        $t = Tuteur::create(['user_id' => $user->id]);
+        $apprenant = Apprenant::create([
+            'matricule' => 'REL-N-N', 'nom' => 'X', 'prenoms' => 'Y', 'statut' => 'actif',
+        ]);
+        $t = Tuteur::create(['apprenant_id' => $apprenant->id, 'user_id' => $user->id]);
         $this->assertInstanceOf(
             \Illuminate\Database\Eloquent\Relations\BelongsToMany::class,
             $t->apprenants()

@@ -30,30 +30,47 @@ const form = useForm({
     niveau_id: null,
     ecole_id: null,
     campus_id: null,
-    uniforme: null,
-    tenue_mercredi: null,
-    tenue_sport: null,
-    autre1: null,
-    autre2: null,
-    autre3: null,
-    autre4: null,
-    autre5: null,
-    autre6: null,
+    // Liste dynamique — mappée aux 9 slots hardcodés au submit
+    revenus: [],
     etat: 'actif',
 });
 
+/**
+ * Map la liste dynamique `revenus[]` aux slots hardcodés attendus par le
+ * controller (uniforme, tenue_mercredi, tenue_sport, autre1..6).
+ * Ordre : nature=uniforme → uniforme, nature=tenue_mercredi → tenue_mercredi,
+ * nature=tenue_sport → tenue_sport, autres → autre1..6 dans l'ordre.
+ */
+const revenusToSlots = (revenus) => {
+    const slots = {
+        uniforme: null, tenue_mercredi: null, tenue_sport: null,
+        autre1: null, autre2: null, autre3: null, autre4: null, autre5: null, autre6: null,
+    };
+    let autreIdx = 1;
+    for (const r of revenus) {
+        const nature = r.nature || '';
+        if (nature === 'uniforme')       slots.uniforme       = r.montant;
+        else if (nature === 'tenue_mercredi') slots.tenue_mercredi = r.montant;
+        else if (nature === 'tenue_sport')    slots.tenue_sport    = r.montant;
+        else if (autreIdx <= 6) {
+            slots[`autre${autreIdx}`] = r.montant;
+            autreIdx++;
+        }
+    }
+    return slots;
+};
+
 const submitForm = () => {
     showStoreLoader();
-    form.post(route('finances.autres-revenus.store'), {
-        onSuccess: () => {
-            setTimeout(() => {
-                hideLoader();
-            }, 500);
-        },
-        onError: () => {
-            hideLoader();
-        }
-    });
+    form
+        .transform((data) => ({
+            ...data,
+            ...revenusToSlots(data.revenus || []),
+        }))
+        .post(route('finances.autres-revenus.store'), {
+            onSuccess: () => setTimeout(() => hideLoader(), 500),
+            onError: () => hideLoader(),
+        });
 };
 </script>
 
@@ -74,7 +91,8 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <AutreRevenuForm
                                     :form="form"
                                     :annees-scolaires="anneesScolaires"
@@ -82,26 +100,18 @@ const submitForm = () => {
                                     :ecoles="ecoles"
                                     :campuses="campuses"
                                     mode="create"
+                                    @submit="submitForm"
                                 />
-                                <!-- Buttons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('finances.autres-revenus.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('finances.autres-revenus.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
