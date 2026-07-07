@@ -36,6 +36,18 @@ const props = defineProps({
     fonctions: { type: Array, default: () => [] },
 });
 
+// §UI : <input type="date"> exige le format `YYYY-MM-DD` strict. Or Laravel
+//   sérialise les colonnes date en ISO 8601 (`1990-05-15T00:00:00.000000Z`)
+//   OU en string simple selon $casts. Sans normalisation, l'input reste vide.
+const toDateInput = (v) => {
+    if (!v) return '';
+    // Déjà au bon format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+    // Formats ISO / datetime (avec espace ou T)
+    const m = String(v).match(/^(\d{4}-\d{2}-\d{2})/);
+    return m ? m[1] : '';
+};
+
 const form = useForm({
     user_id: props.enseignant?.user_id || '',
     matricule: props.enseignant?.matricule || '',
@@ -48,7 +60,7 @@ const form = useForm({
     nature_contrat_id: props.enseignant?.nature_contrat_id || '',
     fonction_id: props.enseignant?.fonction_id || '',
     marital_status: props.enseignant?.marital_status || '',
-    date_of_birth: props.enseignant?.date_of_birth || '',
+    date_of_birth: toDateInput(props.enseignant?.date_of_birth),
     place_of_birth: props.enseignant?.place_of_birth || '',
     commune_id: props.enseignant?.commune_id || '',
     department_id: props.enseignant?.department_id || '',
@@ -61,7 +73,7 @@ const form = useForm({
     languages: props.enseignant?.languages || [],
     teaching_speciality: props.enseignant?.teaching_speciality || '',
     type_contrat: props.enseignant?.type_contrat || '',
-    date_embauche: props.enseignant?.date_embauche || '',
+    date_embauche: toDateInput(props.enseignant?.date_embauche),
     teacher_category: props.enseignant?.teacher_category || '',
     categorie_enseignant_id: props.enseignant?.categorie_enseignant_id || '',
     email: props.enseignant?.email || '',

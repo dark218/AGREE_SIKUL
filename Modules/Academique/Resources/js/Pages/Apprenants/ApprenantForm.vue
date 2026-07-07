@@ -138,41 +138,11 @@ const cycleLabel   = computed(() => autoLabel(props.cycles,   props.form.cycle_i
 const ecoleLabel   = computed(() => autoLabel(props.ecoles,   props.form.ecole_id));
 const campusLabel  = computed(() => autoLabel(props.campuses, props.form.campus_id));
 
-// Options fixes — statut apprenant.
-// §UX robuste : on renvoie SYSTÉMATIQUEMENT le code référentiel exact
-// (ex 'ACTIF' si la table `statuts_apprenants` le stocke ainsi). Le
-// controller Laravel valide via allowedStatutCodes() dynamique — les 2
-// bouts s'alignent sans dépendre de la casse.
-const statusOptions = computed(() => {
-    if (props.statutsApprenants?.length > 0) {
-        return props.statutsApprenants
-            .filter(s => s && s.code)
-            .map(s => ({ id: String(s.code), libelle: s.libelle || s.code }));
-    }
-    // Fallback : mêmes codes que allowedStatutCodes() côté controller.
-    return [
-        { id: 'ACTIF',     libelle: 'Actif' },
-        { id: 'SUSPENDU',  libelle: 'Suspendu' },
-        { id: 'EXCLU',     libelle: 'Exclu' },
-        { id: 'DIPLOME',   libelle: 'Diplômé' },
-        { id: 'ABANDONNE', libelle: 'Abandonné' },
-    ];
-});
-
-// §UX : si la valeur initiale du form ne matche aucune option (ex 'actif'
-// lowercase alors que la DB a 'ACTIF'), on la remplace par la première
-// option compatible (match case-insensitive). Évite un select vide au montage.
-watch(
-    () => [props.form?.statut, statusOptions.value],
-    ([current, options]) => {
-        if (!current || !options?.length) return;
-        const match = options.find(o => String(o.id).toLowerCase() === String(current).toLowerCase());
-        if (match && match.id !== current) {
-            props.form.statut = match.id;
-        }
-    },
-    { immediate: true }
-);
+// Statut apprenant : simple Actif / Inactif (plus de référentiel dynamique).
+const statusOptions = [
+    { id: 'actif',   libelle: 'Actif' },
+    { id: 'inactif', libelle: 'Inactif' },
+];
 const yesNoOptions = [
     { id: true,  libelle: 'Oui' },
     { id: false, libelle: 'Non' },

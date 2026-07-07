@@ -26,15 +26,9 @@ const props = defineProps({
     anneesFilter: { type: Array, default: () => [] },
     statutsFilter: { type: Array, default: () => [] },
 });
-// Statuts apprenant (référentiel) : codes normalisés pour matcher la valeur
-// stockée dans apprenants.statut (ex: 'stap_01').
-const statutsNormalises = (props.statutsFilter || []).map(s => ({ ...s, code: (s.code || '').toLowerCase() }));
-const statutMap = Object.fromEntries(statutsNormalises.map(s => [s.code, s.libelle]));
-const statutLibelle = (code) => statutMap[(code || '').toLowerCase()] || code || '-';
-const isActifStatut = (code) => {
-    const c = (code || '').toLowerCase();
-    return c === 'actif' || (statutLibelle(code) || '').toLowerCase() === 'actif';
-};
+// Statut : simple Actif / Inactif.
+const isActifStatut = (code) => String(code || '').toLowerCase() === 'actif';
+const statutLibelle = (code) => (isActifStatut(code) ? 'Actif' : 'Inactif');
 const deleteMode = ref(false);
 const deactivateMode = ref(false);
 const activateMode = ref(false);
@@ -52,7 +46,7 @@ const statusOptions = [
 ];
 const filterFields = [
     { key: 'search', type: 'text', placeholder: 'Rechercher un apprenant…', icon: 'fa-search', width: '240px' },
-    { key: 'statut', type: 'select', placeholder: 'Statut', options: statutsNormalises, optionValue: 'code', optionLabel: 'libelle', width: '160px' },
+    { key: 'statut', type: 'select', placeholder: 'Statut', options: statusOptions, optionValue: 'id', optionLabel: 'libelle', width: '160px' },
     { key: 'classe_id', type: 'select', placeholder: 'Classe', options: props.classesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
     { key: 'ecole_id', type: 'select', placeholder: 'École', options: props.ecolesFilter, optionValue: 'id', optionLabel: 'libelle', width: '180px' },
     { key: 'cycle_id', type: 'select', placeholder: 'Cycle', options: props.cyclesFilter, optionValue: 'id', optionLabel: 'libelle', width: '170px' },

@@ -74,46 +74,83 @@ onBeforeUnmount(() => {
   scope Vue du composant.
 -->
 <style>
+/* §UI : vraie zone type textarea — grande dès le départ + grossit avec les
+   sélections. Objectif : lire les libellés complets même quand il y en a
+   plusieurs, sans ouvrir le dropdown. */
 .select2-container--default .select2-selection--multiple {
-    min-height: 44px;
-    padding: 4px 6px 2px 6px;
-    line-height: 1.4;
+    min-height: 90px;
+    padding: 8px 10px;
+    line-height: 1.5;
     border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: #fff;
+    font-size: 14px;
 }
 .select2-container--default .select2-selection--multiple .select2-selection__rendered {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 6px;
     padding: 0;
-    line-height: 1.4;
-    max-height: 220px;
+    line-height: 1.5;
+    max-height: 320px;
     overflow-y: auto;
+    min-height: 74px;
+    align-content: flex-start;
 }
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
     max-width: 100%;
     white-space: normal;
     word-break: break-word;
-    line-height: 1.4;
-    padding: 4px 10px 4px 8px;
-    margin: 2px 0;
+    line-height: 1.5;
+    padding: 6px 12px 6px 10px;
+    margin: 3px 0;
     background-color: #eff6ff;
     color: #1e40af;
     border: 1px solid #bfdbfe;
-    border-radius: 4px;
-    font-size: 13px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.06);
 }
 .select2-container--default .select2-selection--multiple .select2-selection__choice__display {
-    padding-left: 4px;
+    padding-left: 6px;
 }
 .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
     color: #1e40af;
-    margin-right: 4px;
+    margin-right: 6px;
+    font-size: 16px;
+    font-weight: 600;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #dc2626;
+    background: transparent;
 }
 .select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field {
-    margin-top: 4px;
-    line-height: 1.4;
+    margin-top: 6px;
+    line-height: 1.5;
+    font-size: 14px;
+    min-width: 200px;
+}
+/* Dropdown des options : plus lisible aussi */
+.select2-container--default .select2-results__option {
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0b5697;
+    color: #fff;
+}
+.select2-dropdown {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.select2-search--dropdown .select2-search__field {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
 }
 .select2-container--default.select2-container--focus .select2-selection--multiple {
     border-color: #0b5697;

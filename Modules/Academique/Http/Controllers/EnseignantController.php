@@ -309,6 +309,21 @@ class EnseignantController extends Controller
 
         try {
             $this->normalizeForeignKeys($request);
+
+            // §BUG-FIX : "Le user id est déjà utilisé" au moindre update.
+            //   Cause possible en prod : un autre enseignant a été créé avec
+            //   le même user_id à un moment historique (état incohérent). La
+            //   règle `unique:enseignants,user_id,{id}` ignore l'enseignant
+            //   courant mais échoue si un enseignant TIERS a aussi ce user_id.
+            //   Comme le user_id ne doit pas changer via modification d'un
+            //   enseignant (c'est un lien de propriété stable), on RETIRE
+            //   simplement user_id du payload s'il n'a pas changé. La règle
+            //   `unique` n'est plus testée pour ce no-op.
+            if ($request->filled('user_id')
+                && (int) $request->input('user_id') === (int) $enseignant->user_id) {
+                $request->request->remove('user_id');
+            }
+
             $validated = $request->validate([
                 'user_id' => 'nullable|exists:users,id|unique:enseignants,user_id,' . $enseignant->id,
                 'matricule' => 'nullable|unique:enseignants,matricule,' . $enseignant->id,

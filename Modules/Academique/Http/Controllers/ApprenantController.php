@@ -253,7 +253,7 @@ class ApprenantController extends Controller
                 // §UX robuste : validation dynamique basée sur le référentiel
                 //   `statuts_apprenants` — couvre TOUTES les variantes de casse
                 //   présentes en base + fallback ACTIF/... si référentiel vide.
-                'statut' => ['required', \Illuminate\Validation\Rule::in($this->allowedStatutCodes())],
+                'statut' => 'nullable|in:actif,inactif',
             ]);
 
             \Log::info('Validation passed!', ['validated_data' => $validated]);
@@ -383,10 +383,6 @@ class ApprenantController extends Controller
     {
         try {
             $this->normalizeForeignKeys($request);
-            // §UX : idem store() — voir commentaire strtoupper().
-            if ($request->filled('statut')) {
-                $request->merge(['statut' => strtoupper((string) $request->input('statut'))]);
-            }
             $validated = $request->validate([
                 'matricule' => 'required|unique:apprenants,matricule,' . $apprenant->id,
                 'nom' => 'required|string|max:255',
@@ -442,7 +438,7 @@ class ApprenantController extends Controller
                 // §UX robuste : validation dynamique basée sur le référentiel
                 //   `statuts_apprenants` — couvre TOUTES les variantes de casse
                 //   présentes en base + fallback ACTIF/... si référentiel vide.
-                'statut' => ['required', \Illuminate\Validation\Rule::in($this->allowedStatutCodes())],
+                'statut' => 'nullable|in:actif,inactif',
             ]);
 
             // Upload de la nouvelle photo : remplace l'ancienne et supprime le fichier
