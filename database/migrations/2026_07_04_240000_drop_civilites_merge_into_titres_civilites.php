@@ -17,14 +17,25 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Copie civilites → titres_civilites (skip si code déjà présent).
+        //    Note : `titres_civilites.code` a une contrainte UNIQUE case-insensitive
+        //    (collation utf8mb4_unicode_ci). On normalise en uppercase pour la
+        //    comparaison ET on utilise `insertOrIgnore` en second filet de
+        //    sécurité — la migration doit rester idempotente même si la table
+        //    source contient des doublons (soft-delete, seed antérieur).
         if (Schema::hasTable('civilites') && Schema::hasTable('titres_civilites')) {
-            $existing = DB::table('titres_civilites')->pluck('code')->all();
+            $existing = array_map(
+                fn ($c) => strtoupper((string) $c),
+                DB::table('titres_civilites')->pluck('code')->all()
+            );
+            $seenInBatch = [];
             $rows = DB::table('civilites')->whereNull('deleted_at')->get();
             foreach ($rows as $row) {
-                if (in_array($row->code, $existing, true)) {
+                $codeUp = strtoupper((string) ($row->code ?? ''));
+                if ($codeUp === '' || in_array($codeUp, $existing, true) || in_array($codeUp, $seenInBatch, true)) {
                     continue;
                 }
-                DB::table('titres_civilites')->insert([
+                $seenInBatch[] = $codeUp;
+                DB::table('titres_civilites')->insertOrIgnore([
                     'code'       => $row->code,
                     'libelle'    => $row->libelle,
                     'sigle'      => $row->libelle, // libelle court fait office de sigle

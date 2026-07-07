@@ -20,13 +20,21 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('types_contrats') && Schema::hasTable('natures_contrats')) {
-            $existing = DB::table('natures_contrats')->pluck('code')->all();
+            // Normalisation case-insensitive + insertOrIgnore pour idempotence
+            // (voir fix migration 2026_07_04_240000 pour le même pattern).
+            $existing = array_map(
+                fn ($c) => strtoupper((string) $c),
+                DB::table('natures_contrats')->pluck('code')->all()
+            );
+            $seenInBatch = [];
             $rows = DB::table('types_contrats')->whereNull('deleted_at')->get();
             foreach ($rows as $row) {
-                if (in_array($row->code, $existing, true)) {
+                $codeUp = strtoupper((string) ($row->code ?? ''));
+                if ($codeUp === '' || in_array($codeUp, $existing, true) || in_array($codeUp, $seenInBatch, true)) {
                     continue;
                 }
-                DB::table('natures_contrats')->insert([
+                $seenInBatch[] = $codeUp;
+                DB::table('natures_contrats')->insertOrIgnore([
                     'code'       => $row->code,
                     'libelle'    => $row->libelle,
                     'etat'       => $row->etat ?? 'actif',
