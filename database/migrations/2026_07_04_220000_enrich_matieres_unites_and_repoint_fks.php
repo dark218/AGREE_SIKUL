@@ -94,15 +94,29 @@ return new class extends Migration
                 continue;
             }
             $this->dropForeignIfExists($tableName, 'matiere_id');
-            // Le FK SET NULL exige que la colonne soit NULLABLE. Certaines tables
-            // (cours, etc.) ont matiere_id NOT NULL → MySQL erreur 1830 sinon.
-            // ALTER COLUMN direct pour éviter la dépendance à doctrine/dbal.
-            $this->makeColumnNullable($tableName, 'matiere_id');
-            Schema::table($tableName, function (Blueprint $t) use ($tableName) {
-                $t->foreign('matiere_id')
-                    ->references('id')->on('matieres_unites')
-                    ->nullOnDelete();
-            });
+
+            // Détecte si `matiere_id` est dans la PRIMARY KEY ou une UNIQUE
+            // composite (cas des pivots comme `enseignant_matieres`). Si oui,
+            // impossible de la rendre NULLABLE (MySQL 1171) → on utilise
+            // cascadeOnDelete (comportement standard des pivots).
+            $isInPk = $this->columnIsPartOfPrimaryKey($tableName, 'matiere_id');
+
+            if ($isInPk) {
+                Schema::table($tableName, function (Blueprint $t) {
+                    $t->foreign('matiere_id')
+                        ->references('id')->on('matieres_unites')
+                        ->cascadeOnDelete();
+                });
+            } else {
+                // Le FK SET NULL exige que la colonne soit NULLABLE. Sinon
+                // MySQL erreur 1830. ALTER COLUMN direct (sans doctrine/dbal).
+                $this->makeColumnNullable($tableName, 'matiere_id');
+                Schema::table($tableName, function (Blueprint $t) {
+                    $t->foreign('matiere_id')
+                        ->references('id')->on('matieres_unites')
+                        ->nullOnDelete();
+                });
+            }
         }
 
         // affectations_enseignants : 21 colonnes matiere_1_id .. matiere_21_id
@@ -113,12 +127,23 @@ return new class extends Migration
                     continue;
                 }
                 $this->dropForeignIfExists('affectations_enseignants', $col);
-                $this->makeColumnNullable('affectations_enseignants', $col);
-                Schema::table('affectations_enseignants', function (Blueprint $t) use ($col) {
-                    $t->foreign($col)
-                        ->references('id')->on('matieres_unites')
-                        ->nullOnDelete();
-                });
+
+                $isInPk = $this->columnIsPartOfPrimaryKey('affectations_enseignants', $col);
+
+                if ($isInPk) {
+                    Schema::table('affectations_enseignants', function (Blueprint $t) use ($col) {
+                        $t->foreign($col)
+                            ->references('id')->on('matieres_unites')
+                            ->cascadeOnDelete();
+                    });
+                } else {
+                    $this->makeColumnNullable('affectations_enseignants', $col);
+                    Schema::table('affectations_enseignants', function (Blueprint $t) use ($col) {
+                        $t->foreign($col)
+                            ->references('id')->on('matieres_unites')
+                            ->nullOnDelete();
+                    });
+                }
             }
         }
 
@@ -155,6 +180,27 @@ return new class extends Migration
                 // ignore
             }
         }
+    }
+
+    /**
+     * Détecte si une colonne fait partie de la PRIMARY KEY (ou d'un UNIQUE
+     * composite servant de clé unique fonctionnelle) — cas des tables pivots.
+     * Ces colonnes ne peuvent pas être rendues NULLABLE (MySQL 1171) donc on
+     * ne peut pas leur attacher un FK ON DELETE SET NULL.
+     */
+    private function columnIsPartOfPrimaryKey(string $tableName, string $columnName): bool
+    {
+        $connection = DB::connection()->getDatabaseName();
+        $rows = DB::select(
+            "SELECT COUNT(*) AS c
+             FROM information_schema.KEY_COLUMN_USAGE
+             WHERE TABLE_SCHEMA = ?
+               AND TABLE_NAME = ?
+               AND COLUMN_NAME = ?
+               AND CONSTRAINT_NAME = 'PRIMARY'",
+            [$connection, $tableName, $columnName]
+        );
+        return (int) ($rows[0]->c ?? 0) > 0;
     }
 
     /**

@@ -16,6 +16,8 @@ class Paiement extends BaseModel
 
     protected $fillable = [
         'frais_id',
+        'payable_type',
+        'payable_id',
         'apprenant_id',
         'montant_cents',
         'mode_paiement',
@@ -33,6 +35,16 @@ class Paiement extends BaseModel
     public function frais(): BelongsTo
     {
         return $this->belongsTo(Frais::class, 'frais_id');
+    }
+
+    /**
+     * Cible polymorphe du paiement — peut être un Versement,
+     * AchatDepense, AutreRevenu, Salaire (avance), ou Frais.
+     * Voir §10.4 : consolidation des 4 modélisations concurrentes.
+     */
+    public function payable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function apprenant(): BelongsTo

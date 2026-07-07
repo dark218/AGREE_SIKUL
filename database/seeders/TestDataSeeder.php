@@ -160,32 +160,63 @@ class TestDataSeeder extends Seeder
         $ecoleId = DB::table('ecoles')->first()->id;
         echo "✅ Écoles créées\n";
 
-        // Niveaux (pour les classes)
-        DB::table('niveaux')->insertOrIgnore([
-            ['code' => 'NIV_1', 'libelle' => '1ère Année', 'statut' => 'actif', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'NIV_2', 'libelle' => '2ème Année', 'statut' => 'actif', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'NIV_3', 'libelle' => '3ème Année', 'statut' => 'actif', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'NIV_4', 'libelle' => '4ème Année', 'statut' => 'actif', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'NIV_5', 'libelle' => '5ème Année', 'statut' => 'actif', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'NIV_6', 'libelle' => '6ème Année', 'statut' => 'actif', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        $niveaux = DB::table('niveaux')->limit(6)->get();
-        echo "✅ Niveaux créés\n";
+        // Niveaux (pour les classes) — table `niveaux` supprimée en Phase 1
+        // (§10.2 : fusion Niveau → NiveauEtude). On seed dans `niveaux_etudes`
+        // seule table canonique restante. Requiert cycle_id NOT NULL.
+        if (\Schema::hasTable('niveaux_etudes')) {
+            $cycleFallbackId = optional($cycles->first())->id
+                ?? \DB::table('cycles_enseignement')->value('id');
+            if ($cycleFallbackId) {
+                $labels = ['1ère Année', '2ème Année', '3ème Année', '4ème Année', '5ème Année', '6ème Année'];
+                foreach ($labels as $i => $lib) {
+                    \DB::table('niveaux_etudes')->insertOrIgnore([
+                        'code'       => 'NIV_' . ($i + 1),
+                        'libelle'    => $lib,
+                        'cycle_id'   => $cycleFallbackId,
+                        'etat'       => 'actif',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+            $niveaux = \DB::table('niveaux_etudes')->limit(6)->get();
+            echo "✅ Niveaux d'étude créés\n";
+        } else {
+            $niveaux = collect();
+            echo "⚠️  Table niveaux_etudes absente — skip\n";
+        }
 
-        // Matières
-        DB::table('matieres')->insertOrIgnore([
-            ['code' => 'MATH', 'libelle' => 'Mathématiques', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'PHYS', 'libelle' => 'Physique', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'CHIM', 'libelle' => 'Chimie', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'BIOL', 'libelle' => 'Biologie', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'FRAN', 'libelle' => 'Français', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'ANGL', 'libelle' => 'Anglais', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'GEOG', 'libelle' => 'Géographie', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'HIST', 'libelle' => 'Histoire', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'EDUC', 'libelle' => 'Éducation Civique', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'SPOR', 'libelle' => 'Sport', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        echo "✅ Matières créées\n";
+        // Matières — table `matieres` supprimée en Phase 1.1 (§1.1 : fusion
+        // Matiere → MatiereUnite). On seed dans `matieres_unites`.
+        if (\Schema::hasTable('matieres_unites')) {
+            $matieres = [
+                ['code' => 'MATH', 'libelle' => 'Mathématiques'],
+                ['code' => 'PHYS', 'libelle' => 'Physique'],
+                ['code' => 'CHIM', 'libelle' => 'Chimie'],
+                ['code' => 'BIOL', 'libelle' => 'Biologie'],
+                ['code' => 'FRAN', 'libelle' => 'Français'],
+                ['code' => 'ANGL', 'libelle' => 'Anglais'],
+                ['code' => 'GEOG', 'libelle' => 'Géographie'],
+                ['code' => 'HIST', 'libelle' => 'Histoire'],
+                ['code' => 'EDUC', 'libelle' => 'Éducation Civique'],
+                ['code' => 'SPOR', 'libelle' => 'Sport'],
+            ];
+            foreach ($matieres as $m) {
+                \DB::table('matieres_unites')->insertOrIgnore([
+                    'code'       => $m['code'],
+                    'libelle'    => $m['libelle'],
+                    'ecole_id'   => $ecoleId,
+                    'coefficient' => 1,
+                    'note_max'   => 20,
+                    'etat'       => 'actif',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            echo "✅ Matières unités créées\n";
+        } else {
+            echo "⚠️  Table matieres_unites absente — skip\n";
+        }
 
         // Classes
         $niveauId = $niveaux->get(3)->id ?? $niveaux->first()->id;
@@ -247,21 +278,29 @@ class TestDataSeeder extends Seeder
         }
         echo "✅ Enseignants créés\n";
 
-        // Catégories apprenant
-        DB::table('categorie_apprenants')->insertOrIgnore([
-            ['code' => 'REG', 'libelle' => 'Régulier', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'IRRE', 'libelle' => 'Irrégulier', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'LIBRE', 'libelle' => 'Libre', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        echo "✅ Catégories apprenant créées\n";
+        // Catégories apprenant — table `categorie_apprenants` supprimée en
+        // Phase 1 (§10.2 : doublon de TypeApprenant + StatutApprenant).
+        // Skip silencieux si absente.
+        if (\Schema::hasTable('categorie_apprenants')) {
+            \DB::table('categorie_apprenants')->insertOrIgnore([
+                ['code' => 'REG',   'libelle' => 'Régulier',   'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'IRRE',  'libelle' => 'Irrégulier', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'LIBRE', 'libelle' => 'Libre',      'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+            ]);
+            echo "✅ Catégories apprenant créées\n";
+        } else {
+            echo "⚠️  Table categorie_apprenants supprimée (Phase 1) — skip\n";
+        }
 
         // Catégories enseignant
-        DB::table('categorie_enseignants')->insertOrIgnore([
-            ['code' => 'CAT_A', 'libelle' => 'Catégorie A', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'CAT_B', 'libelle' => 'Catégorie B', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-            ['code' => 'CAT_C', 'libelle' => 'Catégorie C', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-        ]);
-        echo "✅ Catégories enseignant créées\n";
+        if (\Schema::hasTable('categorie_enseignants')) {
+            \DB::table('categorie_enseignants')->insertOrIgnore([
+                ['code' => 'CAT_A', 'libelle' => 'Catégorie A', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'CAT_B', 'libelle' => 'Catégorie B', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'CAT_C', 'libelle' => 'Catégorie C', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+            ]);
+            echo "✅ Catégories enseignant créées\n";
+        }
 
         // Re-enable FK checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
