@@ -202,7 +202,7 @@ class ListeManuelsController extends Controller
             'anneesScolaires' => AnneeScolaire::select('id', 'libelle')->where('etat', 'actif')->orderBy('libelle', 'desc')->get(),
             'ecoles' => Ecole::select('id', 'nom as libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
             'sections' => Section::select('id', 'nom as libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
-            'niveaux' => NiveauEtude::where('statut', 'actif')->get(),
+            'niveaux' => NiveauEtude::where('etat', 'actif')->get(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
             'pays' => Pays::select('id', 'libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
         ];

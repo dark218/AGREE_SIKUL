@@ -23,7 +23,7 @@
 -->
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 import Select2Multiple from '@/Components/Common/Select2Multiple.vue';
@@ -65,9 +65,67 @@ if (!Array.isArray(props.form.niveaux_ids)) props.form.niveaux_ids = [];
 if (!Array.isArray(props.form.classes_ids)) props.form.classes_ids = [];
 if (!Array.isArray(props.form.languages)) props.form.languages = [];
 
-// Normalise les codes des statuts en minuscules (base : 'actif' vs référentiel 'ACTIF').
+// §UX robuste multi-select : purge les IDs qui n'existent plus dans les
+// options fournies par le backend (ex : matière archivée, cycle supprimé).
+// Évite l'erreur Laravel `exists:matieres_unites,id` sur un ID orphelin
+// silencieusement présent dans le form legacy.
+function pruneMissing(formKey, options, optionKey = 'id') {
+    const list = props.form[formKey];
+    if (!Array.isArray(list) || !list.length) return;
+    const valid = new Set((options || []).map(o => String(o?.[optionKey])));
+    const cleaned = list.filter(v => valid.has(String(v)));
+    if (cleaned.length !== list.length) {
+        props.form[formKey] = cleaned;
+    }
+}
+watch(
+    () => [props.matieres, props.cycles, props.niveaux, props.classes],
+    () => {
+        pruneMissing('matieres_ids', props.matieres);
+        pruneMissing('cycles_ids',   props.cycles);
+        pruneMissing('niveaux_ids',  props.niveaux);
+        pruneMissing('classes_ids',  props.classes);
+    },
+    { immediate: true, deep: true }
+);
+
+// §UX : `languages` stocke des libellés (pas d'id). On dédoublonne et on trim
+// pour éviter les doublons "Français " / "Français" créés par edit successifs.
+watch(
+    () => props.form?.languages,
+    (list) => {
+        if (!Array.isArray(list) || !list.length) return;
+        const uniq = [...new Set(list.map(v => (v ?? '').toString().trim()).filter(Boolean))];
+        if (uniq.length !== list.length || uniq.some((v, i) => v !== list[i])) {
+            props.form.languages = uniq;
+        }
+    },
+    { immediate: true }
+);
+
+// §UX robuste : on garde le code référentiel EXACT (pas de lowercase forcé).
+// Le controller EnseignantController valide via allowedStatutCodes() qui
+// génère les 4 variantes de casse (original / lower / UPPER / Title).
 const statutsEmployesNormalises = computed(() =>
-    (props.statutsEmployes || []).map(s => ({ ...s, code: (s.code || '').toLowerCase() }))
+    (props.statutsEmployes || [])
+        .filter(s => s && s.code)
+        .map(s => ({ ...s, code: String(s.code) }))
+);
+
+// §UX : auto-heal — si form.statut ne matche exactement aucun code (ex 'actif'
+// alors que le référentiel a 'ACTIF'), on remplace par la valeur exacte du
+// référentiel (match case-insensitive). Le SearchableSelect affichera dès lors
+// le bon libellé au lieu d'un select vide.
+watch(
+    () => [props.form?.statut, statutsEmployesNormalises.value],
+    ([current, options]) => {
+        if (!current || !options?.length) return;
+        const match = options.find(o => String(o.code).toLowerCase() === String(current).toLowerCase());
+        if (match && match.code !== current) {
+            props.form.statut = match.code;
+        }
+    },
+    { immediate: true }
 );
 
 // Cascade géo : commune → département → région → pays (remplit auto le form).

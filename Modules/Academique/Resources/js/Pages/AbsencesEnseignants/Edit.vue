@@ -27,12 +27,25 @@ const props = defineProps({
         default: () => [],
     },
 });
+// §UI : l'input <input type="datetime-local"> exige le format YYYY-MM-DDTHH:mm.
+// Or le serveur renvoie soit "YYYY-MM-DD HH:mm:ss" (Carbon), soit un ISO complet.
+// On normalise ici pour que l'input soit pré-rempli au montage.
+const toDateTimeLocal = (v) => {
+    if (!v) return '';
+    // Si déjà au format attendu, garde tel quel.
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(v)) return v;
+    // Format Carbon "YYYY-MM-DD HH:mm:ss" ou "YYYY-MM-DDTHH:mm:ss(+00:00)"
+    const s = String(v).replace(' ', 'T');
+    const m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
+    return m ? m[1] : '';
+};
+
 const form = useForm({
     enseignant_id: props.absenceEnseignant?.enseignant_id || '',
     matiere_id: props.absenceEnseignant?.matiere_id || null,
     classe_id: props.absenceEnseignant?.classe_id || null,
-    date_debut: props.absenceEnseignant?.date_debut || '',
-    date_fin: props.absenceEnseignant?.date_fin || '',
+    date_debut: toDateTimeLocal(props.absenceEnseignant?.date_debut),
+    date_fin: toDateTimeLocal(props.absenceEnseignant?.date_fin),
     nombre_heures: props.absenceEnseignant?.nombre_heures || 0,
     motif: props.absenceEnseignant?.motif || '',
     statut: props.absenceEnseignant?.statut || 'en_attente',

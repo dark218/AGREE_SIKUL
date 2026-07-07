@@ -309,9 +309,12 @@ class CoursController extends Controller
                 throw new \Exception('La date de fin doit être après la date de début');
             }
 
-            // Convert datetime-local format to proper datetime
-            $validated['date_debut'] = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', str_replace('T', ' ', $validated['date_debut']));
-            $validated['date_fin'] = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', str_replace('T', ' ', $validated['date_fin']));
+            // §BUG-FIX : le format `Y-m-d\TH:i` attend un T LITTÉRAL, mais
+            //   str_replace('T', ' ', ...) l'avait déjà remplacé par un espace
+            //   → Carbon lève "Unexpected data found". On aligne sur store()
+            //   qui utilise le bon format `Y-m-d H:i` avec le str_replace.
+            $validated['date_debut'] = \Carbon\Carbon::createFromFormat('Y-m-d H:i', str_replace('T', ' ', $validated['date_debut']));
+            $validated['date_fin']   = \Carbon\Carbon::createFromFormat('Y-m-d H:i', str_replace('T', ' ', $validated['date_fin']));
 
             $cours->update($validated);
 

@@ -60,6 +60,11 @@ return new class extends Migration
         'entrees-livres', 'entrees_livres',
         'sorties-livres', 'sorties_livres',
         'inventaire-livres', 'inventaire_livres', 'inventaires-livres',
+        // Bibliothèque legacy (menu_url intermédiaire) — routes /bibliotheques
+        // vivent maintenant dans RessourcesLogistique.
+        'bibliotheque-structures', 'bibliotheque_structures',
+        // Présences Séances retiré — /presences est la source unique.
+        'presences-seances', 'presences_seances',
         // Manuels standalone (fusionné dans ListeManuels)
         'manuels', 'manuel', 'livres-manuels',
         // Services doublons singulier (Phase 4.6c — canoniques pluriel)

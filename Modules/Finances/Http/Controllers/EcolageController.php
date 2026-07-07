@@ -75,7 +75,7 @@ class EcolageController extends Controller
             $anneesScolaires = AnneeScolaire::where('etat', 'actif')->get();
             \Log::info("AnneeScolaires loaded", ['count' => $anneesScolaires->count()]);
 
-            $niveaux = NiveauEtude::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('etat', 'actif')->get();
             \Log::info("Niveaux loaded", ['count' => $niveaux->count()]);
 
             $ecoles = Ecole::where('statut', 'actif')->get();
@@ -221,7 +221,7 @@ class EcolageController extends Controller
     {
         return [
             'anneesScolaires' => AnneeScolaire::where('etat', 'actif')->get(['id', 'libelle']),
-            'niveaux' => NiveauEtude::where('statut', 'actif')->get(),
+            'niveaux' => NiveauEtude::where('etat', 'actif')->get(),
             'ecoles' => Ecole::where('statut', 'actif')->get(['id', 'nom']),
             'campuses' => Campus::where('statut', 'actif')->get(['id', 'nom']),
             'sections' => Section::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),

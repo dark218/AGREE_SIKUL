@@ -76,7 +76,9 @@ class ResultatExamenController extends Controller
             ->get()
             ->map(fn($e) => ['id' => $e->id, 'titre' => $e->titre . ' (' . ($e->matiere?->libelle ?? '') . ')']);
 
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        // §BUG-FIX : MatiereUnite n'a pas de colonne `statut`, seulement `etat`.
+        //   Cause du 500 sur /resultats-examens.
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
         $classes = Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')

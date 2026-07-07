@@ -1,5 +1,5 @@
 <script setup>
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -102,12 +102,12 @@ const submit = () => {
                                     />
 
                                     <div class="text-end mt-4">
-                                        <router-link
+                                        <Link
                                             :href="route('academique.listes-manuels.index')"
                                             class="btn btn-danger"
                                         >
                                             <i class="fa fa-arrow-left"></i> {{ t('actions.back') || 'Retour' }}
-                                        </router-link>
+                                        </Link>
                                         <button
                                             type="submit"
                                             class="btn btn-primary"

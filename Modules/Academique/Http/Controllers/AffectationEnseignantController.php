@@ -159,7 +159,11 @@ class AffectationEnseignantController extends Controller
     private function lookups(): array
     {
         return [
-            'enseignants'     => Enseignant::where('statut', 'actif')->select('id', 'nom', 'prenoms')->get()->toArray(),
+            // §UX : accepte toutes les casses de statut (actif/ACTIF/Actif) —
+            //   idem approche allowedStatutCodes(). Sinon aucune option ne
+            //   remonte quand le référentiel utilise 'ACTIF'.
+            'enseignants'     => Enseignant::whereRaw('LOWER(statut) = ?', ['actif'])
+                                    ->select('id', 'nom', 'prenoms')->orderBy('nom')->get()->toArray(),
             'anneesScolaires' => AnneeScolaire::where('etat', 'actif')->select('id', 'libelle')->get()->toArray(),
             'classes'         => $this->classeLookups(),
             'ecoles'          => Ecole::where('statut', 'actif')->select('id', 'nom as libelle')->get()->toArray(),

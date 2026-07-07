@@ -110,8 +110,9 @@ const DEFAULT_MENU_CONFIG = [
             // Absences & Présences
             // (Absences Apprenants retiré : source unique = Presence avec statut != 'present'.)
             { menu_url: 'absences-enseignants', libelle: 'Absences Enseignants', libelle_en: 'Teacher Absences', icone: 'fas fa-calendar-xmark' },
-            { menu_url: 'presences', libelle: 'Présences (Board)', libelle_en: 'Attendance Board', icone: 'fas fa-user-check' },
-            { menu_url: 'presences-seances', libelle: 'Présences Séances', libelle_en: 'Session Attendance', icone: 'fas fa-check-circle' },
+            { menu_url: 'presences', libelle: 'Présences', libelle_en: 'Attendance', icone: 'fas fa-user-check' },
+            // §10.8 : Présences Séances retiré — /presences est la source unique
+            //         (Presence a un champ seance_id qui filtre par séance).
             // (Justificatifs retiré : redondant avec justificatif_path des entités Presence/AbsenceEnseignant.)
 
             // Travaux Académiques
@@ -305,7 +306,7 @@ const ACADEMIQUE_GROUPS = [
     { id: 'inscriptions', libelle: 'Inscriptions & Dossiers', libelle_en: 'Enrollments & Files', icone: 'fas fa-clipboard-check',
       items: ['inscriptions', 'dossiers-apprenants'] },
     { id: 'absences', libelle: 'Absences & Présences', libelle_en: 'Absences & Attendance', icone: 'fas fa-user-check',
-      items: ['presences', 'presences-seances', 'absences-enseignants'] },
+      items: ['presences', 'absences-enseignants'] },
     { id: 'examens', libelle: 'Examens', libelle_en: 'Exams', icone: 'fas fa-file-pen',
       items: ['planification-examens', 'examens-en-ligne', 'mes-examens', 'exam-finance'] },
     // (Group 'bibliotheque' retiré — voir RessourcesLogistique pour la gestion des livres.)

@@ -281,7 +281,7 @@ watch(() => props.form.enseignant_id, () => {
                     optionValue="id"
                     :optionLabel="(opt) => `${opt.nom} ${opt.prenoms}`"
                     :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly || mode === 'edit'"
+                    :disabled="isReadOnly"
                 />
                 <span v-if="form.errors?.enseignant_id" class="text-danger">
                     <strong>{{ form.errors.enseignant_id }}</strong>

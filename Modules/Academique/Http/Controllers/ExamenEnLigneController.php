@@ -46,7 +46,7 @@ class ExamenEnLigneController extends Controller
                 ];
             });
 
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
 
         return Inertia::render('Academique::ExamensEnLigne/Index', [
             'examens' => $examens,
@@ -58,7 +58,7 @@ class ExamenEnLigneController extends Controller
 
     public function create()
     {
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
         $classes = \Modules\Parametrage\Entities\Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
@@ -124,7 +124,7 @@ class ExamenEnLigneController extends Controller
     {
         $examenEnLigne->load(['matiere', 'classe', 'enseignant', 'planificationExamen', 'questions.reponses']);
 
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
         $classes = \Modules\Parametrage\Entities\Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
@@ -156,7 +156,7 @@ class ExamenEnLigneController extends Controller
     {
         $examenEnLigne->load(['questions.reponses']);
 
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
         $classes = \Modules\Parametrage\Entities\Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')

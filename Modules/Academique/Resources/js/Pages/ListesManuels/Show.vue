@@ -1,5 +1,5 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { ref } from 'vue';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
@@ -114,12 +114,12 @@ const handleConfirm = () => {
                                 />
 
                                 <div class="text-end mt-4">
-                                    <router-link
+                                    <Link
                                         :href="route('academique.listes-manuels.index')"
                                         class="btn btn-danger"
                                     >
                                         <i class="fa fa-arrow-left"></i> {{ t('actions.back') || 'Retour' }}
-                                    </router-link>
+                                    </Link>
                                     <button type="button" class="btn btn-primary" @click="editItem">
                                         <i class="fa fa-edit"></i> {{ t('actions.edit') || 'Éditer' }}
                                     </button>

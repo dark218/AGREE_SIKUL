@@ -90,7 +90,7 @@ class FacturationApprenantController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
             $cycles = CycleEnseignement::where('etat', 'actif')->get();
-            $niveaux = NiveauEtude::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('etat', 'actif')->get();
 
             return inertia('Finances::FacturationApprenant/Create', [
                 'anneesScolaires' => $anneesScolaires,
@@ -170,7 +170,7 @@ class FacturationApprenantController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
             $cycles = CycleEnseignement::where('etat', 'actif')->get();
-            $niveaux = NiveauEtude::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('etat', 'actif')->get();
 
             return inertia('Finances::FacturationApprenant/Show', [
                 'item' => $item,
@@ -215,7 +215,7 @@ class FacturationApprenantController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
             $cycles = CycleEnseignement::where('etat', 'actif')->get();
-            $niveaux = NiveauEtude::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('etat', 'actif')->get();
 
             return inertia('Finances::FacturationApprenant/Edit', [
                 'item' => $item,

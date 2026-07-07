@@ -554,14 +554,18 @@ class EmploiTempsController extends Controller
                     if (empty($cours['matiere_id']) || empty($cours['heure_debut']) || empty($cours['heure_fin'])) {
                         continue;
                     }
-                    // Since we're replacing all, check within the submitted data only
-                    $conflicting = array_filter($coursDuJour, function($c) use ($cours) {
+                    // §BUG-FIX : la closure référençait $coursDuJour sans le
+                    //   capturer → PHP 8+ émet "Undefined variable $coursDuJour"
+                    //   à chaque validation → log_error + rollback silencieux.
+                    //   On capture explicitement les 2 variables du scope parent.
+                    $conflicting = array_filter($coursDuJour, function ($c) use ($cours, $coursDuJour) {
                         if (empty($c['matiere_id']) || empty($c['heure_debut']) || empty($c['heure_fin'])) {
                             return false;
                         }
                         // Overlap check: startA < endB AND startB < endA
-                        return $c['heure_debut'] < $cours['heure_fin'] && $cours['heure_debut'] < $c['heure_fin'] &&
-                               (array_search($c, $coursDuJour) !== array_search($cours, $coursDuJour));
+                        return $c['heure_debut'] < $cours['heure_fin']
+                            && $cours['heure_debut'] < $c['heure_fin']
+                            && (array_search($c, $coursDuJour) !== array_search($cours, $coursDuJour));
                     });
                     if (!empty($conflicting)) {
                         return back()->withErrors(['cours' => "❌ Chevauchement détecté le {$jour}: {$cours['heure_debut']}-{$cours['heure_fin']} chevauche un autre cours."]);

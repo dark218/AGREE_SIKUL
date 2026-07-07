@@ -46,16 +46,21 @@ class DossierApprenantController extends Controller
                     'carnet_sante' => $dossier->carnet_sante,
                     'dernier_bulletin' => $dossier->dernier_bulletin,
                     'apprenant' => [
-                        'id' => $dossier->apprenant->id,
-                        'matricule' => $dossier->apprenant->matricule,
+                        'id' => $dossier->apprenant->id ?? null,
+                        // §UI : nom/prenoms sont stockés DIRECTEMENT sur Apprenant
+                        //   (colonnes physiques). L'ancien template lisait uniquement
+                        //   apprenant.user.nom → vide car user peut être null.
+                        'nom'     => $dossier->apprenant->nom ?? ($dossier->apprenant->user->nom ?? null),
+                        'prenoms' => $dossier->apprenant->prenoms ?? ($dossier->apprenant->user->prenoms ?? null),
+                        'matricule' => $dossier->apprenant->matricule ?? null,
                         'user' => [
-                            'id' => $dossier->apprenant->user->id ?? null,
+                            'id'      => $dossier->apprenant->user->id ?? null,
                             'prenoms' => $dossier->apprenant->user->prenoms ?? null,
-                            'nom' => $dossier->apprenant->user->nom ?? null,
-                            'email' => $dossier->apprenant->user->email ?? null,
+                            'nom'     => $dossier->apprenant->user->nom ?? null,
+                            'email'   => $dossier->apprenant->user->email ?? null,
                         ],
                         'classe' => [
-                            'id' => $dossier->apprenant->classe->id ?? null,
+                            'id'  => $dossier->apprenant->classe->id ?? null,
                             'nom' => $dossier->apprenant->classe->nom ?? null,
                         ],
                     ],

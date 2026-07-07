@@ -22,11 +22,21 @@ class BibliothequeFeaturesSeeder extends Seeder
             ->whereIn('libelle', ['Académique', 'Academique'])
             ->value('id') ?? 25;
 
+        // §10.7 : la gestion bibliothèque a migré vers RessourcesLogistique.
+        //   Les URLs pointent désormais vers les routes de ce module :
+        //     - /bibliotheques (BibliothequeController)
+        //     - /ouvrages     (OuvrageController)
+        //     - /exemplaires  (ExemplaireController)
+        //     - /emprunts     (EmpruntController)
+        //   Les entrées legacy `bibliotheque-structures`, `entrees-livres`,
+        //   `sorties-livres`, `inventaire-livres` sont purgées par la migration
+        //   `2026_07_07_160000_purge_matiere_feature_variants.php` (Bibliothèque
+        //   academic → retiré).
         $features = [
-            ['menu_url' => 'bibliotheque-structures', 'libelle' => 'Bibliothèques', 'libelle_en' => 'Libraries', 'icone' => 'fas fa-book-open'],
-            ['menu_url' => 'entrees-livres', 'libelle' => 'Entrées de livres', 'libelle_en' => 'Book Entries', 'icone' => 'fas fa-arrow-down'],
-            ['menu_url' => 'sorties-livres', 'libelle' => 'Sorties de livres', 'libelle_en' => 'Book Exits', 'icone' => 'fas fa-arrow-up'],
-            ['menu_url' => 'inventaire-livres', 'libelle' => 'Inventaire', 'libelle_en' => 'Inventory', 'icone' => 'fas fa-boxes-stacked'],
+            ['menu_url' => 'bibliotheques', 'libelle' => 'Bibliothèques', 'libelle_en' => 'Libraries', 'icone' => 'fas fa-book-open'],
+            ['menu_url' => 'ouvrages',      'libelle' => 'Ouvrages',      'libelle_en' => 'Books',      'icone' => 'fas fa-book'],
+            ['menu_url' => 'exemplaires',   'libelle' => 'Exemplaires',   'libelle_en' => 'Copies',     'icone' => 'fas fa-books'],
+            ['menu_url' => 'emprunts',      'libelle' => 'Emprunts',      'libelle_en' => 'Loans',      'icone' => 'fas fa-hand-holding'],
         ];
 
         foreach ($features as $f) {

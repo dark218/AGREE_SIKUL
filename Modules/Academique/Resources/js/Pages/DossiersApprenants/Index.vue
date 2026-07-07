@@ -138,7 +138,7 @@ watch(
                                 <tbody>
                                     <template v-if="dossiersApprenants?.data && dossiersApprenants?.data.length > 0">
                                         <tr v-for="item in dossiersApprenants?.data" :key="item.id">
-                                            <td>{{ item.apprenant?.user?.prenoms }} {{ item.apprenant?.user?.nom }}</td>
+                                            <td>{{ [(item.apprenant?.prenoms || item.apprenant?.user?.prenoms || ''), (item.apprenant?.nom || item.apprenant?.user?.nom || '')].filter(Boolean).join(' ') || '-' }}</td>
                                             <td>{{ item.apprenant?.matricule || '' }}</td>
                                             <td>{{ item.apprenant?.classe?.nom || '' }}</td>
                                             <td class="fit">
@@ -169,7 +169,7 @@ watch(
                                     <div class="mobile-card-body">
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('common.apprenant') || 'Apprenant' }}</span>
-                                            <span class="mobile-card-value">{{ item.apprenant?.user?.prenoms }} {{ item.apprenant?.user?.nom }}</span>
+                                            <span class="mobile-card-value">{{ [(item.apprenant?.prenoms || item.apprenant?.user?.prenoms || ''), (item.apprenant?.nom || item.apprenant?.user?.nom || '')].filter(Boolean).join(' ') || '-' }}</span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('common.matricule') || 'Matricule' }}</span>

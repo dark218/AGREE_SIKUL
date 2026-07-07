@@ -18,6 +18,42 @@ class ApprenantController extends Controller
         $this->middleware('permission.check:apprenants-delete', ['only' => ['destroy', 'activate']]);
     }
 
+    /**
+     * §UX robuste : construit la liste des codes de statut acceptés en
+     * combinant :
+     *   - le référentiel `statuts_apprenants` (source de vérité en prod)
+     *   - une liste "fallback" ACTIF/SUSPENDU/... en cas de référentiel vide
+     *   - toutes les variantes de casse (lower/UPPER/Title) — on ne peut pas
+     *     compter sur la collation utf8mb4_unicode_ci de MySQL pour la règle
+     *     Laravel `in:` qui est strictement case-sensitive côté PHP.
+     */
+    private function allowedStatutCodes(): array
+    {
+        $codes = [];
+        try {
+            if (\Schema::hasTable('statuts_apprenants')) {
+                $codes = \DB::table('statuts_apprenants')
+                    ->pluck('code')->filter()->all();
+            }
+        } catch (\Throwable $e) {
+            // Silencieux — on retombe sur le fallback.
+        }
+        if (empty($codes)) {
+            $codes = ['ACTIF', 'SUSPENDU', 'EXCLU', 'DIPLOME', 'ABANDONNE'];
+        }
+        // Génère toutes les variantes de casse pour couvrir les seeds
+        // historiques (actif) et les nouveaux (ACTIF).
+        $variants = [];
+        foreach ($codes as $c) {
+            $c = (string) $c;
+            $variants[] = $c;
+            $variants[] = strtolower($c);
+            $variants[] = strtoupper($c);
+            $variants[] = ucfirst(strtolower($c));
+        }
+        return array_values(array_unique($variants));
+    }
+
     public function index(Request $request)
     {
         $query = Apprenant::query();
@@ -109,13 +145,12 @@ class ApprenantController extends Controller
         \Log::info('Request headers:', $request->headers->all());
 
         try {
-            // §UX : normalise le statut avant validation. Le référentiel
-            // StatutApprenant peut contenir des codes en majuscule (ACTIF) ou
-            // minuscule (actif) selon les seeders. On uniformise en amont plutôt
-            // que d'énumérer 10 variantes dans la règle `in:`.
-            if ($request->filled('statut')) {
-                $request->merge(['statut' => strtoupper((string) $request->input('statut'))]);
-            }
+            // §UX : le référentiel `statuts_apprenants` peut contenir des codes
+            // en majuscule (ACTIF), minuscule (actif) ou Titlecase (Actif)
+            // selon les seeders / imports historiques. On ne touche PAS la
+            // valeur ici — la règle `in:` accepte toutes les variantes grâce
+            // à `allowedStatutCodes()`. On log juste pour debug.
+            \Log::info('Statut reçu:', ['statut' => $request->input('statut')]);
             \Log::info('Validating request data...');
             $validated = $request->validate([
                 'matricule' => 'required|unique:apprenants',
@@ -169,9 +204,10 @@ class ApprenantController extends Controller
                 'date_entree_ecole' => 'nullable|date',
                 'date_depart_ecole' => 'nullable|date',
                 'motif_depart_ecole' => 'nullable|string|max:500',
-                // §UX : statut est normalisé en amont via strtoupper() —
-                // on ne liste que les codes canoniques du référentiel StatutApprenant.
-                'statut' => 'required|in:ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
+                // §UX robuste : validation dynamique basée sur le référentiel
+                //   `statuts_apprenants` — couvre TOUTES les variantes de casse
+                //   présentes en base + fallback ACTIF/... si référentiel vide.
+                'statut' => ['required', \Illuminate\Validation\Rule::in($this->allowedStatutCodes())],
             ]);
 
             \Log::info('Validation passed!', ['validated_data' => $validated]);
@@ -356,9 +392,10 @@ class ApprenantController extends Controller
                 'date_entree_ecole' => 'nullable|date',
                 'date_depart_ecole' => 'nullable|date',
                 'motif_depart_ecole' => 'nullable|string|max:500',
-                // §UX : statut est normalisé en amont via strtoupper() —
-                // on ne liste que les codes canoniques du référentiel StatutApprenant.
-                'statut' => 'required|in:ACTIF,SUSPENDU,EXCLU,DIPLOME,ABANDONNE',
+                // §UX robuste : validation dynamique basée sur le référentiel
+                //   `statuts_apprenants` — couvre TOUTES les variantes de casse
+                //   présentes en base + fallback ACTIF/... si référentiel vide.
+                'statut' => ['required', \Illuminate\Validation\Rule::in($this->allowedStatutCodes())],
             ]);
 
             // Upload de la nouvelle photo : remplace l'ancienne et supprime le fichier

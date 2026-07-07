@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { usePage, router } from '@inertiajs/vue3';
+import { usePage, router, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { usePermissions } from '@/Composables/usePermissions';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
@@ -107,9 +107,11 @@ const handleConfirm = () => {
                             <h3 class="page-title">{{ t('modules.academique.listes_manuels') || 'Listes des manuels' }}</h3>
                         </div>
                         <div v-if="can('listes-manuels-create')">
-                            <router-link :href="route('academique.listes-manuels.create')" class="btn btn-primary">
+                            <!-- §BUG-FIX : <router-link> n'existe pas dans une app Inertia
+                                 sans vue-router → rendu inerte. On utilise <Link> Inertia. -->
+                            <Link :href="route('academique.listes-manuels.create')" class="btn btn-primary">
                                 <i class="fa fa-plus"></i> {{ t('actions.add') || 'Ajouter' }}
-                            </router-link>
+                            </Link>
                         </div>
                     </div>
 

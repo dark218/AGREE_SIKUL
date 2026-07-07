@@ -68,7 +68,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
 
         return Inertia::render('Academique::PlanificationExamens/Index', [
             'planifications' => $planifications,
@@ -99,7 +99,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
         $enseignants = Enseignant::whereNotNull('id')->get(['id', 'prenoms', 'nom']);
 
         return Inertia::render('Academique::PlanificationExamens/Create', [
@@ -163,7 +163,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
         $enseignants = Enseignant::whereNotNull('id')->get(['id', 'prenoms', 'nom']);
 
         return Inertia::render('Academique::PlanificationExamens/Show', [
@@ -201,7 +201,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('etat', 'actif')->get(['id', 'libelle']);
 
         // Format dates and times for form input
         $item = $planificationExamen->toArray();

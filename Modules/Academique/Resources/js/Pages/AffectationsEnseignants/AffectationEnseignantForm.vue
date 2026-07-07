@@ -2,6 +2,7 @@
 import { defineProps, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import Select2Multiple from '@/Components/Common/Select2Multiple.vue';
 import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
 import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
 import { useClasseCascade } from '@/Composables/useClasseCascade';
@@ -189,15 +190,16 @@ const etatOptions = [
                     {{ t('fields.matieres') || 'Matières affectées' }}
                     <small class="text-muted">— sélectionne autant de matières que nécessaire</small>
                 </label>
-                <SearchableSelect
+                <!-- §BUG-FIX : SearchableSelect ne gère PAS le multi-select
+                     (la prop `multiple` est ignorée). On utilise Select2Multiple
+                     pour de la vraie multi-sélection avec tags flowables. -->
+                <Select2Multiple
                     v-model="form.matieres"
-                    :options="matieres"
-                    :disabled="isReadOnly"
-                    :multiple="true"
-                    option-value="id"
-                    option-label="libelle"
                     :placeholder="t('actions.select') || 'Cliquer pour ajouter…'"
-                />
+                    :disabled="isReadOnly"
+                >
+                    <option v-for="m in matieres" :key="m.id" :value="m.id">{{ m.libelle }}</option>
+                </Select2Multiple>
                 <span v-if="form.errors?.matieres" class="text-danger">
                     <strong>{{ form.errors.matieres }}</strong>
                 </span>
