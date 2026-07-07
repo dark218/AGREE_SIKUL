@@ -29,10 +29,15 @@ class ModulesRealDataSeeder extends Seeder
         $campusId      = DB::table('campuses')->value('id') ?? 1;
         $classes       = DB::table('classes')->pluck('id', 'nom')->toArray();
         $classeIds     = array_values($classes);
-        $matieres      = DB::table('matieres')->pluck('id', 'code')->toArray();
+        // §1.1 : matieres → matieres_unites, niveaux → niveaux_etudes
+        $matieres      = \Schema::hasTable('matieres_unites')
+            ? DB::table('matieres_unites')->pluck('id', 'code')->toArray()
+            : [];
         $matiereIds    = array_values($matieres);
         $enseignantIds = DB::table('enseignants')->pluck('id')->toArray();
-        $niveauIds     = DB::table('niveaux')->pluck('id')->toArray();
+        $niveauIds     = \Schema::hasTable('niveaux_etudes')
+            ? DB::table('niveaux_etudes')->pluck('id')->toArray()
+            : [];
         $userAdmin     = DB::table('users')->value('id') ?? 1;
         $banqueId      = DB::table('banques')->value('id');
 

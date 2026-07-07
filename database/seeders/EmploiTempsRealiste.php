@@ -27,10 +27,14 @@ class EmploiTempsRealiste extends Seeder
             'HG' => null, 'ANG' => null, 'EPS' => null
         ];
 
-        foreach (array_keys($matieres_map) as $code) {
-            $m = DB::table('matieres')->where('code', $code)->first();
-            if ($m) {
-                $matieres_map[$code] = $m->id;
+        // §1.1 : table `matieres` → `matieres_unites`
+        $matieresTable = \Schema::hasTable('matieres_unites') ? 'matieres_unites' : null;
+        if ($matieresTable) {
+            foreach (array_keys($matieres_map) as $code) {
+                $m = DB::table($matieresTable)->where('code', $code)->first();
+                if ($m) {
+                    $matieres_map[$code] = $m->id;
+                }
             }
         }
 

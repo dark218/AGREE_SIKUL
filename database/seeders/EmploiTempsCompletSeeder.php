@@ -57,15 +57,20 @@ class EmploiTempsCompletSeeder extends Seeder
             ['code' => 'EPS', 'libelle' => 'Éducation Physique'],
         ];
 
-        foreach ($matieres_data as $m) {
-            $id = DB::table('matieres')->insertGetId(array_merge($m, [
-                'ecole_id' => $ecole->id,
-                'annee_scolaire_id' => $annee->id,
-                'statut' => 'actif',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]));
-            $matieres[$m['code']] = $id;
+        // §1.1 : matieres → matieres_unites. Skip si absente.
+        if (\Schema::hasTable('matieres_unites')) {
+            foreach ($matieres_data as $m) {
+                $id = DB::table('matieres_unites')->insertGetId(array_merge($m, [
+                    'ecole_id'          => $ecole->id,
+                    'annee_scolaire_id' => $annee->id,
+                    'coefficient'       => 1,
+                    'note_max'          => 20,
+                    'etat'              => 'actif',
+                    'created_at'        => now(),
+                    'updated_at'        => now(),
+                ]));
+                $matieres[$m['code']] = $id;
+            }
         }
 
         // 4. Créer les users pour les enseignants

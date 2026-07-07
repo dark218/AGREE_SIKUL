@@ -102,8 +102,8 @@ class HomeController extends Controller
         // Toutes les notes
         $notes = DB::table('notes')
             ->where('apprenant_id', $apprenant->id)
-            ->leftJoin('matieres_unites', 'notes.matiere_id', '=', 'matieres.id')
-            ->select('notes.*', 'matieres.libelle as matiere_libelle')
+            ->leftJoin('matieres_unites', 'notes.matiere_id', '=', 'matieres_unites.id')
+            ->select('notes.*', 'matieres_unites.libelle as matiere_libelle')
             ->orderBy('notes.created_at', 'desc')
             ->limit(15)
             ->get();
@@ -122,8 +122,8 @@ class HomeController extends Controller
         // Absences
         $absences = DB::table('absences_apprenants')
             ->where('apprenant_id', $apprenant->id)
-            ->leftJoin('matieres_unites', 'absences_apprenants.matiere_id', '=', 'matieres.id')
-            ->select('absences_apprenants.*', 'matieres.libelle as matiere_libelle')
+            ->leftJoin('matieres_unites', 'absences_apprenants.matiere_id', '=', 'matieres_unites.id')
+            ->select('absences_apprenants.*', 'matieres_unites.libelle as matiere_libelle')
             ->orderBy('absences_apprenants.date_debut', 'desc')
             ->limit(10)
             ->get();
@@ -131,9 +131,9 @@ class HomeController extends Controller
         // Emploi du temps
         $edt = DB::table('emplois_temps')
             ->where('classe_id', $apprenant->classe_id)
-            ->leftJoin('matieres_unites', 'emplois_temps.matiere_id', '=', 'matieres.id')
+            ->leftJoin('matieres_unites', 'emplois_temps.matiere_id', '=', 'matieres_unites.id')
             ->leftJoin('enseignants', 'emplois_temps.enseignant_id', '=', 'enseignants.id')
-            ->select('emplois_temps.*', 'matieres.libelle as matiere_libelle', 'enseignants.nom as ens_nom', 'enseignants.prenoms as ens_prenoms')
+            ->select('emplois_temps.*', 'matieres_unites.libelle as matiere_libelle', 'enseignants.nom as ens_nom', 'enseignants.prenoms as ens_prenoms')
             ->orderByRaw("FIELD(emplois_temps.jour, 'lundi','mardi','mercredi','jeudi','vendredi','samedi')")
             ->orderBy('emplois_temps.date_debut')
             ->limit(30)
@@ -266,9 +266,9 @@ class HomeController extends Controller
 
         $parMatiere = DB::table('notes')
             ->whereNull('notes.deleted_at')
-            ->join('matieres_unites', 'notes.matiere_id', '=', 'matieres.id')
-            ->select('matieres.libelle', DB::raw('COUNT(*) as total'))
-            ->groupBy('matieres.libelle')
+            ->join('matieres_unites', 'notes.matiere_id', '=', 'matieres_unites.id')
+            ->select('matieres_unites.libelle', DB::raw('COUNT(*) as total'))
+            ->groupBy('matieres_unites.libelle')
             ->orderBy('total', 'desc')
             ->limit(8)
             ->get()

@@ -17,7 +17,7 @@ class TestDataCompleteSeeder extends Seeder
         $ecoleId = DB::table('ecoles')->value('id') ?? 1;
         $campusId = DB::table('campuses')->value('id') ?? 1;
         $enseignants = DB::table('enseignants')->pluck('id')->toArray();
-        $matieres = DB::table('matieres')->pluck('id', 'code')->toArray();
+        $matieres = DB::table('matieres_unites')->pluck('id', 'code')->toArray();
         $matiereIds = array_values($matieres);
         $classes = DB::table('classes')->pluck('id', 'nom')->toArray();
         $classeIds = array_values($classes);
@@ -183,7 +183,7 @@ class TestDataCompleteSeeder extends Seeder
                             'matiere_id' => $matId,
                             'classe_id' => $classeId,
                             'cours_id' => $coursIds[$matId] ?? null,
-                            'titre' => 'Devoir ' . $n . ' — ' . DB::table('matieres')->where('id', $matId)->value('libelle'),
+                            'titre' => 'Devoir ' . $n . ' — ' . DB::table('matieres_unites')->where('id', $matId)->value('libelle'),
                             'description' => 'Exercices du chapitre ' . $n,
                             'date_debut' => date('Y-m-d', strtotime('+' . $n . ' days')),
                             'date_fin' => date('Y-m-d', strtotime('+' . ($n + 7) . ' days')),
