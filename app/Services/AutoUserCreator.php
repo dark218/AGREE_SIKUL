@@ -9,14 +9,19 @@ use Illuminate\Support\Str;
  * Auto-création d'un compte User pour les profils humains
  * (Parent, Tuteur, Accompagnateur, Enseignant).
  *
- * Convention :
- *  • login = téléphone (fallback email → matricule → timestamp)
+ * Convention métier (décision produit 2026-07-07) :
+ *  • Le TÉLÉPHONE est la clé d'identification — c'est avec ce numéro que
+ *    l'utilisateur se connecte. Colonnes `login` / `full_login` (uniques).
+ *  • L'EMAIL n'est PLUS unique (voir migration
+ *    `2026_07_07_170000_drop_users_email_unique_keep_login_unique`).
+ *    Cas légitime : un père peut être aussi enseignant, tuteur d'un cousin
+ *    et donner son email à plusieurs profils sans conflit.
  *  • password par défaut = "password123" (à changer au 1er login)
  *  • role = clé métier ('parent', 'tuteur', 'accompagnateur', 'enseignant')
  *  • statut = 'actif'
  *
- * Idempotent : si un `user_id` est passé ou si un user existe déjà pour
- * le login demandé, on ne crée rien et on retourne le user existant.
+ * Idempotent : si un user existe déjà avec le MÊME login (téléphone), on
+ * réutilise son id. L'email n'est plus un critère de dédoublonnage.
  */
 class AutoUserCreator
 {
@@ -26,13 +31,16 @@ class AutoUserCreator
      */
     public static function forProfile(array $data): int
     {
-        // Déterminer le login canonique
+        $email = $data['email'] ?? null;
+
+        // Déterminer le login canonique — téléphone en priorité.
         $login = $data['telephone']
-            ?? $data['email']
+            ?? $email
             ?? $data['matricule']
             ?? ($data['role'] ?? 'user') . '-' . time();
 
-        // Réutiliser un user existant sur le même login
+        // Réutiliser un user existant sur le même login (téléphone).
+        // L'email n'est plus contrainte unique → pas de lookup nécessaire.
         $existing = User::where('login', $login)->first();
         if ($existing) {
             return $existing->id;
@@ -44,7 +52,7 @@ class AutoUserCreator
             'uuid'       => $uuid,
             'nom'        => $data['nom'] ?? 'Sans nom',
             'prenoms'    => $data['prenoms'] ?? null,
-            'email'      => $data['email'] ?? null,
+            'email'      => $email,
             'login'      => $login,
             'full_login' => $login,
             'password'   => bcrypt($data['password'] ?? 'password123'),
