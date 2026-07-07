@@ -7,6 +7,9 @@
         <FraisForm
             ref="formRef"
             :frais="item"
+            :types-frais="typesFrais"
+            :apprenants="apprenants"
+            :annees-scolaires="anneesScolaires"
             :errors="form.errors"
             :submit-button-label="t('common.update')"
             @submit="submitForm"
@@ -28,7 +31,10 @@ defineOptions({
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
 const props = defineProps({
-    item: Object,
+    item:            Object,
+    typesFrais:      { type: Array, default: () => [] },
+    apprenants:      { type: Array, default: () => [] },
+    anneesScolaires: { type: Array, default: () => [] },
 });
 const formRef = ref(null);
 const isSubmitting = ref(false);

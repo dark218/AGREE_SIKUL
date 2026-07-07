@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\CycleEnseignement;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Section;
 use Modules\Finances\Entities\FacturationApprenant;
 use Modules\Parametrage\Entities\Campus;
@@ -90,7 +90,7 @@ class FacturationApprenantController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
             $cycles = CycleEnseignement::where('etat', 'actif')->get();
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
 
             return inertia('Finances::FacturationApprenant/Create', [
                 'anneesScolaires' => $anneesScolaires,
@@ -170,7 +170,7 @@ class FacturationApprenantController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
             $cycles = CycleEnseignement::where('etat', 'actif')->get();
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
 
             return inertia('Finances::FacturationApprenant/Show', [
                 'item' => $item,
@@ -215,7 +215,7 @@ class FacturationApprenantController extends Controller
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
             $cycles = CycleEnseignement::where('etat', 'actif')->get();
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
 
             return inertia('Finances::FacturationApprenant/Edit', [
                 'item' => $item,

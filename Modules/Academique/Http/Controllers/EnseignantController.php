@@ -98,7 +98,6 @@ class EnseignantController extends Controller
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'naturesContrat' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle'])->toArray(),
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
-            'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
         ]);
@@ -179,24 +178,15 @@ class EnseignantController extends Controller
                 // Accepte à la fois les codes majuscules (ACTIF, SUSPENDU, CONGE, RETRAITE, DEMISSION)
                 // et les valeurs legacy minuscules pour rétro-compat.
                 'statut' => ['required', Rule::in($this->allowedStatutCodes())],
-                'matiere_1_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_2_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_3_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_4_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_5_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_6_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_7_id' => 'nullable|exists:matieres_unites,id',
-                'cycle_1_id' => 'nullable|exists:cycles_enseignement,id',
-                'cycle_2_id' => 'nullable|exists:cycles_enseignement,id',
-                'niveau_1_id' => 'nullable|exists:niveaux_etudes,id',
-                'niveau_2_id' => 'nullable|exists:niveaux_etudes,id',
-                'niveau_3_id' => 'nullable|exists:niveaux_etudes,id',
-                'niveau_4_id' => 'nullable|exists:niveaux_etudes,id',
-                'classe_1_id' => 'nullable|exists:classes,id',
-                'classe_2_id' => 'nullable|exists:classes,id',
-                'classe_3_id' => 'nullable|exists:classes,id',
-                'classe_4_id' => 'nullable|exists:classes,id',
-                'classe_5_id' => 'nullable|exists:classes,id',
+                // Multi-select n-n (nouveau format — sync direct)
+                'matieres_ids'   => 'nullable|array',
+                'matieres_ids.*' => 'exists:matieres_unites,id',
+                'cycles_ids'     => 'nullable|array',
+                'cycles_ids.*'   => 'exists:cycles_enseignement,id',
+                'niveaux_ids'    => 'nullable|array',
+                'niveaux_ids.*'  => 'exists:niveaux_etudes,id',
+                'classes_ids'    => 'nullable|array',
+                'classes_ids.*'  => 'exists:classes,id',
             ]);
 
             // Handle photo upload — n'ajouter au payload QUE si un vrai fichier arrive.
@@ -227,25 +217,11 @@ class EnseignantController extends Controller
 
             $enseignant = Enseignant::create($validated);
 
-            // Sync pivot tables
-            $matiereIds = array_values(array_filter([
-                $request->matiere_1_id, $request->matiere_2_id, $request->matiere_3_id,
-                $request->matiere_4_id, $request->matiere_5_id, $request->matiere_6_id,
-                $request->matiere_7_id,
-            ]));
-            $cycleIds = array_values(array_filter([$request->cycle_1_id, $request->cycle_2_id]));
-            $niveauIds = array_values(array_filter([
-                $request->niveau_1_id, $request->niveau_2_id, $request->niveau_3_id, $request->niveau_4_id,
-            ]));
-            $classeIds = array_values(array_filter([
-                $request->classe_1_id, $request->classe_2_id, $request->classe_3_id,
-                $request->classe_4_id, $request->classe_5_id,
-            ]));
-
-            $enseignant->matieres()->sync($matiereIds);
-            $enseignant->cycles()->sync($cycleIds);
-            $enseignant->niveaux()->sync($niveauIds);
-            $enseignant->classes()->sync($classeIds);
+            // Sync pivots depuis les tableaux du multi-select.
+            $enseignant->matieres()->sync(array_values(array_filter((array) $request->input('matieres_ids', []))));
+            $enseignant->cycles()->sync(array_values(array_filter((array) $request->input('cycles_ids', []))));
+            $enseignant->niveaux()->sync(array_values(array_filter((array) $request->input('niveaux_ids', []))));
+            $enseignant->classes()->sync(array_values(array_filter((array) $request->input('classes_ids', []))));
 
             return redirect()->route('academique.enseignants.index')
                 ->with('success', __('messages.created_successfully'));
@@ -285,7 +261,6 @@ class EnseignantController extends Controller
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'naturesContrat' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle'])->toArray(),
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
-            'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
         ]);
@@ -318,7 +293,6 @@ class EnseignantController extends Controller
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'naturesContrat' => \Modules\Parametrage\Entities\NatureContrat::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle'])->toArray(),
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
-            'langues' => \Modules\Parametrage\Entities\Langue::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
         ]);
@@ -370,24 +344,14 @@ class EnseignantController extends Controller
                 // Accepte à la fois les codes majuscules (ACTIF, SUSPENDU, CONGE, RETRAITE, DEMISSION)
                 // et les valeurs legacy minuscules pour rétro-compat.
                 'statut' => ['required', Rule::in($this->allowedStatutCodes())],
-                'matiere_1_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_2_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_3_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_4_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_5_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_6_id' => 'nullable|exists:matieres_unites,id',
-                'matiere_7_id' => 'nullable|exists:matieres_unites,id',
-                'cycle_1_id' => 'nullable|exists:cycles_enseignement,id',
-                'cycle_2_id' => 'nullable|exists:cycles_enseignement,id',
-                'niveau_1_id' => 'nullable|exists:niveaux_etudes,id',
-                'niveau_2_id' => 'nullable|exists:niveaux_etudes,id',
-                'niveau_3_id' => 'nullable|exists:niveaux_etudes,id',
-                'niveau_4_id' => 'nullable|exists:niveaux_etudes,id',
-                'classe_1_id' => 'nullable|exists:classes,id',
-                'classe_2_id' => 'nullable|exists:classes,id',
-                'classe_3_id' => 'nullable|exists:classes,id',
-                'classe_4_id' => 'nullable|exists:classes,id',
-                'classe_5_id' => 'nullable|exists:classes,id',
+                'matieres_ids'   => 'nullable|array',
+                'matieres_ids.*' => 'exists:matieres_unites,id',
+                'cycles_ids'     => 'nullable|array',
+                'cycles_ids.*'   => 'exists:cycles_enseignement,id',
+                'niveaux_ids'    => 'nullable|array',
+                'niveaux_ids.*'  => 'exists:niveaux_etudes,id',
+                'classes_ids'    => 'nullable|array',
+                'classes_ids.*'  => 'exists:classes,id',
             ]);
 
             // Handle photo upload
@@ -406,25 +370,10 @@ class EnseignantController extends Controller
 
             $enseignant->update($validated);
 
-            // Sync pivot tables
-            $matiereIds = array_values(array_filter([
-                $request->matiere_1_id, $request->matiere_2_id, $request->matiere_3_id,
-                $request->matiere_4_id, $request->matiere_5_id, $request->matiere_6_id,
-                $request->matiere_7_id,
-            ]));
-            $cycleIds = array_values(array_filter([$request->cycle_1_id, $request->cycle_2_id]));
-            $niveauIds = array_values(array_filter([
-                $request->niveau_1_id, $request->niveau_2_id, $request->niveau_3_id, $request->niveau_4_id,
-            ]));
-            $classeIds = array_values(array_filter([
-                $request->classe_1_id, $request->classe_2_id, $request->classe_3_id,
-                $request->classe_4_id, $request->classe_5_id,
-            ]));
-
-            $enseignant->matieres()->sync($matiereIds);
-            $enseignant->cycles()->sync($cycleIds);
-            $enseignant->niveaux()->sync($niveauIds);
-            $enseignant->classes()->sync($classeIds);
+            $enseignant->matieres()->sync(array_values(array_filter((array) $request->input('matieres_ids', []))));
+            $enseignant->cycles()->sync(array_values(array_filter((array) $request->input('cycles_ids', []))));
+            $enseignant->niveaux()->sync(array_values(array_filter((array) $request->input('niveaux_ids', []))));
+            $enseignant->classes()->sync(array_values(array_filter((array) $request->input('classes_ids', []))));
 
             return redirect()->route('academique.enseignants.index')
                 ->with('success', __('messages.updated_successfully'));

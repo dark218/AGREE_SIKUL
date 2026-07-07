@@ -12,7 +12,7 @@ use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Campus;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
 
 class EmploiTemps extends BaseModel
@@ -120,7 +120,7 @@ class EmploiTemps extends BaseModel
 
     public function matiere(): BelongsTo
     {
-        return $this->belongsTo(Matiere::class, 'matiere_id');
+        return $this->belongsTo(MatiereUnite::class, 'matiere_id');
     }
 
     public function enseignant(): BelongsTo

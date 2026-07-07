@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Ecole\Entities\Ecole;
+use Modules\Parametrage\Entities\Ecole;
 
 class Bibliotheque extends BaseModel
 {
@@ -22,6 +22,7 @@ class Bibliotheque extends BaseModel
         'adresse',
         'capacite',
         'responsable_id',
+        'etat',
     ];
 
     protected $casts = [
@@ -57,7 +58,7 @@ class Bibliotheque extends BaseModel
     // Scopes
     public function scopeActif($query)
     {
-        return $query->whereNull('deleted_at');
+        return $query->where('etat', 'actif');
     }
 
     // Méthodes métier

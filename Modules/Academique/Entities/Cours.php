@@ -33,7 +33,7 @@ class Cours extends BaseModel
 
     public function matiere(): BelongsTo
     {
-        return $this->belongsTo(Matiere::class, 'matiere_id');
+        return $this->belongsTo(MatiereUnite::class, 'matiere_id');
     }
 
     public function enseignant(): BelongsTo

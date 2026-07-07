@@ -24,7 +24,7 @@ function confirmDelete() {
 }
 function performDelete() {
     isDeleting.value = true;
-    router.put(route('consultation-infirmerie.statut', props.item.id), {}, {
+    router.put(route('consultations-infirmeries.statut', props.item.id), {}, {
         onSuccess: () => {
             showDeleteConfirm.value = false;
             isDeleting.value = false;
@@ -43,7 +43,7 @@ function performDelete() {
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ item.nom || item.name || item.titre }}</h4>
             <div class="actions">
-                <Link v-if="can('consultation-infirmerie-edit')" :href="route('consultation-infirmerie.edit', item.id)" class="btn btn-warning">
+                <Link v-if="can('consultation-infirmerie-edit')" :href="route('consultations-infirmeries.edit', item.id)" class="btn btn-warning">
                     {{ t('common.edit') }}
                 </Link>
                 <button v-if="can('consultation-infirmerie-delete')" @click="confirmDelete" class="btn btn-danger">

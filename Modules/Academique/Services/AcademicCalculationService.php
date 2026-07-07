@@ -5,7 +5,7 @@ namespace Modules\Academique\Services;
 use Modules\Academique\Entities\Note;
 use Modules\Academique\Entities\Bulletin;
 use Modules\Academique\Entities\MoyenneMatiere;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Illuminate\Support\Collection;
 
 /**
@@ -204,7 +204,7 @@ class AcademicCalculationService
                 );
 
                 // Récupérer le coefficient de la matière
-                $matiere = Matiere::findOrFail($matiereId);
+                $matiere = MatiereUnite::findOrFail($matiereId);
                 $coefficient = $matiere->coefficient ?? 1;
 
                 // Stocker pour création MoyenneMatiere

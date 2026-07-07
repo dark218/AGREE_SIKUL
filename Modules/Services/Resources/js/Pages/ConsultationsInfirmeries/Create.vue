@@ -6,6 +6,8 @@
         </div>
         <ConsultationInfirmerieForm
             ref="formRef"
+            :apprenants="apprenants"
+            :infirmiers="infirmiers"
             :errors="form.errors"
             :submit-button-label="t('common.create')"
             @submit="submitForm"
@@ -26,6 +28,10 @@ defineOptions({
 });
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
+const props = defineProps({
+    apprenants: { type: Array, default: () => [] },
+    infirmiers: { type: Array, default: () => [] },
+});
 const formRef = ref(null);
 const isSubmitting = ref(false);
 const form = ref({
@@ -33,7 +39,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.post(route('consultation-infirmerie.store'), formData, {
+    router.post(route('consultations-infirmerie.store'), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

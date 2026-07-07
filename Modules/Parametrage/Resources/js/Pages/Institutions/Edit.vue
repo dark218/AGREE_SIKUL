@@ -130,7 +130,8 @@ const errorList = () => Object.entries(form.errors || {}).map(([field, msg]) => 
                                 </ul>
                             </div>
 
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <InstitutionForm
                                     :form="form"
                                     mode="edit"
@@ -141,22 +142,18 @@ const errorList = () => Object.entries(form.errors || {}).map(([field, msg]) => 
                                     :quartiers="quartiers"
                                     :devises="devises"
                                     :directeurs="directeurs"
+                                    @submit="submitForm"
                                 />
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('parametrage.institution.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('parametrage.institution.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') || 'Retour' }}
                                             </Link>
-                                            <button type="submit" class="btn btn-primary ms-2" :disabled="form.processing">
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i>
-                                                {{ form.processing ? (t('actions.saving') || 'Enregistrement...') : (t('actions.validate') || 'Valider') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

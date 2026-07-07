@@ -5,7 +5,7 @@ namespace Modules\Academique\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Modules\Parametrage\Entities\{AnneeScolaire, Classe, Section, CycleEnseignement, Ecole, Campus, Commune, Departement, Region, Pays, Quartier, TypeApprenant, CategorieApprenant};
+use Modules\Parametrage\Entities\{AnneeScolaire, Classe, Section, CycleEnseignement, Ecole, Campus, Commune, Departement, Region, Pays, Quartier, TypeApprenant};
 use Modules\Academique\Entities\{Apprenant, Inscription};
 
 class ApprenantController extends Controller
@@ -91,7 +91,6 @@ class ApprenantController extends Controller
             'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom')->get(),
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
@@ -136,7 +135,6 @@ class ApprenantController extends Controller
                 'campus_id' => 'nullable|exists:campuses,id',
                 'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
                 'type_apprenant_id' => 'nullable|exists:type_apprenants,id',
-                'categorie_apprenant_id' => 'nullable|exists:categorie_apprenants,id',
                 'commune_naissance_id' => 'nullable|exists:communes,id',
                 'departement_naissance_id' => 'nullable|exists:departements,id',
                 'region_naissance_id' => 'nullable|exists:regions,id',
@@ -246,7 +244,6 @@ class ApprenantController extends Controller
             'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom')->get(),
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
@@ -281,7 +278,6 @@ class ApprenantController extends Controller
             'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom')->get(),
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
-            'categoriesApprenant' => CategorieApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
@@ -321,7 +317,6 @@ class ApprenantController extends Controller
                 'campus_id' => 'nullable|exists:campuses,id',
                 'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
                 'type_apprenant_id' => 'nullable|exists:type_apprenants,id',
-                'categorie_apprenant_id' => 'nullable|exists:categorie_apprenants,id',
                 'commune_naissance_id' => 'nullable|exists:communes,id',
                 'departement_naissance_id' => 'nullable|exists:departements,id',
                 'region_naissance_id' => 'nullable|exists:regions,id',
@@ -471,7 +466,7 @@ class ApprenantController extends Controller
         try {
             $validated = $request->validate([
                 'apprenant_id' => 'required|integer|exists:apprenants,id',
-                'matiere_id' => 'nullable|integer|exists:matieres,id',
+                'matiere_id' => 'nullable|integer|exists:matieres_unites,id',
             ]);
 
             $apprenantId = $validated['apprenant_id'];

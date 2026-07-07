@@ -60,7 +60,7 @@ class ServiceCantine extends BaseModel
 
     public function niveau(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Parametrage\Entities\Niveau::class, 'niveau_id');
+        return $this->belongsTo(\Modules\Parametrage\Entities\NiveauEtude::class, 'niveau_id');
     }
 
     public function cycleEnseignement(): BelongsTo

@@ -33,7 +33,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.post(route('modele-rapport.store'), formData, {
+    router.post(route('suivi-analyse.modeles-rapports.store'), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

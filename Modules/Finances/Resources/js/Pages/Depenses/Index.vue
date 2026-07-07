@@ -45,14 +45,14 @@ const performSearch = () => {
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 function search() {
-    router.get(route('finances.depense.index'), searchFilters.value, {
+    router.get(route('finances.depenses.index'), searchFilters.value, {
         preserveState: true,
         preserveScroll: true,
     });
 }
 const resetFilters = () => {
     Object.keys(searchFilters.value).forEach((k) => { searchFilters.value[k] = ''; });
-    router.get(route('finances.depense.index'));
+    router.get(route('finances.depenses.index'));
 };
 function confirmDelete(item) {
     itemToDelete.value = item;
@@ -60,7 +60,7 @@ function confirmDelete(item) {
 }
 function deleteDepense() {
     showStoreLoader();
-    router.put(route('finances.depense.statut', itemToDelete.value.id), {}, {
+    router.put(route('finances.depenses.statut', itemToDelete.value.id), {}, {
         onSuccess: () => {
             showDeleteModal.value = false;
             hideLoader();
@@ -104,7 +104,7 @@ watch(
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ t('common.depense') }}</h4>
             <div v-if="can('depense-create')" class="dashboard-btn">
-                <Link :href="route('finances.depense.create')" class="btn btn-primary">
+                <Link :href="route('finances.depenses.create')" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ t('common.add') }}
                 </Link>
             </div>
@@ -131,7 +131,7 @@ watch(
                         <td class="fit">
                             <div class="action-buttons">
                                 <Link
-                                    :href="route('finances.depense.show', depense.id)"
+                                    :href="route('finances.depenses.show', depense.id)"
                                     class="btn btn-secondary btn-sm"
                                     title="Voir"
                                 >
@@ -139,7 +139,7 @@ watch(
                                 </Link>
                                 <Link
                                     v-if="can('depense-edit')"
-                                    :href="route('finances.depense.edit', depense.id)"
+                                    :href="route('finances.depenses.edit', depense.id)"
                                     class="btn btn-primary btn-sm"
                                     title="Modifier"
                                 >

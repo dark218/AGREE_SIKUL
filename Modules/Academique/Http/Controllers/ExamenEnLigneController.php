@@ -5,7 +5,7 @@ namespace Modules\Academique\Http\Controllers;
 use Modules\Academique\Entities\ExamenEnLigne;
 use Modules\Academique\Entities\TentativeExamen;
 use Modules\Academique\Entities\Apprenant;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,7 +46,7 @@ class ExamenEnLigneController extends Controller
                 ];
             });
 
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
 
         return Inertia::render('Academique::ExamensEnLigne/Index', [
             'examens' => $examens,
@@ -58,7 +58,7 @@ class ExamenEnLigneController extends Controller
 
     public function create()
     {
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
         $classes = \Modules\Parametrage\Entities\Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
@@ -92,7 +92,7 @@ class ExamenEnLigneController extends Controller
             'description' => 'nullable|string',
             'instructions' => 'nullable|string',
             'classe_id' => 'nullable|exists:classes,id',
-            'matiere_id' => 'nullable|exists:matieres,id',
+            'matiere_id' => 'nullable|exists:matieres_unites,id',
             'enseignant_id' => 'nullable|exists:enseignants,id',
             'planification_examen_id' => 'nullable|exists:planification_examens,id',
             'date_debut' => 'nullable|date_format:Y-m-d\TH:i',
@@ -124,7 +124,7 @@ class ExamenEnLigneController extends Controller
     {
         $examenEnLigne->load(['matiere', 'classe', 'enseignant', 'planificationExamen', 'questions.reponses']);
 
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
         $classes = \Modules\Parametrage\Entities\Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
@@ -156,7 +156,7 @@ class ExamenEnLigneController extends Controller
     {
         $examenEnLigne->load(['questions.reponses']);
 
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
         $classes = \Modules\Parametrage\Entities\Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')
@@ -191,7 +191,7 @@ class ExamenEnLigneController extends Controller
             'description' => 'nullable|string',
             'instructions' => 'nullable|string',
             'classe_id' => 'nullable|exists:classes,id',
-            'matiere_id' => 'nullable|exists:matieres,id',
+            'matiere_id' => 'nullable|exists:matieres_unites,id',
             'enseignant_id' => 'nullable|exists:enseignants,id',
             'planification_examen_id' => 'nullable|exists:planification_examens,id',
             'date_debut' => 'nullable|date_format:Y-m-d\TH:i',

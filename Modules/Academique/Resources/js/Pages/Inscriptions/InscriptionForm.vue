@@ -1,8 +1,25 @@
+<!--
+  InscriptionForm.vue — Refonte Phase 2.5 (Steppers).
+  Historique : 738 lignes / 4 sections empilées → 4 steps guidés.
+
+  Steps :
+    1. Apprenant & Année      (apprenant, num_inscription, date, type, premiere, annee_scolaire,
+                                classe → ecole/campus/institution auto)
+    2. Frais                  (dossier / inscription / scolarité — base, payé, reste + totaux)
+    3. Pièces jointes         (8 uploads + dossier_complet)
+    4. Validation             (statut + résumé + preview fichiers)
+
+  Auto-fill préservé :
+    - classe → ecole, campus, section, cycle, annee_scolaire (via useClasseAutoFill)
+    - apprenant → classe (via useApprenantAutoFill)
+    - apprenant → numero_inscription (fallback)
+-->
+
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import FormStepper from '@/Components/Common/FormStepper.vue';
 import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
 import { useClasseAutoFill } from '../../composables/useClasseAutoFill';
 import { useApprenantAutoFill } from '../../composables/useApprenantAutoFill';
@@ -12,250 +29,160 @@ import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 const { t } = useI18n();
 
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    apprenants: {
-        type: Array,
-        default: () => [],
-    },
-    classes: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
-    institutions: {
-        type: Array,
-        default: () => [],
-    },
-    typesInscriptions: { type: Array, default: () => [] },
+    form:              { type: Object, required: true },
+    apprenants:        { type: Array,  default: () => [] },
+    classes:           { type: Array,  default: () => [] },
+    anneesScolaires:   { type: Array,  default: () => [] },
+    ecoles:            { type: Array,  default: () => [] },
+    campuses:          { type: Array,  default: () => [] },
+    institutions:      { type: Array,  default: () => [] },
+    typesInscriptions: { type: Array,  default: () => [] },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
 });
 
-const isReadOnly = props.mode === 'show';
-const classeSelected = computed(() => !!props.form.classe_id);
+const emit = defineEmits(['submit']);
 
-// Cascade auto via nouveaux composables (instantané)
+const isReadOnly = props.mode === 'show';
+const currentStep = ref(0);
+
+// Cascades — remplissent le form en réactif.
 useClasseCascade(props.form, () => props.classes);
 useApprenantCascade(props.form, () => props.apprenants);
 
-const autoLabel = (list, id) => {
-    if (!id || !list?.length) return '—';
-    const found = list.find(item => String(item.id) === String(id));
-    return found?.libelle || found?.nom || found?.label || '—';
-};
-const ecoleLabel = computed(() => autoLabel(props.ecoles, props.form.ecole_id));
-const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
-
-// Computed value for date_inscription with proper formatting
-const formattedDateInscription = computed({
-    get() {
-        const formatted = formatDateForDateInput(props.form?.date_inscription);
-        console.log('📝 formattedDateInscription GET:', formatted);
-        return formatted;
-    },
-    set(value) {
-        console.log('📝 formattedDateInscription SET:', value);
-        props.form.date_inscription = value;
-    }
-});
-
-console.log('🔵 InscriptionForm - Props received:', {
-    apprenants: props.apprenants?.length || 0,
-    classes: props.classes?.length || 0,
-    mode: props.mode,
-    date_inscription_raw: props.form?.date_inscription,
-    date_inscription_type: typeof props.form?.date_inscription,
-});
-
-// DEBUG: Watch date_inscription
-watch(() => props.form?.date_inscription, (newVal) => {
-    console.log('👀 InscriptionForm - date_inscription changed:', newVal, 'Type:', typeof newVal);
-}, { deep: true });
-
-// Function to format ISO datetime to date format (YYYY-MM-DD)
-const formatDateForDateInput = (dateStr) => {
-    if (!dateStr) return '';
-
-    console.log('🔧 formatDateForDateInput - Input:', dateStr);
-
-    try {
-        // Handle ISO format: '2008-07-10T00:00:00.000000Z'
-        // Extract just the date part: '2008-07-10'
-        if (typeof dateStr === 'string') {
-            const datePart = dateStr.split('T')[0]; // Get YYYY-MM-DD
-            console.log('✅ formatDateForDateInput - Output:', datePart);
-            return datePart;
-        }
-
-        // Handle Date object
-        if (dateStr instanceof Date) {
-            const formatted = dateStr.toISOString().split('T')[0];
-            console.log('✅ formatDateForDateInput - Date Output:', formatted);
-            return formatted;
-        }
-
-        return '';
-    } catch (error) {
-        console.error('❌ formatDateForDateInput - Error:', error, dateStr);
-        return '';
-    }
-};
-
-if (!props.apprenants || props.apprenants.length === 0) {
-    console.warn('⚠️ NO APPRENANTS LOADED!');
-}
-
-if (props.apprenants?.length > 0) {
-    console.log('✅ Apprenants sample:', props.apprenants.slice(0, 3));
-}
-
-// Auto-fill only in create/edit mode (not in show/read-only mode)
 if (!isReadOnly) {
-    // Auto-fill classe → ecole, campus, section, cycle, annee_scolaire
     useClasseAutoFill(props.form);
-
-    // Auto-fill apprenant → classe (and then classe auto-fills the rest)
     useApprenantAutoFill(props.form);
 
-    // Auto-fill numero_inscription from selected apprenant
-    watch(() => props.form.apprenant_id, (newApprenantId) => {
-        if (newApprenantId) {
-            const apprenant = props.apprenants.find(a => a.id === newApprenantId);
-            if (apprenant && apprenant.numero_inscription) {
-                props.form.numero_inscription = apprenant.numero_inscription;
-                console.log('✅ Numero inscription auto-filled:', apprenant.numero_inscription);
-            }
+    // Auto-fill numero_inscription depuis l'apprenant (fallback si legacy).
+    watch(() => props.form.apprenant_id, (id) => {
+        if (!id) return;
+        const a = props.apprenants.find(x => x.id === id);
+        if (a?.numero_inscription && !props.form.numero_inscription) {
+            props.form.numero_inscription = a.numero_inscription;
         }
     });
 }
 
-// Statut options with actual values
-const statutOptions = [
-    { id: 'en_attente', libelle: t('common.en_attente') || 'En attente' },
-    { id: 'validee', libelle: t('common.validee') || 'Validée' },
-    { id: 'rejetee', libelle: t('common.rejetee') || 'Rejetée' },
-    { id: 'suspendue', libelle: t('common.suspendue') || 'Suspendue' },
-];
+// Libellés auto-remplis pour affichage read-only.
+const autoLabel = (list, id, keyLibelle = 'libelle', keyNom = 'nom') => {
+    if (!id || !list?.length) return '—';
+    const found = list.find(x => String(x.id) === String(id));
+    return found?.[keyLibelle] || found?.[keyNom] || '—';
+};
+const ecoleLabel  = computed(() => autoLabel(props.ecoles,  props.form.ecole_id));
+const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
 
-// Type inscription options — depuis Paramétrage/TypesInscriptions ou fallback legacy
-const defaultTypeInscriptions = [
-    { id: 'nouveau', libelle: t('common.nouveau') || 'Nouveau' },
-    { id: 'redoublement', libelle: t('common.redoublement') || 'Redoublement' },
-    { id: 'transfert', libelle: t('common.transfert') || 'Transfert' },
-    { id: 'reprise', libelle: t('common.reprise') || 'Reprise' },
-];
-const typeInscriptionOptions = computed(() => {
-    if (props.typesInscriptions?.length > 0) {
-        return props.typesInscriptions.map(t => ({ id: t.code.toLowerCase(), libelle: t.libelle }));
-    }
-    return defaultTypeInscriptions;
+// Format date ISO → YYYY-MM-DD pour <input type="date">.
+const formatDateForDateInput = (dateStr) => {
+    if (!dateStr) return '';
+    if (typeof dateStr === 'string') return dateStr.split('T')[0];
+    if (dateStr instanceof Date) return dateStr.toISOString().split('T')[0];
+    return '';
+};
+const formattedDateInscription = computed({
+    get: () => formatDateForDateInput(props.form?.date_inscription),
+    set: (v) => { props.form.date_inscription = v; },
 });
 
-// Computed fields for fee calculations
-const fraisDossierRestant = computed(() => Math.max(0, (Number(props.form.frais_dossier) || 0) - (Number(props.form.frais_dossier_paye) || 0)));
-const fraisInscriptionRestant = computed(() => Math.max(0, (Number(props.form.frais_inscription) || 0) - (Number(props.form.frais_inscription_paye) || 0)));
-const fraisScolariteRestant = computed(() => Math.max(0, (Number(props.form.frais_scolarite) || 0) - (Number(props.form.frais_scolarite_paye) || 0)));
-const totalPaye = computed(() => (Number(props.form.frais_dossier_paye) || 0) + (Number(props.form.frais_inscription_paye) || 0) + (Number(props.form.frais_scolarite_paye) || 0));
+// Options statut & type.
+const statutOptions = [
+    { id: 'en_attente', libelle: t('common.en_attente') || 'En attente' },
+    { id: 'validee',    libelle: t('common.validee')    || 'Validée' },
+    { id: 'rejetee',    libelle: t('common.rejetee')    || 'Rejetée' },
+    { id: 'suspendue',  libelle: t('common.suspendue')  || 'Suspendue' },
+];
+const defaultTypeInscriptions = [
+    { id: 'nouveau',      libelle: 'Nouveau' },
+    { id: 'redoublement', libelle: 'Redoublement' },
+    { id: 'transfert',    libelle: 'Transfert' },
+    { id: 'reprise',      libelle: 'Reprise' },
+];
+const typeInscriptionOptions = computed(() =>
+    (props.typesInscriptions?.length > 0
+        ? props.typesInscriptions.map(x => ({ id: x.code.toLowerCase(), libelle: x.libelle }))
+        : defaultTypeInscriptions)
+);
+
+// Calculs frais.
+const num = (v) => Number(v) || 0;
+const fraisDossierRestant    = computed(() => Math.max(0, num(props.form.frais_dossier)     - num(props.form.frais_dossier_paye)));
+const fraisInscriptionRestant = computed(() => Math.max(0, num(props.form.frais_inscription) - num(props.form.frais_inscription_paye)));
+const fraisScolariteRestant  = computed(() => Math.max(0, num(props.form.frais_scolarite)   - num(props.form.frais_scolarite_paye)));
+const totalPaye    = computed(() => num(props.form.frais_dossier_paye) + num(props.form.frais_inscription_paye) + num(props.form.frais_scolarite_paye));
 const totalRestant = computed(() => fraisDossierRestant.value + fraisInscriptionRestant.value + fraisScolariteRestant.value);
 
-// Handle file upload - Inertia way
+// Fichiers.
 const handleFileUpload = (field, event) => {
     const file = event.target.files?.[0];
-    if (file) {
-        // Use Inertia's way to handle file uploads
-        props.form[field] = file;
-        console.log(`✅ File selected for ${field}:`, file.name, file.size);
-    }
+    if (file) props.form[field] = file;
 };
+const getFileUrl = (p) => (p ? `/storage/${p}` : null);
 
-// Get existing file URL
-const getFileUrl = (filePath) => {
-    if (!filePath) return null;
-    return `/storage/${filePath}`;
-};
-
-// File preview configuration
 const fileFields = [
-    { key: 'fiche_inscription', label: 'Fiche d\'inscription' },
-    { key: 'carnet_vaccination', label: 'Carnet de vaccination' },
-    { key: 'photos_4x4', label: 'Photos 4x4' },
+    { key: 'fiche_inscription',    label: 'Fiche d\'inscription' },
+    { key: 'carnet_vaccination',   label: 'Carnet de vaccination' },
+    { key: 'photos_4x4',           label: 'Photos 4x4' },
     { key: 'copie_acte_naissance', label: 'Copie acte de naissance' },
-    { key: 'piece1', label: 'Pièce 1' },
-    { key: 'piece2', label: 'Pièce 2' },
-    { key: 'piece3', label: 'Pièce 3' },
-    { key: 'piece4', label: 'Pièce 4' },
+    { key: 'piece1',               label: 'Pièce 1' },
+    { key: 'piece2',               label: 'Pièce 2' },
+    { key: 'piece3',               label: 'Pièce 3' },
+    { key: 'piece4',               label: 'Pièce 4' },
 ];
 
-// Get file preview data
 const getFilePreviewData = (field) => {
     const file = props.form[field];
     if (!file) return null;
-
-    // File object (newly selected)
     if (file instanceof File) {
         return {
             name: file.name,
             size: (file.size / 1024).toFixed(2) + ' KB',
-            type: file.type,
             isImage: file.type.startsWith('image/'),
             isPdf: file.type === 'application/pdf',
             preview: URL.createObjectURL(file),
         };
     }
-
-    // String path (existing file)
     if (typeof file === 'string') {
+        const ext = file.split('.').pop().toLowerCase();
         return {
             name: file.split('/').pop(),
             size: 'Fichier existant',
-            type: file.split('.').pop().toLowerCase(),
-            isImage: ['jpg', 'jpeg', 'png', 'gif'].includes(file.split('.').pop().toLowerCase()),
-            isPdf: file.endsWith('.pdf'),
+            isImage: ['jpg', 'jpeg', 'png', 'gif'].includes(ext),
+            isPdf: ext === 'pdf',
             preview: `/storage/${file}`,
         };
     }
-
     return null;
 };
+const selectedFiles = computed(() =>
+    fileFields.map(f => ({ ...f, data: getFilePreviewData(f.key) }))
+              .filter(f => f.data !== null)
+);
 
-// Computed list of selected files
-const selectedFiles = computed(() => {
-    return fileFields
-        .map(field => ({
-            ...field,
-            data: getFilePreviewData(field.key),
-        }))
-        .filter(field => field.data !== null);
-});
+const steps = [
+    { key: 'apprenant', label: 'Apprenant & Année',  icon: 'fas fa-user-graduate', requiredFields: ['apprenant_id', 'classe_id', 'annee_scolaire_id', 'date_inscription', 'type_inscription'] },
+    { key: 'frais',     label: 'Frais',              icon: 'fas fa-money-bill' },
+    { key: 'pieces',    label: 'Pièces jointes',     icon: 'fas fa-file-upload' },
+    { key: 'validation',label: 'Validation',         icon: 'fas fa-check-circle',   requiredFields: ['statut'] },
+];
 </script>
 
 <template>
-    <div class="custom-input">
-        <!-- Section 1: Informations de base -->
-        <h5 class="section-title mb-3 mt-4">{{ t('fields.base_info') || 'Informations de base' }}</h5>
-        <div class="row g-3">
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('common.apprenant') || 'Apprenant' }} <span class="text-danger">*</span>
-                        <small v-if="mode === 'edit'" class="text-muted d-block">(Modifiable si changement nécessaire)</small>
-                    </label>
+    <FormStepper
+        v-model="currentStep"
+        :steps="steps"
+        :form="form"
+        persist-key="inscription-form"
+        @submit="$emit('submit')"
+    >
+        <!-- STEP 1 : APPRENANT & AFFECTATION -->
+        <template #apprenant>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label>Apprenant <span class="text-danger">*</span></label>
                     <SearchableSelect
                         v-model="form.apprenant_id"
                         :options="apprenants"
@@ -264,475 +191,256 @@ const selectedFiles = computed(() => {
                         :placeholder="t('actions.select') || '-- Sélectionner --'"
                         :disabled="isReadOnly"
                     />
-                    <span v-if="form.errors?.apprenant_id" class="text-danger"><strong>{{ form.errors.apprenant_id }}</strong></span>
-                    <div v-if="mode === 'edit'" class="mt-2 p-2 bg-light rounded">
-                        <small class="text-muted">
-                            🔍 DEBUG edit mode: apprenant_id = {{ form.apprenant_id }}
-                        </small>
-                    </div>
+                    <span v-if="form.errors?.apprenant_id" class="text-danger small">{{ form.errors.apprenant_id }}</span>
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.numero_inscription') || 'Numéro Inscription' }} <span class="text-muted">(facultatif)</span></label>
-                    <input
-                        type="text"
-                        v-model="form.numero_inscription"
-                        class="form-control"
-                        placeholder="Laisser vide pour génération auto"
-                    />
-                    <small class="text-muted">
-                        Si laissé vide, le système génère automatiquement un numéro unique (format <code>INS-2026-00001</code>).
-                    </small>
-                    <span v-if="form.errors?.numero_inscription" class="text-danger"><strong>{{ form.errors.numero_inscription }}</strong></span>
+                <div class="col-md-6">
+                    <label>Numéro d'inscription <small class="text-muted">(auto si vide)</small></label>
+                    <input v-model="form.numero_inscription" :disabled="isReadOnly" type="text" class="form-control" placeholder="INS-2026-00001" />
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.date_inscription') || 'Date Inscription' }} <span class="text-danger">*</span></label>
-                    <input type="date" v-model="formattedDateInscription" class="form-control" :disabled="isReadOnly" />
-                    <span v-if="form.errors?.date_inscription" class="text-danger"><strong>{{ form.errors.date_inscription }}</strong></span>
+                <div class="col-md-4">
+                    <label>Date d'inscription <span class="text-danger">*</span></label>
+                    <input v-model="formattedDateInscription" :disabled="isReadOnly" type="date" class="form-control" />
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.type_inscription') || 'Type d\'inscription' }} <span class="text-danger">*</span></label>
+                <div class="col-md-4">
+                    <label>Type d'inscription <span class="text-danger">*</span></label>
                     <SearchableSelect
                         v-model="form.type_inscription"
                         :options="typeInscriptionOptions"
                         optionValue="id"
                         optionLabel="libelle"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :placeholder="t('actions.select')"
                         :disabled="isReadOnly"
                     />
-                    <span v-if="form.errors?.type_inscription" class="text-danger"><strong>{{ form.errors.type_inscription }}</strong></span>
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.status') || 'Statut' }} <span class="text-danger">*</span></label>
-                    <SearchableSelect
-                        v-model="form.statut"
-                        :options="statutOptions"
-                        optionValue="id"
-                        optionLabel="libelle"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
-                        :disabled="isReadOnly"
-                    />
-                    <span v-if="form.errors?.statut" class="text-danger"><strong>{{ form.errors.statut }}</strong></span>
-                </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
+                <div class="col-md-4 d-flex align-items-end">
                     <label class="form-check-label">
-                        <input type="checkbox" v-model="form.premiere_inscription" class="form-check-input" :disabled="isReadOnly" />
-                        {{ t('fields.premiere_inscription') || 'Première inscription' }}
+                        <input v-model="form.premiere_inscription" :disabled="isReadOnly" type="checkbox" class="form-check-input me-1" />
+                        Première inscription
                     </label>
                 </div>
-            </div>
-        </div>
 
-        <!-- Section 2: Affectation scolaire -->
-        <h5 class="section-title mb-3 mt-4">{{ t('fields.academic_assignment') || 'Affectation scolaire' }}</h5>
-        <div class="row g-3">
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('common.annee_scolaire') || 'Année Scolaire' }} <span class="text-danger">*</span></label>
+                <hr class="mt-3" />
+                <div class="col-md-6">
+                    <label>Année scolaire <span class="text-danger">*</span></label>
                     <SearchableSelect
                         v-model="form.annee_scolaire_id"
                         :options="anneesScolaires"
                         optionValue="id"
                         optionLabel="libelle"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :placeholder="t('actions.select')"
                         :disabled="isReadOnly"
                     />
-                    <span v-if="form.errors?.annee_scolaire_id" class="text-danger"><strong>{{ form.errors.annee_scolaire_id }}</strong></span>
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('common.classe') || 'Classe' }} <span class="text-danger">*</span></label>
+                <div class="col-md-6">
+                    <label>Classe (Salle de cours) <span class="text-danger">*</span></label>
                     <SearchableSelect
                         v-model="form.classe_id"
                         :options="classes"
                         optionValue="id"
                         optionLabel="nom"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :placeholder="t('actions.select')"
                         :disabled="isReadOnly"
                     />
-                    <span v-if="form.errors?.classe_id" class="text-danger"><strong>{{ form.errors.classe_id }}</strong></span>
                 </div>
-            </div>
-            <!-- Contexte hiérarchique (auto-rempli par la classe) -->
-            <InheritedContextBar
-                :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
-                title="Hérité de la classe"
-            />
-            <HierarchyContextBar v-if="false" :form="form" :ecoles="ecoles" :campuses="campuses" />
 
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.ecole') || 'École' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                    <input type="text" class="form-control" :value="ecoleLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
+                <div class="col-12">
+                    <InheritedContextBar
+                        :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+                        title="Hérité de la classe"
+                    />
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                    <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
+
+                <div class="col-md-4">
+                    <label>École <span class="badge bg-secondary">auto</span></label>
+                    <input :value="ecoleLabel" type="text" class="form-control" readonly disabled />
                 </div>
-            </div>
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.institution') || 'Institution' }}</label>
+                <div class="col-md-4">
+                    <label>Campus <span class="badge bg-secondary">auto</span></label>
+                    <input :value="campusLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>Institution</label>
                     <SearchableSelect
                         v-model="form.institution_id"
                         :options="institutions"
                         optionValue="id"
                         optionLabel="nom"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :placeholder="t('actions.select')"
                         :disabled="isReadOnly"
                     />
-                    <span v-if="form.errors?.institution_id" class="text-danger"><strong>{{ form.errors.institution_id }}</strong></span>
                 </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Section 3: Frais -->
-        <h5 class="section-title mb-3 mt-4">{{ t('fields.fees') || 'Frais' }}</h5>
-        <div class="row g-3">
-            <!-- Frais de dossier -->
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_dossier') || 'Frais de dossier' }} (Base)</label>
-                    <input type="number" v-model="form.frais_dossier" class="form-control" step="0.01" min="0" :disabled="isReadOnly" />
+        <!-- STEP 2 : FRAIS -->
+        <template #frais>
+            <div class="row g-3">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="fa fa-folder me-1"></i> Frais de dossier</h6>
                 </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_dossier_paye') || 'Frais dossier payé' }}</label>
-                    <input type="number" v-model="form.frais_dossier_paye" class="form-control" step="0.01" min="0" :disabled="isReadOnly" />
+                <div class="col-md-4">
+                    <label>Base</label>
+                    <input v-model="form.frais_dossier" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
                 </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_dossier_restant') || 'Reste dossier' }}</label>
-                    <input type="text" :value="fraisDossierRestant.toFixed(2)" class="form-control" readonly />
+                <div class="col-md-4">
+                    <label>Payé</label>
+                    <input v-model="form.frais_dossier_paye" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
                 </div>
-            </div>
+                <div class="col-md-4">
+                    <label>Reste</label>
+                    <input :value="fraisDossierRestant.toFixed(2)" type="text" class="form-control" readonly />
+                </div>
 
-            <!-- Frais d'inscription -->
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_inscription') || 'Frais d\'inscription' }} (Base)</label>
-                    <input type="number" v-model="form.frais_inscription" class="form-control" step="0.01" min="0" :disabled="isReadOnly" />
+                <div class="col-12 mt-3">
+                    <h6 class="text-primary"><i class="fa fa-clipboard-list me-1"></i> Frais d'inscription</h6>
                 </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_inscription_paye') || 'Frais inscription payé' }}</label>
-                    <input type="number" v-model="form.frais_inscription_paye" class="form-control" step="0.01" min="0" :disabled="isReadOnly" />
+                <div class="col-md-4">
+                    <label>Base</label>
+                    <input v-model="form.frais_inscription" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
                 </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_inscription_restant') || 'Reste inscription' }}</label>
-                    <input type="text" :value="fraisInscriptionRestant.toFixed(2)" class="form-control" readonly />
+                <div class="col-md-4">
+                    <label>Payé</label>
+                    <input v-model="form.frais_inscription_paye" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
                 </div>
-            </div>
+                <div class="col-md-4">
+                    <label>Reste</label>
+                    <input :value="fraisInscriptionRestant.toFixed(2)" type="text" class="form-control" readonly />
+                </div>
 
-            <!-- Frais de scolarité -->
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_scolarite') || 'Frais de scolarité' }} (Base)</label>
-                    <input type="number" v-model="form.frais_scolarite" class="form-control" step="0.01" min="0" :disabled="isReadOnly" />
+                <div class="col-12 mt-3">
+                    <h6 class="text-primary"><i class="fa fa-graduation-cap me-1"></i> Frais de scolarité</h6>
                 </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_scolarite_paye') || 'Frais scolarité payé' }}</label>
-                    <input type="number" v-model="form.frais_scolarite_paye" class="form-control" step="0.01" min="0" :disabled="isReadOnly" />
+                <div class="col-md-4">
+                    <label>Base</label>
+                    <input v-model="form.frais_scolarite" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
                 </div>
-            </div>
-            <div class="col-sm-4">
-                <div class="mb-3">
-                    <label>{{ t('fields.frais_scolarite_restant') || 'Reste scolarité' }}</label>
-                    <input type="text" :value="fraisScolariteRestant.toFixed(2)" class="form-control" readonly />
+                <div class="col-md-4">
+                    <label>Payé</label>
+                    <input v-model="form.frais_scolarite_paye" :disabled="isReadOnly" type="number" step="0.01" min="0" class="form-control" />
                 </div>
-            </div>
+                <div class="col-md-4">
+                    <label>Reste</label>
+                    <input :value="fraisScolariteRestant.toFixed(2)" type="text" class="form-control" readonly />
+                </div>
 
-            <!-- Totaux -->
-            <div class="col-sm-6">
-                <div class="mb-3 p-3 bg-light rounded">
-                    <strong>{{ t('fields.total_paye') || 'Total payé' }}: {{ totalPaye.toFixed(2) }}</strong>
+                <hr class="mt-4" />
+                <div class="col-md-6">
+                    <div class="p-3 bg-success bg-opacity-10 rounded border border-success">
+                        <strong class="text-success">Total payé : {{ totalPaye.toFixed(2) }}</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-warning bg-opacity-10 rounded border border-warning">
+                        <strong class="text-warning">Total restant : {{ totalRestant.toFixed(2) }}</strong>
+                    </div>
                 </div>
             </div>
-            <div class="col-sm-6">
-                <div class="mb-3 p-3 bg-light rounded">
-                    <strong>{{ t('fields.total_restant') || 'Total restant' }}: {{ totalRestant.toFixed(2) }}</strong>
-                </div>
-            </div>
-        </div>
+        </template>
 
-        <!-- Section 4: Dossier scolaire -->
-        <h5 class="section-title mb-3 mt-4">{{ t('fields.school_folder') || 'Dossier scolaire' }}</h5>
-        <div class="row g-3">
-            <div class="col-sm-12">
-                <div class="mb-3">
+        <!-- STEP 3 : PIÈCES JOINTES -->
+        <template #pieces>
+            <div class="row g-3">
+                <div class="col-12">
                     <label class="form-check-label">
-                        <input type="checkbox" v-model="form.dossier_complet" class="form-check-input" :disabled="isReadOnly" />
-                        {{ t('fields.dossier_complet') || 'Dossier complet' }}
+                        <input v-model="form.dossier_complet" :disabled="isReadOnly" type="checkbox" class="form-check-input me-1" />
+                        <strong>Dossier complet</strong> — cochez si toutes les pièces obligatoires sont fournies
                     </label>
                 </div>
-            </div>
 
-            <!-- Fichiers -->
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.fiche_inscription') || 'Fiche d\'inscription' }}</label>
+                <div v-for="field in fileFields" :key="field.key" class="col-md-6">
+                    <label>{{ field.label }}</label>
                     <input
                         v-if="!isReadOnly"
                         type="file"
-                        @change="handleFileUpload('fiche_inscription', $event)"
                         class="form-control"
                         accept=".pdf,.jpg,.jpeg,.png"
+                        @change="handleFileUpload(field.key, $event)"
                     />
-                    <div v-else-if="form.fiche_inscription">
-                        <a :href="getFileUrl(form.fiche_inscription)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
+                    <div v-if="form[field.key] && typeof form[field.key] === 'string'" class="mt-1">
+                        <a :href="getFileUrl(form[field.key])" target="_blank" class="btn btn-sm btn-link p-0">
+                            <i class="fa fa-download"></i> Télécharger le fichier actuel
                         </a>
                     </div>
-                    <span v-if="form.errors?.fiche_inscription" class="text-danger"><strong>{{ form.errors.fiche_inscription }}</strong></span>
+                    <span v-if="form.errors?.[field.key]" class="text-danger small">{{ form.errors[field.key] }}</span>
                 </div>
-            </div>
 
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.carnet_vaccination') || 'Carnet de vaccination' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('carnet_vaccination', $event)"
-                        class="form-control"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.carnet_vaccination">
-                        <a :href="getFileUrl(form.carnet_vaccination)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.carnet_vaccination" class="text-danger"><strong>{{ form.errors.carnet_vaccination }}</strong></span>
-                </div>
-            </div>
-
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.photos_4x4') || 'Photos 4x4' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('photos_4x4', $event)"
-                        class="form-control"
-                        accept=".jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.photos_4x4">
-                        <a :href="getFileUrl(form.photos_4x4)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.photos_4x4" class="text-danger"><strong>{{ form.errors.photos_4x4 }}</strong></span>
-                </div>
-            </div>
-
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.copie_acte_naissance') || 'Copie acte de naissance' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('copie_acte_naissance', $event)"
-                        class="form-control"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.copie_acte_naissance">
-                        <a :href="getFileUrl(form.copie_acte_naissance)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.copie_acte_naissance" class="text-danger"><strong>{{ form.errors.copie_acte_naissance }}</strong></span>
-                </div>
-            </div>
-
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.piece1') || 'Pièce justificative 1' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('piece1', $event)"
-                        class="form-control"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.piece1">
-                        <a :href="getFileUrl(form.piece1)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.piece1" class="text-danger"><strong>{{ form.errors.piece1 }}</strong></span>
-                </div>
-            </div>
-
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.piece2') || 'Pièce justificative 2' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('piece2', $event)"
-                        class="form-control"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.piece2">
-                        <a :href="getFileUrl(form.piece2)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.piece2" class="text-danger"><strong>{{ form.errors.piece2 }}</strong></span>
-                </div>
-            </div>
-
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.piece3') || 'Pièce justificative 3' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('piece3', $event)"
-                        class="form-control"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.piece3">
-                        <a :href="getFileUrl(form.piece3)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.piece3" class="text-danger"><strong>{{ form.errors.piece3 }}</strong></span>
-                </div>
-            </div>
-
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label>{{ t('fields.piece4') || 'Pièce justificative 4' }}</label>
-                    <input
-                        v-if="!isReadOnly"
-                        type="file"
-                        @change="handleFileUpload('piece4', $event)"
-                        class="form-control"
-                        accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                    <div v-else-if="form.piece4">
-                        <a :href="getFileUrl(form.piece4)" target="_blank" class="btn btn-sm btn-link">
-                            <i class="fa fa-download"></i> {{ t('actions.download') || 'Télécharger' }}
-                        </a>
-                    </div>
-                    <span v-if="form.errors?.piece4" class="text-danger"><strong>{{ form.errors.piece4 }}</strong></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- File Preview Section -->
-        <div v-if="selectedFiles.length > 0" class="mt-5 pt-4 border-top">
-            <h5 class="section-title mb-4">
-                <i class="fa fa-file"></i> {{ t('fields.files') || 'Fichiers sélectionnés' }}
-                <span class="badge bg-primary ms-2">{{ selectedFiles.length }}</span>
-            </h5>
-
-            <div class="row g-3">
-                <div v-for="file in selectedFiles" :key="file.key" class="col-md-6 col-lg-4">
-                    <div class="card h-100 shadow-sm border-0 preview-card">
-                        <!-- Image Preview -->
-                        <div v-if="file.data.isImage" class="position-relative overflow-hidden" style="height: 150px; background: #f8f9fa;">
-                            <img
-                                :src="file.data.preview"
-                                :alt="file.label"
-                                class="w-100 h-100 object-fit-cover"
-                                style="object-fit: cover;"
-                            />
-                        </div>
-
-                        <!-- PDF/File Icon Preview -->
-                        <div v-else class="d-flex align-items-center justify-content-center" style="height: 150px; background: #f8f9fa;">
-                            <div class="text-center">
-                                <i v-if="file.data.isPdf" class="fa fa-file-pdf text-danger" style="font-size: 3rem;"></i>
-                                <i v-else class="fa fa-file text-secondary" style="font-size: 3rem;"></i>
+                <!-- Preview des fichiers sélectionnés -->
+                <div v-if="selectedFiles.length > 0" class="col-12 mt-4">
+                    <h6 class="text-primary">
+                        <i class="fa fa-file me-1"></i> Fichiers sélectionnés
+                        <span class="badge bg-primary ms-2">{{ selectedFiles.length }}</span>
+                    </h6>
+                    <div class="row g-2 mt-2">
+                        <div v-for="file in selectedFiles" :key="file.key" class="col-md-4 col-sm-6">
+                            <div class="card h-100 shadow-sm border-0">
+                                <div v-if="file.data.isImage" style="height: 120px; overflow: hidden;">
+                                    <img :src="file.data.preview" :alt="file.label" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>
+                                <div v-else class="d-flex align-items-center justify-content-center bg-light" style="height: 120px;">
+                                    <i :class="file.data.isPdf ? 'fa fa-file-pdf text-danger' : 'fa fa-file text-secondary'" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <div class="card-body p-2">
+                                    <small class="d-block text-truncate fw-bold">{{ file.label }}</small>
+                                    <small class="text-muted d-block text-truncate">{{ file.data.name }}</small>
+                                    <small class="text-muted">{{ file.data.size }}</small>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- File Info -->
-                        <div class="card-body">
-                            <h6 class="card-title text-truncate mb-2" :title="file.label">
-                                {{ file.label }}
-                            </h6>
-                            <small class="text-muted d-block">
-                                <i class="fa fa-file-o"></i> {{ file.data.name }}
-                            </small>
-                            <small class="text-muted d-block">
-                                <i class="fa fa-hdd-o"></i> {{ file.data.size }}
-                            </small>
-                        </div>
-
-                        <!-- File Actions -->
-                        <div class="card-footer bg-light border-0">
-                            <a
-                                v-if="file.data.isImage || file.data.isPdf"
-                                :href="file.data.preview"
-                                target="_blank"
-                                class="btn btn-sm btn-outline-primary w-100"
-                            >
-                                <i class="fa fa-eye"></i> {{ t('actions.preview') || 'Aperçu' }}
-                            </a>
-                            <small v-else class="text-muted d-block text-center mt-2">
-                                Fichier sélectionné
-                            </small>
-                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </template>
+
+        <!-- STEP 4 : VALIDATION -->
+        <template #validation>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label>Statut de l'inscription <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.statut"
+                        :options="statutOptions"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                        :disabled="isReadOnly"
+                    />
+                    <span v-if="form.errors?.statut" class="text-danger small">{{ form.errors.statut }}</span>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <div class="alert alert-info">
+                        <h6 class="mb-2"><i class="fa fa-info-circle me-1"></i> Résumé avant validation</h6>
+                        <ul class="mb-0 small">
+                            <li>Apprenant : <strong>{{ apprenants.find(a => String(a.id) === String(form.apprenant_id))?.libelle || '—' }}</strong></li>
+                            <li>Classe : <strong>{{ classes.find(c => String(c.id) === String(form.classe_id))?.nom || '—' }}</strong></li>
+                            <li>Année scolaire : <strong>{{ anneesScolaires.find(a => String(a.id) === String(form.annee_scolaire_id))?.libelle || '—' }}</strong></li>
+                            <li>Total payé : <strong>{{ totalPaye.toFixed(2) }}</strong> — Restant : <strong>{{ totalRestant.toFixed(2) }}</strong></li>
+                            <li>Pièces jointes : <strong>{{ selectedFiles.length }} / 8</strong></li>
+                            <li>Dossier complet : <strong>{{ form.dossier_complet ? 'Oui' : 'Non' }}</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </FormStepper>
 </template>
 
 <style scoped>
-.section-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 0.5rem;
-}
-
-.preview-card {
-    transition: all 0.3s ease;
-    border-radius: 0.5rem;
-}
-
-.preview-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-.preview-card img {
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-}
-
-.card-title {
+.form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
     font-size: 0.95rem;
-    margin-bottom: 0.5rem;
 }
-
-.object-fit-cover {
-    object-fit: cover;
+.form-control:focus {
+    border-color: #0b5697;
+    box-shadow: 0 0 0 0.2rem rgba(11, 86, 151, 0.15);
+}
+label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    display: block;
 }
 </style>

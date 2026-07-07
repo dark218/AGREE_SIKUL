@@ -3,6 +3,7 @@
 namespace Modules\Services\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Services\Entities\ConsultationInfirmerie;
@@ -11,9 +12,9 @@ class ConsultationInfirmerieController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:consultations-infirmerie-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:consultations-infirmerie-list',   ['only' => ['index', 'show']]);
         $this->middleware('permission.check:consultations-infirmerie-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:consultations-infirmerie-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:consultations-infirmerie-edit',   ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:consultations-infirmerie-delete', ['only' => ['destroy', 'statut']]);
     }
 
@@ -24,23 +25,24 @@ class ConsultationInfirmerieController extends Controller
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->whereHas('apprenant', function ($q) use ($search) {
-                    $q->whereHas('user', function ($user) use ($search) {
-                        $user->where('nom', 'like', "%$search%")
-                            ->orWhere('prenoms', 'like', "%$search%");
-                    });
-                })->orWhere('motif', 'like', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('motif', 'like', "%$search%")
+                      ->orWhereHas('apprenant', function ($qa) use ($search) {
+                          $qa->where('nom', 'like', "%$search%")
+                             ->orWhere('prenoms', 'like', "%$search%");
+                      });
+                });
             }
 
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
-            }
-
-            $consultations = $query->with(['apprenant', 'infirmier'])->paginate(10)->withQueryString();
+            $consultations = $query
+                ->with(['apprenant', 'infirmier'])
+                ->orderByDesc('date_consultation')
+                ->paginate(10)
+                ->withQueryString();
 
             return Inertia::render('Services::ConsultationsInfirmeries/Index', [
                 'consultations' => $consultations,
-                'filters' => $request->only(['search', 'statut']),
+                'filters'       => $request->only(['search']),
             ]);
         } catch (\Throwable $th) {
             log_error("Services", "ConsultationInfirmerieController::index", $th->getMessage());
@@ -51,7 +53,10 @@ class ConsultationInfirmerieController extends Controller
     public function create()
     {
         try {
-            return Inertia::render('Services::ConsultationsInfirmeries/Create');
+            return Inertia::render('Services::ConsultationsInfirmeries/Create', [
+                'apprenants'  => User::role('apprenant')->orderBy('nom')->get(['id', 'nom', 'prenoms']),
+                'infirmiers'  => User::role('infirmier')->orderBy('nom')->get(['id', 'nom', 'prenoms']),
+            ]);
         } catch (\Throwable $th) {
             log_error("Services", "ConsultationInfirmerieController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -62,15 +67,12 @@ class ConsultationInfirmerieController extends Controller
     {
         try {
             $validated = $request->validate([
-                'apprenant_id' => 'required|exists:apprenants,id',
-                'infirmier_id' => 'required|exists:users,id',
+                'apprenant_id'      => 'required|exists:users,id',
+                'infirmier_id'      => 'nullable|exists:users,id',
                 'date_consultation' => 'required|date',
-                'heure_consultation' => 'required|date_format:H:i',
-                'motif' => 'required|string|max:255',
-                'diagnostic' => 'nullable|string',
-                'traitement' => 'nullable|string',
-                'observations' => 'nullable|string',
-                'statut' => 'required|in:en_attente,consultee,terminee',
+                'motif'             => 'required|string|max:255',
+                'diagnostic'        => 'nullable|string',
+                'traitement'        => 'nullable|string',
             ]);
 
             ConsultationInfirmerie::create($validated);
@@ -78,19 +80,21 @@ class ConsultationInfirmerieController extends Controller
             return redirect()->route('consultations-infirmerie.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Services", "ConsultationInfirmerieController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
-    public function show(ConsultationInfirmerie $consultationInfirmerie)
+    public function show(ConsultationInfirmerie $consultation)
     {
         try {
-            $consultationInfirmerie->load('apprenant', 'infirmier');
+            $consultation->load(['apprenant', 'infirmier']);
 
             return Inertia::render('Services::ConsultationsInfirmeries/Show', [
-                'consultation' => $consultationInfirmerie,
+                'consultation' => $consultation,
             ]);
         } catch (\Throwable $th) {
             log_error("Services", "ConsultationInfirmerieController::show", $th->getMessage());
@@ -98,11 +102,13 @@ class ConsultationInfirmerieController extends Controller
         }
     }
 
-    public function edit(ConsultationInfirmerie $consultationInfirmerie)
+    public function edit(ConsultationInfirmerie $consultation)
     {
         try {
             return Inertia::render('Services::ConsultationsInfirmeries/Edit', [
-                'consultation' => $consultationInfirmerie->load('apprenant', 'infirmier'),
+                'consultation' => $consultation->load(['apprenant', 'infirmier']),
+                'apprenants'   => User::role('apprenant')->orderBy('nom')->get(['id', 'nom', 'prenoms']),
+                'infirmiers'   => User::role('infirmier')->orderBy('nom')->get(['id', 'nom', 'prenoms']),
             ]);
         } catch (\Throwable $th) {
             log_error("Services", "ConsultationInfirmerieController::edit", $th->getMessage());
@@ -110,36 +116,35 @@ class ConsultationInfirmerieController extends Controller
         }
     }
 
-    public function update(Request $request, ConsultationInfirmerie $consultationInfirmerie)
+    public function update(Request $request, ConsultationInfirmerie $consultation)
     {
         try {
             $validated = $request->validate([
-                'apprenant_id' => 'required|exists:apprenants,id',
-                'infirmier_id' => 'required|exists:users,id',
+                'apprenant_id'      => 'required|exists:users,id',
+                'infirmier_id'      => 'nullable|exists:users,id',
                 'date_consultation' => 'required|date',
-                'heure_consultation' => 'required|date_format:H:i',
-                'motif' => 'required|string|max:255',
-                'diagnostic' => 'nullable|string',
-                'traitement' => 'nullable|string',
-                'observations' => 'nullable|string',
-                'statut' => 'required|in:en_attente,consultee,terminee',
+                'motif'             => 'required|string|max:255',
+                'diagnostic'        => 'nullable|string',
+                'traitement'        => 'nullable|string',
             ]);
 
-            $consultationInfirmerie->update($validated);
+            $consultation->update($validated);
 
-            return redirect()->route('consultations-infirmerie.show', $consultationInfirmerie)
+            return redirect()->route('consultations-infirmerie.show', $consultation)
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Services", "ConsultationInfirmerieController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
-    public function destroy(ConsultationInfirmerie $consultationInfirmerie)
+    public function destroy(ConsultationInfirmerie $consultation)
     {
         try {
-            $consultationInfirmerie->delete();
+            $consultation->delete();
 
             return back()->with('success', __('messages.deleted_successfully'));
 
@@ -149,13 +154,13 @@ class ConsultationInfirmerieController extends Controller
         }
     }
 
-    public function statut(ConsultationInfirmerie $consultationInfirmerie)
+    public function statut(ConsultationInfirmerie $consultation)
     {
         try {
-            if ($consultationInfirmerie->trashed()) {
-                $consultationInfirmerie->restore();
+            if ($consultation->trashed()) {
+                $consultation->restore();
             } else {
-                $consultationInfirmerie->delete();
+                $consultation->delete();
             }
 
             return redirect()->route('consultations-infirmerie.index')

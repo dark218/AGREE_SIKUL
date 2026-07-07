@@ -2,7 +2,6 @@
 
 use Modules\Parametrage\Http\Controllers\DeviseController;
 use Modules\Parametrage\Http\Controllers\PaysController;
-use Modules\Parametrage\Http\Controllers\ZoneController;
 use Modules\Parametrage\Http\Controllers\RegionController;
 use Modules\Parametrage\Http\Controllers\DepartementController;
 use Modules\Parametrage\Http\Controllers\CommuneController;
@@ -19,7 +18,6 @@ use Modules\Parametrage\Http\Controllers\UniteOrganisationnelleController;
 use Modules\Parametrage\Http\Controllers\MatiereUniteController;
 use Modules\Parametrage\Http\Controllers\GroupeMatiereController;
 use Modules\Parametrage\Http\Controllers\TypeApprenantController;
-use Modules\Parametrage\Http\Controllers\CategorieApprenantController;
 use Modules\Parametrage\Http\Controllers\TitreCiviliteController;
 use Modules\Parametrage\Http\Controllers\TypeEvenementAgendaController;
 use Modules\Parametrage\Http\Controllers\PeriodesColairesController;
@@ -32,22 +30,17 @@ use Modules\Parametrage\Http\Controllers\FonctionController;
 use Modules\Parametrage\Http\Controllers\InstitutionController;
 use Modules\Parametrage\Http\Controllers\CampusController;
 use Modules\Parametrage\Http\Controllers\EcoleController;
-use Modules\Parametrage\Http\Controllers\NiveauController;
 use Modules\Parametrage\Http\Controllers\ClasseController;
 use Modules\Parametrage\Http\Controllers\FichierController;
-use Modules\Parametrage\Http\Controllers\TypeEtablissementSpeController;
 use Modules\Parametrage\Http\Controllers\LookupController;
 // Nouveaux référentiels métier factorisés (2026-07-04)
 use Modules\Parametrage\Http\Controllers\GenreController;
-use Modules\Parametrage\Http\Controllers\TypeContratController;
 use Modules\Parametrage\Http\Controllers\StatutEmployeController;
 use Modules\Parametrage\Http\Controllers\SituationMatrimonialeController;
 use Modules\Parametrage\Http\Controllers\LienParenteController;
-use Modules\Parametrage\Http\Controllers\CiviliteController;
 use Modules\Parametrage\Http\Controllers\StatutApprenantController;
 use Modules\Parametrage\Http\Controllers\TypeInscriptionController;
 use Modules\Parametrage\Http\Controllers\GroupeSanguinController;
-use Modules\Parametrage\Http\Controllers\LangueController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -94,19 +87,8 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::delete('/{id}', [PaysController::class, 'destroy'])->name('destroy');
     });
 
-// ============================================
-    // Routes Gestion des Zones
-    // ============================================
-    Route::prefix('zones')->name('zones.')->group(function () {
-        Route::get('/', [ZoneController::class, 'index'])->name('index');
-        Route::get('/create', [ZoneController::class, 'create'])->name('create');
-        Route::post('/', [ZoneController::class, 'store'])->name('store');
-        Route::get('/{id}', [ZoneController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [ZoneController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [ZoneController::class, 'update'])->name('update');
-        Route::put('/{id}/statut', [ZoneController::class, 'activate'])->name('statut');
-        Route::delete('/{id}', [ZoneController::class, 'destroy'])->name('destroy');
-    });
+    // (Bloc Zones retiré — référentiel dormant, 0 FK entrante ;
+    // la hiérarchie géo Pays/Region/Departement/Commune/Quartier suffit.)
 
 // ============================================
     // GÉOGRAPHIE
@@ -285,16 +267,7 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::put('/{type_apprenant}/statut', [TypeApprenantController::class, 'activate'])->name('statut');
     });
 
-    Route::prefix('categories-apprenants')->name('categories_apprenant.')->group(function () {
-        Route::get('/', [CategorieApprenantController::class, 'index'])->name('index');
-        Route::get('/create', [CategorieApprenantController::class, 'create'])->name('create');
-        Route::post('/', [CategorieApprenantController::class, 'store'])->name('store');
-        Route::get('/{categorie_apprenant}', [CategorieApprenantController::class, 'show'])->name('show');
-        Route::get('/{categorie_apprenant}/edit', [CategorieApprenantController::class, 'edit'])->name('edit');
-        Route::put('/{categorie_apprenant}', [CategorieApprenantController::class, 'update'])->name('update');
-        Route::put('/{categorie_apprenant}/statut', [CategorieApprenantController::class, 'activate'])->name('statut');
-        Route::delete('/{categorie_apprenant}', [CategorieApprenantController::class, 'destroy'])->name('destroy');
-    });
+    // (Bloc "Catégorie apprenant" retiré — doublon TypeApprenant + StatutApprenant.)
 
     Route::prefix('categories-enseignants')->name('categories_enseignant.')->group(function () {
         Route::get('/', [CategorieEnseignantController::class, 'index'])->name('index');
@@ -334,15 +307,15 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
     // 9 référentiels métier factorisés (AbstractReferentielController)
     // ================================================================
     $referentiels = [
-        'types-contrats'            => ['type_contrat',            TypeContratController::class,          'types_contrats'],
+        // (Types contrats retiré — doublon de Natures Contrat.)
         'statuts-employes'          => ['statut_employe',          StatutEmployeController::class,        'statuts_employes'],
         'situations-matrimoniales'  => ['situation_matrimoniale',  SituationMatrimonialeController::class,'situations_matrimoniales'],
         'liens-parente'             => ['lien_parente',            LienParenteController::class,          'liens_parente'],
-        'civilites'                 => ['civilite',                CiviliteController::class,             'civilites'],
+        // (Civilites retiré — doublon de TitreCivilite ci-dessus.)
         'statuts-apprenants'        => ['statut_apprenant',        StatutApprenantController::class,      'statuts_apprenants'],
         'types-inscriptions'        => ['type_inscription',        TypeInscriptionController::class,      'types_inscriptions'],
         'groupes-sanguins'          => ['groupe_sanguin',          GroupeSanguinController::class,        'groupes_sanguins'],
-        'langues'                   => ['langue',                  LangueController::class,               'langues'],
+        // (Langues retiré — référentiel dormant sans FK ; les enseignants stockent leurs langues dans le JSON `languages`.)
     ];
     foreach ($referentiels as $prefix => [$param, $ctrl, $routeName]) {
         Route::prefix($prefix)->name($routeName . '.')->group(function () use ($param, $ctrl) {
@@ -496,18 +469,8 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         Route::put('/{ecole}/statut', [EcoleController::class, 'statut'])->name('statut');
     });
 
-    // Niveaux
-    Route::prefix('niveaux')->name('niveaux.')->group(function () {
-        Route::get('/', [NiveauController::class, 'index'])->name('index');
-        Route::get('/create', [NiveauController::class, 'create'])->name('create');
-        Route::post('/', [NiveauController::class, 'store'])->name('store');
-        Route::get('/{niveau}', [NiveauController::class, 'show'])->name('show');
-        Route::get('/{niveau}/edit', [NiveauController::class, 'edit'])->name('edit');
-        Route::match(['put', 'post'], '/{niveau}', [NiveauController::class, 'update'])->name('update');
-        Route::delete('/{niveau}', [NiveauController::class, 'destroy'])->name('destroy');
-        Route::post('/{niveau}/activate', [NiveauController::class, 'activate'])->name('activate');
-        Route::put('/{niveau}/statut', [NiveauController::class, 'statut'])->name('statut');
-    });
+    // (Bloc Niveaux retiré — doublon de Niveaux d'Étude. Classes/Bibliothèques/
+    // ListeManuels/Passage/ServiceCantine pointent désormais sur NiveauEtude.)
 
     // Classes
     Route::prefix('classes')->name('classes.')->group(function () {
@@ -535,17 +498,7 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
     });
 
 
-    // Types Établissement Spé
-    Route::prefix('types-etablissements-spe')->name('types_etablissement_spe.')->group(function () {
-        Route::get('/', [TypeEtablissementSpeController::class, 'index'])->name('index');
-        Route::get('/create', [TypeEtablissementSpeController::class, 'create'])->name('create');
-        Route::post('/', [TypeEtablissementSpeController::class, 'store'])->name('store');
-        Route::get('/{typesEtablissementSpe}', [TypeEtablissementSpeController::class, 'show'])->name('show');
-        Route::get('/{typesEtablissementSpe}/edit', [TypeEtablissementSpeController::class, 'edit'])->name('edit');
-        Route::put('/{typesEtablissementSpe}', [TypeEtablissementSpeController::class, 'update'])->name('update');
-        Route::delete('/{typesEtablissementSpe}', [TypeEtablissementSpeController::class, 'destroy'])->name('destroy');
-        Route::put('/{typesEtablissementSpe}/statut', [TypeEtablissementSpeController::class, 'activate'])->name('statut');
-    });
+    // (Bloc "Types Établissement Spé" retiré — doublon de Type Établissement.)
 
     // Redirect parametres-ecole to pays (placeholder for missing feature)
     Route::get('/parametres-ecole', [PaysController::class, 'index'])->name('parametres_ecole.index');

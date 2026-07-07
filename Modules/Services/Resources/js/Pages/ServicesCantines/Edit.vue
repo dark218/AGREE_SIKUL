@@ -13,6 +13,7 @@
             :cycles="cycles"
             :ecoles="ecoles"
             :campuses="campuses"
+            @submit="submitForm"
         />
         <FullPageLoader :show="isSubmitting" :message="t('common.saving')" />
     </div>

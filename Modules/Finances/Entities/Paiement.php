@@ -45,10 +45,10 @@ class Paiement extends BaseModel
         return $this->belongsTo(User::class, 'recu_par');
     }
 
-    // Scopes
+    // Scopes — enum DB : espece, cheque, virement, mobile_money, carte
     public function scopeEspeces($query)
     {
-        return $query->where('mode_paiement', 'especes');
+        return $query->where('mode_paiement', 'espece');
     }
 
     public function scopeVirement($query)
@@ -56,14 +56,19 @@ class Paiement extends BaseModel
         return $query->where('mode_paiement', 'virement');
     }
 
-    public function scopeCartebancaire($query)
+    public function scopeCarte($query)
     {
-        return $query->where('mode_paiement', 'carte_bancaire');
+        return $query->where('mode_paiement', 'carte');
     }
 
     public function scopeCheque($query)
     {
         return $query->where('mode_paiement', 'cheque');
+    }
+
+    public function scopeMobileMoney($query)
+    {
+        return $query->where('mode_paiement', 'mobile_money');
     }
 
     // Méthodes métier

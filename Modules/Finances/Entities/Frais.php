@@ -64,7 +64,8 @@ class Frais extends BaseModel
 
     public function scopePartielPaye($query)
     {
-        return $query->where('statut', 'partiel_paye');
+        // Enum DB : `partiellement_paye` (voir migration create_frais_table).
+        return $query->where('statut', 'partiellement_paye');
     }
 
     public function scopeNonPaye($query)

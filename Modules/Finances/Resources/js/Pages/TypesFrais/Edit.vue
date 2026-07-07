@@ -37,7 +37,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.put(route('finances.type-frais.update', props.item.id), formData, {
+    router.put(route('finances.types-frais.update', props.item.id), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

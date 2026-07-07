@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Modules\Academique\Entities\AbsenceEnseignant;
 use Modules\Academique\Entities\Enseignant;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Parametrage\Entities\Classe;
 
 class AbsenceEnseignantController extends Controller
@@ -90,7 +90,7 @@ class AbsenceEnseignantController extends Controller
                     ];
                 })->toArray();
 
-            $matieres = Matiere::orderBy('libelle')->get(['id', 'libelle as nom']);
+            $matieres = MatiereUnite::orderBy('libelle')->get(['id', 'libelle as nom']);
             $classes = Classe::orderBy('nom')->get(['id', 'nom']);
 
             return Inertia::render('Academique::AbsencesEnseignants/Create', [
@@ -110,7 +110,7 @@ class AbsenceEnseignantController extends Controller
         try {
             $validated = $request->validate([
                 'enseignant_id' => 'required|exists:enseignants,id',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
                 'classe_id' => 'nullable|exists:classes,id',
                 'date_debut' => 'required|date_format:Y-m-d\TH:i',
                 'date_fin' => 'required|date_format:Y-m-d\TH:i|after_or_equal:date_debut',
@@ -165,7 +165,7 @@ class AbsenceEnseignantController extends Controller
                     ];
                 })->toArray();
 
-            $matieres = Matiere::orderBy('libelle')->get(['id', 'libelle as nom']);
+            $matieres = MatiereUnite::orderBy('libelle')->get(['id', 'libelle as nom']);
             $classes = Classe::orderBy('nom')->get(['id', 'nom']);
 
             // Format dates for Vue datetime-local inputs (Y-m-d\TH:i format)
@@ -202,7 +202,7 @@ class AbsenceEnseignantController extends Controller
                     ];
                 })->toArray();
 
-            $matieres = Matiere::orderBy('libelle')->get(['id', 'libelle as nom']);
+            $matieres = MatiereUnite::orderBy('libelle')->get(['id', 'libelle as nom']);
             $classes = Classe::orderBy('nom')->get(['id', 'nom']);
 
             // Format dates for Vue datetime-local inputs (Y-m-d\TH:i format)
@@ -232,7 +232,7 @@ class AbsenceEnseignantController extends Controller
         try {
             $validated = $request->validate([
                 'enseignant_id' => 'required|exists:enseignants,id',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
                 'classe_id' => 'nullable|exists:classes,id',
                 'date_debut' => 'required|date_format:Y-m-d\TH:i',
                 'date_fin' => 'required|date_format:Y-m-d\TH:i|after_or_equal:date_debut',

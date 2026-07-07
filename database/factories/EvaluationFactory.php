@@ -15,7 +15,7 @@ class EvaluationFactory extends Factory
     {
         return [
             'cours_id' => Cours::factory(),
-            'matiere_id' => Matiere::factory(),
+            'matiere_id' => MatiereUnite::factory(),
             'titre' => $this->faker->words(3, true),
             'type' => $this->faker->randomElement(['devoir', 'test', 'examen', 'composition']),
             'date_evaluation' => $this->faker->dateTimeBetween('-3 months', '+3 months'),

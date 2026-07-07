@@ -107,8 +107,9 @@ Route::middleware(['auth:web'])->group(function () {
 
     // ============ INVENTAIRE ============
 
-    // Catégories Équipement
-    Route::prefix('categories-equipement')->name('categories-equipement.')->group(function () {
+    // Catégories Équipements — pluriel/pluriel aligné sur les permissions
+    // (`categories-equipements-*`) et les redirects du controller.
+    Route::prefix('categories-equipements')->name('categories-equipements.')->group(function () {
         Route::get('/', [CategorieEquipementController::class, 'index'])->name('index');
         Route::get('/create', [CategorieEquipementController::class, 'create'])->name('create');
         Route::post('/', [CategorieEquipementController::class, 'store'])->name('store');
@@ -131,8 +132,10 @@ Route::middleware(['auth:web'])->group(function () {
         Route::put('/{equipement}/statut', [EquipementController::class, 'statut'])->name('statut');
     });
 
-    // Maintenances Équipement
-    Route::prefix('maintenances-equipement')->name('maintenances-equipement.')->group(function () {
+    // Maintenances Équipements
+    // Nom pluriel/pluriel — aligné sur les permissions RBAC (`maintenances-equipements-*`)
+    // et sur les redirects du controller.
+    Route::prefix('maintenances-equipements')->name('maintenances-equipements.')->group(function () {
         Route::get('/', [MaintenanceEquipementController::class, 'index'])->name('index');
         Route::get('/create', [MaintenanceEquipementController::class, 'create'])->name('create');
         Route::post('/', [MaintenanceEquipementController::class, 'store'])->name('store');

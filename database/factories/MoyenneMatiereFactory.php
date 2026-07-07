@@ -16,7 +16,7 @@ class MoyenneMatiereFactory extends Factory
     {
         return [
             'apprenant_id' => Apprenant::factory(),
-            'matiere_id' => Matiere::factory(),
+            'matiere_id' => MatiereUnite::factory(),
             'annee_scolaire_id' => AnneeScolaire::factory(),
             'trimestre' => $this->faker->randomElement([1, 2, 3]),
             'moyenne' => $this->faker->randomFloat(2, 0, 20),

@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Modules\Academique\Entities\Enseignant;
 use Modules\Academique\Entities\AbsenceEnseignant;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Parametrage\Entities\Classe;
 use Carbon\Carbon;
 
@@ -26,7 +26,7 @@ class AbsenceEnseignantTestSeeder extends Seeder
         }
 
         // Get matieres
-        $matieres = Matiere::whereIn('libelle', ['Français', 'Mathématiques', 'Anglais', 'Sciences Naturelles', 'Histoire-Géographie'])
+        $matieres = MatiereUnite::whereIn('libelle', ['Français', 'Mathématiques', 'Anglais', 'Sciences Naturelles', 'Histoire-Géographie'])
             ->get();
 
         if ($matieres->isEmpty()) {

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use Modules\Academique\Entities\Apprenant;
 use Modules\Academique\Entities\AbsenceApprenant;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Parametrage\Entities\Classe;
 use App\Models\User;
 
@@ -43,7 +43,7 @@ class AbsenceApprenantTest extends TestCase
             'user_id' => null,
         ]);
 
-        $this->matiere = Matiere::create([
+        $this->matiere = MatiereUnite::create([
             'libelle' => 'Mathématiques',
             'code' => 'MATH',
             'statut' => 'actif',

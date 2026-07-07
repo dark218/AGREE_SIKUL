@@ -12,7 +12,7 @@ use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Campus;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
 
 class EmploiTempsController extends Controller
@@ -132,7 +132,7 @@ class EmploiTempsController extends Controller
                 'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
                 'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
                 'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => Matiere::select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::select('id', 'nom', 'prenoms')->get()->map(fn($e) => [
                     'id' => $e->id,
                     'libelle' => trim(($e->prenoms ?? '') . ' ' . $e->nom)
@@ -164,7 +164,7 @@ class EmploiTempsController extends Controller
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'campus_id' => 'nullable|exists:campuses,id',
                 'jour' => 'nullable|string|max:100',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
                 'enseignant_id' => 'nullable|exists:enseignants,id',
                 'duree' => 'nullable|numeric|min:0',
                 'date_debut' => 'required|date_format:Y-m-d\TH:i',
@@ -256,7 +256,7 @@ class EmploiTempsController extends Controller
                 'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
                 'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
                 'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => Matiere::select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::with('user')->select('id', 'user_id')->get()->map(fn($e) => [
                     'id' => $e->id,
                     'libelle' => $e->user->prenoms . ' ' . $e->user->nom
@@ -314,7 +314,7 @@ class EmploiTempsController extends Controller
                 'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
                 'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
                 'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => Matiere::select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::with('user')->select('id', 'user_id')->get()->map(fn($e) => [
                     'id' => $e->id,
                     'libelle' => $e->user->prenoms . ' ' . $e->user->nom
@@ -342,7 +342,7 @@ class EmploiTempsController extends Controller
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'campus_id' => 'nullable|exists:campuses,id',
                 'jour' => 'nullable|string|max:100',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
                 'enseignant_id' => 'nullable|exists:enseignants,id',
                 'duree' => 'nullable|numeric|min:0',
                 'date_debut' => 'required|date_format:Y-m-d\TH:i',
@@ -392,7 +392,7 @@ class EmploiTempsController extends Controller
                 'statut' => 'required|in:brouillon,valide,publie,archive',
                 'cours' => 'required|array',
                 'cours.*' => 'array',
-                'cours.*.*.matiere_id' => 'nullable|exists:matieres,id',
+                'cours.*.*.matiere_id' => 'nullable|exists:matieres_unites,id',
                 'cours.*.*.enseignant_id' => 'nullable|exists:enseignants,id',
                 'cours.*.*.heure_debut' => 'nullable|date_format:H:i',
                 'cours.*.*.heure_fin' => 'nullable|date_format:H:i',
@@ -512,7 +512,7 @@ class EmploiTempsController extends Controller
                 'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
                 'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
                 'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => Matiere::select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::with('user')->select('id', 'user_id')->get()->map(fn($e) => [
                     'id' => $e->id,
                     'libelle' => $e->user->prenoms . ' ' . $e->user->nom
@@ -541,7 +541,7 @@ class EmploiTempsController extends Controller
                 'statut' => 'required|in:brouillon,valide,publie,archive',
                 'cours' => 'required|array',
                 'cours.*' => 'array',
-                'cours.*.*.matiere_id' => 'nullable|exists:matieres,id',
+                'cours.*.*.matiere_id' => 'nullable|exists:matieres_unites,id',
                 'cours.*.*.enseignant_id' => 'nullable|exists:enseignants,id',
                 'cours.*.*.heure_debut' => 'nullable|date_format:H:i',
                 'cours.*.*.heure_fin' => 'nullable|date_format:H:i',

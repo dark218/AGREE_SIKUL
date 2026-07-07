@@ -45,14 +45,14 @@ const performSearch = () => {
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 function search() {
-    router.get(route('finances.echeancier.index'), searchFilters.value, {
+    router.get(route('finances.echeanciers.index'), searchFilters.value, {
         preserveState: true,
         preserveScroll: true,
     });
 }
 const resetFilters = () => {
     Object.keys(searchFilters.value).forEach((k) => { searchFilters.value[k] = ''; });
-    router.get(route('finances.echeancier.index'));
+    router.get(route('finances.echeanciers.index'));
 };
 function confirmDelete(item) {
     itemToDelete.value = item;
@@ -60,7 +60,7 @@ function confirmDelete(item) {
 }
 function deleteEcheancier() {
     showStoreLoader();
-    router.put(route('finances.echeancier.statut', itemToDelete.value.id), {}, {
+    router.put(route('finances.echeanciers.statut', itemToDelete.value.id), {}, {
         onSuccess: () => {
             showDeleteModal.value = false;
             hideLoader();
@@ -104,7 +104,7 @@ watch(
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ t('common.echeancier') }}</h4>
             <div v-if="can('echeancier-create')" class="dashboard-btn">
-                <Link :href="route('finances.echeancier.create')" class="btn btn-primary">
+                <Link :href="route('finances.echeanciers.create')" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ t('common.add') }}
                 </Link>
             </div>
@@ -131,7 +131,7 @@ watch(
                         <td class="fit">
                             <div class="action-buttons">
                                 <Link
-                                    :href="route('finances.echeancier.show', echeancier.id)"
+                                    :href="route('finances.echeanciers.show', echeancier.id)"
                                     class="btn btn-secondary btn-sm"
                                     title="Voir"
                                 >
@@ -139,7 +139,7 @@ watch(
                                 </Link>
                                 <Link
                                     v-if="can('echeancier-edit')"
-                                    :href="route('finances.echeancier.edit', echeancier.id)"
+                                    :href="route('finances.echeanciers.edit', echeancier.id)"
                                     class="btn btn-primary btn-sm"
                                     title="Modifier"
                                 >

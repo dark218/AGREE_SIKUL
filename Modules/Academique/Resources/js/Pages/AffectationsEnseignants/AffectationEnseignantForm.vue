@@ -181,56 +181,25 @@ const etatOptions = [
             <h5 class="section-title mb-3 mt-4">{{ t('common.assigned_subjects') || 'Matières affectées' }}</h5>
         </div>
 
-        <!-- Matière 1-7 -->
-        <div v-for="i in 7" :key="`matiere-${i}`" class="col-sm-4">
+        <!-- Matières (multi-sélection via pivot affectation_matieres — remplace
+             les 21 slots hardcodés matiere_1_id..matiere_21_id). -->
+        <div class="col-12">
             <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }} {{ i }}</label>
+                <label class="mb-2">
+                    {{ t('fields.matieres') || 'Matières affectées' }}
+                    <small class="text-muted">— sélectionne autant de matières que nécessaire</small>
+                </label>
                 <SearchableSelect
-                    v-model="form[`matiere_${i}_id`]"
+                    v-model="form.matieres"
                     :options="matieres"
                     :disabled="isReadOnly"
+                    :multiple="true"
                     option-value="id"
                     option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :placeholder="t('actions.select') || 'Cliquer pour ajouter…'"
                 />
-                <span v-if="form.errors?.[`matiere_${i}_id`]" class="text-danger">
-                    <strong>{{ form.errors[`matiere_${i}_id`] }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Matière 8-14 -->
-        <div v-for="i in [8,9,10,11,12,13,14]" :key="`matiere-${i}`" class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }} {{ i }}</label>
-                <SearchableSelect
-                    v-model="form[`matiere_${i}_id`]"
-                    :options="matieres"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.[`matiere_${i}_id`]" class="text-danger">
-                    <strong>{{ form.errors[`matiere_${i}_id`] }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Matière 15-21 -->
-        <div v-for="i in [15,16,17,18,19,20,21]" :key="`matiere-${i}`" class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }} {{ i }}</label>
-                <SearchableSelect
-                    v-model="form[`matiere_${i}_id`]"
-                    :options="matieres"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.[`matiere_${i}_id`]" class="text-danger">
-                    <strong>{{ form.errors[`matiere_${i}_id`] }}</strong>
+                <span v-if="form.errors?.matieres" class="text-danger">
+                    <strong>{{ form.errors.matieres }}</strong>
                 </span>
             </div>
         </div>

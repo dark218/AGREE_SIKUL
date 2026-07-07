@@ -6,6 +6,7 @@
         </div>
         <DepenseForm
             ref="formRef"
+            :ecoles="ecoles"
             :errors="form.errors"
             :submit-button-label="t('common.create')"
             @submit="submitForm"
@@ -26,6 +27,9 @@ defineOptions({
 });
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
+const props = defineProps({
+    ecoles: { type: Array, default: () => [] },
+});
 const formRef = ref(null);
 const isSubmitting = ref(false);
 const form = ref({
@@ -33,7 +37,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.post(route('finances.depense.store'), formData, {
+    router.post(route('finances.depenses.store'), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

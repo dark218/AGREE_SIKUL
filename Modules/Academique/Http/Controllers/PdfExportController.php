@@ -4,11 +4,10 @@ namespace Modules\Academique\Http\Controllers;
 
 use Modules\Academique\Entities\Apprenant;
 use Modules\Academique\Entities\Note;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\MoyenneMatiere;
 use Modules\Academique\Entities\Inscription;
 use Modules\Academique\Entities\Presence;
-use Modules\Academique\Entities\AbsenceApprenant;
 use Modules\Academique\Entities\AbsenceEnseignant;
 use Modules\Parametrage\Entities\Classe;
 use Illuminate\Http\Request;
@@ -148,7 +147,7 @@ class PdfExportController extends Controller
         $classeId = $request->input('classe_id');
         $classe = Classe::with('ecole')->findOrFail($classeId);
 
-        $matieresList = Matiere::orderBy('libelle')->get();
+        $matieresList = MatiereUnite::orderBy('libelle')->get();
         $apprenants = Apprenant::where('classe_id', $classeId)->orderBy('nom')->get();
 
         $notes = Note::where('classe_id', $classeId)
@@ -251,7 +250,10 @@ class PdfExportController extends Controller
         $classeId = $request->input('classe_id');
         $classe = $classeId ? Classe::with('ecole')->find($classeId) : null;
 
-        $query = AbsenceApprenant::query()->with('apprenant');
+        // Refactor Phase 3.3 : les absences apprenants dérivent maintenant
+        // de Presence (source unique). On filtre les statuts != 'present'.
+        $query = Presence::query()->with('apprenant')
+            ->whereIn('statut', ['absent', 'malade', 'permis']);
         if ($classeId) {
             $query->whereHas('apprenant', fn($q) => $q->where('classe_id', $classeId));
         }
@@ -264,13 +266,13 @@ class PdfExportController extends Controller
             'ecole' => $classe?->ecole?->nom,
             'periode' => '',
             'absences' => $absences->map(fn($a) => [
-                'matricule' => $a->apprenant?->matricule ?? '-',
-                'nom' => ($a->apprenant?->nom ?? '') . ' ' . ($a->apprenant?->prenoms ?? ''),
-                'date' => $a->date_absence?->format('d/m/Y') ?? $a->created_at?->format('d/m/Y') ?? '-',
-                'heures' => $a->nombre_heures ?? '-',
-                'justifiee' => (bool) $a->justifiee,
-                'motif' => $a->motif ?? '-',
-                'observation' => $a->observation ?? '',
+                'matricule'   => $a->apprenant?->matricule ?? '-',
+                'nom'         => ($a->apprenant?->nom ?? '') . ' ' . ($a->apprenant?->prenoms ?? ''),
+                'date'        => $a->created_at?->format('d/m/Y') ?? '-',
+                'heures'      => '-',
+                'justifiee'   => $a->statut === 'permis',
+                'motif'       => $a->statut,
+                'observation' => $a->remarques ?? '',
             ])->toArray(),
             'totalAbsences' => $absences->count(),
             'justifiees' => $absences->where('justifiee', true)->count(),
@@ -335,7 +337,7 @@ class PdfExportController extends Controller
 
         $moyennes = $query->get()->groupBy('apprenant_id');
 
-        $matieresList = Matiere::orderBy('libelle')->get();
+        $matieresList = MatiereUnite::orderBy('libelle')->get();
 
         $lignes = $moyennes->map(function ($mmGroup) use ($matieresList) {
             $apprenant = $mmGroup->first()->apprenant;

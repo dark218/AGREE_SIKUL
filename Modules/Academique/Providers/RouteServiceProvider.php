@@ -24,9 +24,9 @@ class RouteServiceProvider extends ServiceProvider
     public function boot()
     {
         parent::boot();
-
-        // Explicit route model bindings for models with snake_case parameter names
-        Route::model('personnel_administratif', \Modules\Academique\Entities\PersonnelAdministratif::class);
+        // Route model binding 'personnel_administratif' déplacé vers
+        // Modules/Personnel/Routes/web.php (le CRUD est désormais dans le
+        // module Personnel, cohérence métier).
     }
 
     /**

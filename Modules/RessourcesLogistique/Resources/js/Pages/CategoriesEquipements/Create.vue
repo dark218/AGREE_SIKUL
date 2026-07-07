@@ -33,7 +33,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.post(route('categorie-equipement.store'), formData, {
+    router.post(route('categories-equipements.store'), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

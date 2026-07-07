@@ -127,7 +127,8 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <NoteForm
                                     :form="form"
                                     :apprenants="apprenants"
@@ -145,21 +146,18 @@ const submitForm = () => {
                                     :groupes="groupes"
                                     :enseignants="enseignants"
                                     mode="edit"
+                                    @submit="submitForm"
                                 />
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('academique.notes.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('academique.notes.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button type="submit" class="btn btn-primary ms-2" :disabled="form.processing">
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

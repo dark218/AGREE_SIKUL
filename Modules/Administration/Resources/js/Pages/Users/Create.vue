@@ -29,13 +29,16 @@ const isCollapsed = ref(false);
 const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
-// Soumettre le formulaire
-function submitForm() {
+// Le stepper émet 'submit' avec le FormData déjà construit.
+function submitForm(formData) {
     if (isSubmitting.value) return;
     isSubmitting.value = true;
     showStoreLoader();
-    const formData = userFormRef.value.getFormData();
-    router.post(route('administration.users.store'), formData, {
+    // Fallback : si l'appel vient d'ailleurs (ex. ref), on reconstruit.
+    const payload = formData instanceof FormData
+        ? formData
+        : userFormRef.value?.getFormData();
+    router.post(route('administration.users.store'), payload, {
         forceFormData: true,
         preserveScroll: true,
         onError: (errs) => {
@@ -78,36 +81,27 @@ function submitForm() {
                                     <!-- Alert Messages -->
                                     <AlertMessage />
                                     <div class="">
-                                        <!-- Formulaire -->
+                                        <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
                                         <UserForm
                                             ref="userFormRef"
                                             :roles="roles"
                                             :payss="pays"
-                                             :statuts="statuts"
+                                            :statuts="statuts"
                                             :kyc-statuts="kycStatuts"
                                             :type-pieces="typePieces"
                                             :show-pays-field="showPaysField"
                                             :errors="errors"
+                                            @submit="submitForm"
                                         />
-                                        <!-- Boutons d'action -->
                                         <div class="row mt-4">
                                             <div class="col">
-                                                <div class="text-end">
-                                                    <Link 
-                                                        :href="route('administration.users.index')" 
-                                                        class="btn btn-danger me-2"
+                                                <div class="text-start">
+                                                    <Link
+                                                        :href="route('administration.users.index')"
+                                                        class="btn btn-outline-secondary"
                                                     >
                                                         <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                                     </Link>
-                                                    <button 
-                                                        type="button" 
-                                                        class="btn btn-primary"
-                                                        :disabled="isSubmitting"
-                                                        @click="submitForm"
-                                                    >
-                                                        <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-                                                        <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

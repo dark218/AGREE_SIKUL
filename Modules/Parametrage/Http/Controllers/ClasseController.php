@@ -7,7 +7,7 @@ use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Parametrage\Entities\Classe;
 use Modules\Parametrage\Entities\Ecole;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Modules\Parametrage\Entities\Campus;

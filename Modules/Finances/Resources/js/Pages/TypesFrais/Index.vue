@@ -45,14 +45,14 @@ const performSearch = () => {
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 function search() {
-    router.get(route('finances.type-frais.index'), searchFilters.value, {
+    router.get(route('finances.types-frais.index'), searchFilters.value, {
         preserveState: true,
         preserveScroll: true,
     });
 }
 function resetFilters() {
     searchFilters.value = { search: '', statut: '' };
-    router.get(route('finances.type-frais.index'));
+    router.get(route('finances.types-frais.index'));
 }
 function confirmDelete(item) {
     itemToDelete.value = item;
@@ -60,7 +60,7 @@ function confirmDelete(item) {
 }
 function deleteTypeFrais() {
     showStoreLoader();
-    router.put(route('finances.type-frais.statut', itemToDelete.value.id), {}, {
+    router.put(route('finances.types-frais.statut', itemToDelete.value.id), {}, {
         onSuccess: () => {
             showDeleteModal.value = false;
             hideLoader();
@@ -104,7 +104,7 @@ watch(
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ t('common.type-frais') }}</h4>
             <div v-if="can('type-frais-create')" class="dashboard-btn">
-                <Link :href="route('finances.type-frais.create')" class="btn btn-primary">
+                <Link :href="route('finances.types-frais.create')" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ t('common.add') }}
                 </Link>
             </div>
@@ -131,7 +131,7 @@ watch(
                         <td class="fit">
                             <div class="action-buttons">
                                 <Link
-                                    :href="route('finances.type-frais.show', typeFrais.id)"
+                                    :href="route('finances.types-frais.show', typeFrais.id)"
                                     class="btn btn-secondary btn-sm"
                                     title="Voir"
                                 >
@@ -139,7 +139,7 @@ watch(
                                 </Link>
                                 <Link
                                     v-if="can('type-frais-edit')"
-                                    :href="route('finances.type-frais.edit', typeFrais.id)"
+                                    :href="route('finances.types-frais.edit', typeFrais.id)"
                                     class="btn btn-primary btn-sm"
                                     title="Modifier"
                                 >

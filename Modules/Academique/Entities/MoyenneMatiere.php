@@ -6,7 +6,7 @@ use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 
 class MoyenneMatiere extends BaseModel
 {
@@ -44,7 +44,7 @@ class MoyenneMatiere extends BaseModel
 
     public function matiere(): BelongsTo
     {
-        return $this->belongsTo(Matiere::class, 'matiere_id');
+        return $this->belongsTo(MatiereUnite::class, 'matiere_id');
     }
 
     // Scopes

@@ -186,7 +186,13 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!--
+                                Le bouton "Valider" est désormais géré par le FormStepper
+                                (dernière étape). On capture son événement submit ici.
+                                Le <form> externe et les boutons sont retirés — voir
+                                Phase 2.2 refonte stepper.
+                            -->
+                            <div>
                                 <ParentForm
                                     :form="form"
                                     :apprenants="apprenants"
@@ -195,26 +201,19 @@ const submitForm = () => {
                                     :institutions="institutions"
                                     :campuses="campuses"
                                     mode="create"
+                                    @submit="submitForm"
                                 />
-                                <!-- Boutons -->
+                                <!-- Bouton Retour uniquement — Valider vit dans le stepper. -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('parents.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('parents.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

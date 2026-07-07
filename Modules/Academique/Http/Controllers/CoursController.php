@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Academique\Entities\Cours;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
 use Modules\Parametrage\Entities\Classe;
 use Modules\Parametrage\Entities\AnneeScolaire;
@@ -55,7 +55,7 @@ class CoursController extends Controller
             \Log::info('🔍 CoursController::create() démarré');
 
             \Log::info('📚 Récupération des matières...');
-            $matieres = Matiere::select('id', 'libelle')->get();
+            $matieres = MatiereUnite::select('id', 'libelle')->get();
             \Log::info('✅ Matières trouvées: ' . $matieres->count());
             $matieres = $matieres->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])->toArray();
 
@@ -120,7 +120,7 @@ class CoursController extends Controller
             \Log::info('📨 Données reçues:', $request->all());
 
             $validated = $request->validate([
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'classe_id' => 'required|exists:classes,id',
                 'enseignant_id' => 'required|exists:enseignants,id',
                 'code' => 'required|string|max:100|unique:cours',
@@ -168,7 +168,7 @@ class CoursController extends Controller
             \Log::info('🔍 Cours ID: ' . ($cours->id ?? 'NULL'));
             \Log::info('🔍 Cours exists property: ' . ($cours->exists ? 'TRUE' : 'FALSE'));
 
-            $matieres = Matiere::select('id', 'libelle')->get()
+            $matieres = MatiereUnite::select('id', 'libelle')->get()
                 ->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])
                 ->toArray();
 
@@ -229,7 +229,7 @@ class CoursController extends Controller
         try {
             \Log::info('✏️ CoursController::edit() pour Cours ID ' . $cours->id);
 
-            $matieres = Matiere::select('id', 'libelle')->get()
+            $matieres = MatiereUnite::select('id', 'libelle')->get()
                 ->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])
                 ->toArray();
 
@@ -283,7 +283,7 @@ class CoursController extends Controller
     {
         try {
             $validated = $request->validate([
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'classe_id' => 'required|exists:classes,id',
                 'enseignant_id' => 'required|exists:enseignants,id',
                 'code' => 'required|string|max:100|unique:cours,code,' . $cours->id,

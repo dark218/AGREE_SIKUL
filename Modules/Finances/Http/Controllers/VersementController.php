@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Finances\Entities\Versement;
 use Modules\Parametrage\Entities\AnneeScolaire;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Classe;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Campus;
@@ -125,7 +125,7 @@ class VersementController extends Controller
             $anneesScolaires = AnneeScolaire::where('etat', 'actif')->get();
             \Log::info("AnneeScolaires loaded", ['count' => $anneesScolaires->count()]);
 
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
             \Log::info("Niveaux loaded", ['count' => $niveaux->count()]);
 
             $classes = Classe::where('statut', 'actif')->get();
@@ -232,7 +232,7 @@ class VersementController extends Controller
                     ];
                 });
             $anneesScolaires = AnneeScolaire::where('etat', 'actif')->get();
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
             $classes = Classe::where('statut', 'actif')->get();
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();
@@ -273,7 +273,7 @@ class VersementController extends Controller
                     ];
                 });
             $anneesScolaires = AnneeScolaire::where('etat', 'actif')->get();
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
             $classes = Classe::where('statut', 'actif')->get();
             $ecoles = Ecole::where('statut', 'actif')->get();
             $campuses = Campus::where('statut', 'actif')->get();

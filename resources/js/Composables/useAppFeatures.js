@@ -13,7 +13,7 @@ import { usePermissions } from '@/Composables/usePermissions';
 
 // Fonctionnalités masquées partout (sidebar + recherche Ctrl+K), même pour le
 // Super Admin. Comparaison insensible aux tirets/underscores/espaces.
-const HIDDEN_FEATURES = ['types_etablissement_spe', 'civilites', 'absences'];
+const HIDDEN_FEATURES = ['absences'];
 function isHiddenFeature(menuUrl) {
     const norm = String(menuUrl || '').toLowerCase().replace(/[-_\s]+/g, '');
     return HIDDEN_FEATURES.some((h) => h.toLowerCase().replace(/[-_\s]+/g, '') === norm);
@@ -50,7 +50,7 @@ const specialRoutes = {
     'permissions': 'administration.permissions.index',
     'error-logs': 'administration.errorlog.index',
     // Academique module
-    'personnels-administratifs': 'academique.personnels_administratifs.index',
+    'personnels-administratifs': 'personnels_administratifs.index',
     'emplois-du-temps': 'academique.emplois_du_temps.index',
     'listes-manuels': 'academique.listes-manuels.index',
     'bibliotheque-structures': 'academique.bibliotheque-structures.index',
@@ -155,8 +155,16 @@ export function useAppFeatures() {
                 // Fonctionnalité masquée (prioritaire, même pour Super Admin)
                 if (isHiddenFeature(feature.menu_url)) return;
 
-                const permission = `${feature.menu_url}-list`;
-                const allowed = isSuperAdmin.value || hasPermission(permission);
+                // Teste les variantes dash/underscore de menu_url : la DB
+                // peut utiliser l'une et le fallback JS l'autre.
+                const rawMenu = String(feature.menu_url || '');
+                const permVariants = new Set([
+                    `${rawMenu}-list`,
+                    `${rawMenu.replace(/_/g, '-')}-list`,
+                    `${rawMenu.replace(/-/g, '_')}-list`,
+                ]);
+                const allowed = isSuperAdmin.value
+                    || Array.from(permVariants).some(p => hasPermission(p));
                 if (!allowed) return;
 
                 const href = buildFeatureHref(feature, menu);

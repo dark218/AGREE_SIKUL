@@ -80,7 +80,7 @@ class ExamenEnLigne extends BaseModel
 
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class);
+        return $this->belongsTo(MatiereUnite::class);
     }
 
     public function enseignant()

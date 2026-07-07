@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Academique\Entities\Evaluation;
 use Modules\Parametrage\Entities\Classe;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 
 class EvaluationController extends Controller
 {
@@ -90,7 +90,7 @@ class EvaluationController extends Controller
                     'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                     'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                 ])->toArray();
-            $matieres = Matiere::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray();
+            $matieres = MatiereUnite::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray();
 
             return Inertia::render('Academique::Evaluations/Create', [
                 'title' => __('actions.create'),
@@ -111,7 +111,7 @@ class EvaluationController extends Controller
                 'titre' => 'required|string|max:255',
                 'type' => 'nullable|string|max:50',
                 'classe_id' => 'required|exists:classes,id',
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'date' => 'nullable|date',
                 'coefficient' => 'nullable|numeric|min:0',
                 'sur' => 'nullable|numeric|min:0',
@@ -147,7 +147,7 @@ class EvaluationController extends Controller
                     'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                     'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                 ])->toArray();
-            $matieres = Matiere::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray();
+            $matieres = MatiereUnite::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray();
 
             return Inertia::render('Academique::Evaluations/Show', [
                 'title' => __('actions.view'),
@@ -179,7 +179,7 @@ class EvaluationController extends Controller
                     'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                     'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                 ])->toArray();
-            $matieres = Matiere::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray();
+            $matieres = MatiereUnite::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray();
 
             return Inertia::render('Academique::Evaluations/Edit', [
                 'title' => __('actions.edit'),
@@ -201,7 +201,7 @@ class EvaluationController extends Controller
                 'titre' => 'required|string|max:255',
                 'type' => 'nullable|string|max:50',
                 'classe_id' => 'required|exists:classes,id',
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'date' => 'nullable|date',
                 'coefficient' => 'nullable|numeric|min:0',
                 'sur' => 'nullable|numeric|min:0',

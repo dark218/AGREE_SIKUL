@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Academique\Entities\MoyenneMatiere;
 use Modules\Academique\Entities\Bulletin;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Note;
 use Modules\Academique\Entities\Apprenant;
 
@@ -135,7 +135,7 @@ class MoyenneMatiereController extends Controller
                 ->toArray();
 
             // Load matieres with coefficient info for better display
-            $matieres = Matiere::select('id', 'libelle', 'coefficient')
+            $matieres = MatiereUnite::select('id', 'libelle', 'coefficient')
                 ->get()
                 ->map(fn($m) => [
                     'id' => $m->id,
@@ -163,7 +163,7 @@ class MoyenneMatiereController extends Controller
 
             $validated = $request->validate([
                 'apprenant_id' => 'required|exists:apprenants,id',
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'moyenne' => "required|numeric|min:0|max:$maxMoyenne",
                 'coefficient' => 'required|numeric|min:0',
                 'rang' => 'nullable|integer|min:1',
@@ -213,7 +213,7 @@ class MoyenneMatiereController extends Controller
                 ->toArray();
 
             // Load matieres with coefficient
-            $matieres = Matiere::select('id', 'libelle', 'coefficient')
+            $matieres = MatiereUnite::select('id', 'libelle', 'coefficient')
                 ->get()
                 ->map(fn($m) => [
                     'id' => $m->id,
@@ -281,7 +281,7 @@ class MoyenneMatiereController extends Controller
                 ->toArray();
 
             // Load matieres with coefficient info for better display
-            $matieres = Matiere::select('id', 'libelle', 'coefficient')
+            $matieres = MatiereUnite::select('id', 'libelle', 'coefficient')
                 ->get()
                 ->map(fn($m) => [
                     'id' => $m->id,
@@ -328,7 +328,7 @@ class MoyenneMatiereController extends Controller
 
             $validated = $request->validate([
                 'bulletin_id' => 'required|exists:bulletins,id',
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'moyenne' => "required|numeric|min:0|max:$maxMoyenne",
                 'coefficient' => 'required|numeric|min:0',
                 'rang' => 'nullable|integer|min:1',

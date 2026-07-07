@@ -1,17 +1,83 @@
+<!--
+  ApprenantForm.vue — Refonte Phase 2.3 (Steppers).
+  Historique : 1197 lignes / 47 v-model → 5 steps / ~30 champs effectifs.
+
+  Steps :
+    1. Identité         — photo, nom, prénoms, date naiss + âge computed,
+                          lieu naissance, genre, nationalité
+    2. Sanitaire        — groupe sanguin, allergies, aliments interdits,
+                          hôpitaux+médecins, drépano/asthme/diabète/épilepsie, apte sport
+    3. Scolarité        — classe (auto section/cycle/école/campus/année),
+                          type apprenant, école/classe précédente, matricule,
+                          n° inscription
+    4. Famille & Contact — noms complets père/mère/tuteur/resp. légal,
+                          adresse, quartier (auto commune/dept/region/pays),
+                          téléphone, whatsapp, email
+    5. Hébergement & Suivi — interne? → bâtiment/étage/chambre/lit (conditionnel),
+                          date entrée, date départ, motif départ, statut
+
+  Champs supprimés (redondants) : age (computed), telephone2, whatsapp2, sexe,
+  commune/departement/region/pays_naissance (dérivés de commune_naissance_id),
+  arrondissement/ville/code_postal/boite_postal résidence.
+
+  Auto-fill préservé :
+    - Classe → école, campus, section, cycle, année scolaire (useClasseAutoFill)
+    - Quartier → commune, département, région, pays (useGeoCascade)
+-->
+
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import FormStepper from '@/Components/Common/FormStepper.vue';
 import { useClasseAutoFill } from '../../composables/useClasseAutoFill';
 import { useGeoCascade } from '@/Composables/useGeoCascade';
-import { ref } from 'vue';
 
 const { t } = useI18n();
 
+const props = defineProps({
+    form: { type: Object, required: true },
+    mode: {
+        type: String,
+        default: 'create',
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
+    },
+    classes:           { type: Array, default: () => [] },
+    sections:          { type: Array, default: () => [] },
+    cycles:            { type: Array, default: () => [] },
+    ecoles:            { type: Array, default: () => [] },
+    campuses:          { type: Array, default: () => [] },
+    communes:          { type: Array, default: () => [] },
+    departements:      { type: Array, default: () => [] },
+    regions:           { type: Array, default: () => [] },
+    pays:              { type: Array, default: () => [] },
+    quartiers:         { type: Array, default: () => [] },
+    anneesScolaires:   { type: Array, default: () => [] },
+    typesApprenant:    { type: Array, default: () => [] },
+    genres:            { type: Array, default: () => [] },
+    statutsApprenants: { type: Array, default: () => [] },
+    groupesSanguins:   { type: Array, default: () => [] },
+});
+
+defineEmits(['submit']);
+
+const isReadOnly = props.mode === 'show';
+const currentStep = ref(0);
+
+// Auto-fill scolaire : classe → section, cycle, école, campus, année
+useClasseAutoFill(props.form);
+
+// Cascade géo : quartier → commune → dept → région → pays
+useGeoCascade(props.form, {
+    quartiers:    () => props.quartiers,
+    communes:     () => props.communes,
+    departements: () => props.departements,
+    regions:      () => props.regions,
+});
+
+// Photo
 const photoPreview = ref(null);
 const photoInputRef = ref(null);
-
 const onPhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -30,1160 +96,388 @@ const onPhotoChange = (e) => {
     reader.onload = (ev) => { photoPreview.value = ev.target.result; };
     reader.readAsDataURL(file);
 };
-
 const clearPhoto = () => {
     props.form.photo = null;
     photoPreview.value = null;
     if (photoInputRef.value) photoInputRef.value.value = '';
 };
-
 const photoUrl = (path) => {
-    if (!path) return null;
-    if (typeof path !== 'string') return null;
+    if (!path || typeof path !== 'string') return null;
     if (path.startsWith('http')) return path;
     return '/storage/' + path.replace(/^\/+/, '');
 };
 
-const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    mode: {
-        type: String,
-        default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
-    },
-    classes: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
-    communes: {
-        type: Array,
-        default: () => [],
-    },
-    departements: {
-        type: Array,
-        default: () => [],
-    },
-    regions: {
-        type: Array,
-        default: () => [],
-    },
-    pays: {
-        type: Array,
-        default: () => [],
-    },
-    quartiers: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    typesApprenant: {
-        type: Array,
-        default: () => [],
-    },
-    categoriesApprenant: {
-        type: Array,
-        default: () => [],
-    },
-    genres: {
-        type: Array,
-        default: () => [],
-    },
-    statutsApprenants: { type: Array, default: () => [] },
-    groupesSanguins: { type: Array, default: () => [] },
-});
-
-const isReadOnly = props.mode === 'show';
-const classeSelected = computed(() => !!props.form.classe_id);
-
-// Cascade géographique : Quartier → Commune → Département → Région → Pays
-useGeoCascade(props.form, {
-    quartiers: () => props.quartiers,
-    communes: () => props.communes,
-    departements: () => props.departements,
-    regions: () => props.regions,
-});
-
-const autoLabel = (list, id) => {
-    if (!id || !list?.length) return '—';
-    const found = list.find(item => String(item.id) === String(id));
-    return found?.libelle || found?.nom || found?.label || '—';
-};
-const sectionLabel = computed(() => autoLabel(props.sections, props.form.section_id));
-const cycleLabel = computed(() => autoLabel(props.cycles, props.form.cycle_id));
-const ecoleLabel = computed(() => autoLabel(props.ecoles, props.form.ecole_id));
-const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
-
-// Auto-fill classe → ecole, campus, section, cycle, annee_scolaire
-useClasseAutoFill(props.form);
-
-// Fallback si Paramétrage/StatutsApprenants pas encore alimenté
-const defaultStatusApprenants = [
-    { id: 'actif', libelle: t('common.active') || 'Actif' },
-    { id: 'suspendu', libelle: t('common.suspended') || 'Suspendu' },
-    { id: 'exclu', libelle: 'Exclu' },
-    { id: 'diplome', libelle: 'Diplômé' },
-    { id: 'abandonne', libelle: 'Abandonné' },
-];
-const statusOptions = computed(() => {
-    if (props.statutsApprenants?.length > 0) {
-        // On expose `code` en `id` pour rester compat avec la validation existante
-        return props.statutsApprenants.map(s => ({ id: s.code, libelle: s.libelle }));
-    }
-    return defaultStatusApprenants;
-});
-
-const sexeOptions = [
-    { id: 'M', libelle: 'Masculin' },
-    { id: 'F', libelle: 'Féminin' },
-];
-
-const estInterneOptions = [
-    { id: true, libelle: 'Oui' },
-    { id: false, libelle: 'Non' },
-];
-
-// Calculate age from date_naissance
+// Âge computed
 const age = computed(() => {
     if (!props.form.date_naissance) return null;
     const birthDate = new Date(props.form.date_naissance);
     const today = new Date();
-    let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+    let a = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        calculatedAge--;
-    }
-    return calculatedAge;
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) a--;
+    return a;
 });
+
+// Nationalité auto depuis pays_naissance
+const paysNaissanceChange = () => {
+    if (!props.form.pays_naissance_id) return;
+    const p = props.pays.find(x => String(x.id) === String(props.form.pays_naissance_id));
+    if (p?.nationalite && !props.form.nationalite) {
+        props.form.nationalite = p.nationalite;
+    }
+};
+
+// Auto-fill labels (readonly display)
+const autoLabel = (list, id) => {
+    if (!id || !list?.length) return '—';
+    const found = list.find(item => String(item.id) === String(id));
+    return found?.libelle || found?.nom || '—';
+};
+const sectionLabel = computed(() => autoLabel(props.sections, props.form.section_id));
+const cycleLabel   = computed(() => autoLabel(props.cycles,   props.form.cycle_id));
+const ecoleLabel   = computed(() => autoLabel(props.ecoles,   props.form.ecole_id));
+const campusLabel  = computed(() => autoLabel(props.campuses, props.form.campus_id));
+
+// Options fixes
+const statusOptions = computed(() => {
+    if (props.statutsApprenants?.length > 0) {
+        return props.statutsApprenants.map(s => ({ id: s.code, libelle: s.libelle }));
+    }
+    return [
+        { id: 'actif',     libelle: 'Actif' },
+        { id: 'suspendu',  libelle: 'Suspendu' },
+        { id: 'exclu',     libelle: 'Exclu' },
+        { id: 'diplome',   libelle: 'Diplômé' },
+        { id: 'abandonne', libelle: 'Abandonné' },
+    ];
+});
+const yesNoOptions = [
+    { id: true,  libelle: 'Oui' },
+    { id: false, libelle: 'Non' },
+];
+
+// Steps déclaratifs
+const steps = [
+    { key: 'identite',  label: 'Identité',         icon: 'fas fa-id-badge',       requiredFields: ['nom', 'prenoms'] },
+    { key: 'sante',     label: 'Sanitaire',        icon: 'fas fa-heart-pulse' },
+    { key: 'scolarite', label: 'Scolarité',        icon: 'fas fa-graduation-cap', requiredFields: ['matricule', 'classe_id'] },
+    { key: 'famille',   label: 'Famille & Contact', icon: 'fas fa-users' },
+    { key: 'suivi',     label: 'Hébergement & Suivi', icon: 'fas fa-clipboard-list' },
+];
 </script>
 
 <template>
-    <div class="row g-3 custom-input">
-        <!-- SECTION 1: IDENTITÉ -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.identity') || 'Identité' }}</h5>
-        </div>
-
-        <!-- Photo de l'apprenant -->
-        <div class="col-12">
-            <div class="mb-3 photo-upload-block">
-                <label class="d-block fw-medium mb-2">
-                    <i class="fa fa-camera me-1 text-primary"></i>
-                    {{ t('fields.photo') || 'Photo de l\'apprenant' }}
-                    <small class="text-muted ms-2">(utilisée pour les cartes apprenant et certificats de scolarité)</small>
-                </label>
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <!-- Aperçu -->
-                    <div class="photo-preview">
-                        <img v-if="photoPreview" :src="photoPreview" alt="Aperçu" />
-                        <img v-else-if="typeof form.photo === 'string' && form.photo" :src="photoUrl(form.photo)" alt="Photo actuelle" />
-                        <div v-else class="photo-placeholder">
-                            <i class="fa fa-user"></i>
+    <FormStepper
+        v-model="currentStep"
+        :steps="steps"
+        :form="form"
+        persist-key="apprenant-form"
+        @submit="$emit('submit')"
+    >
+        <!-- STEP 1 : IDENTITÉ -->
+        <template #identite>
+            <div class="row g-3">
+                <!-- Photo -->
+                <div class="col-12">
+                    <label class="fw-medium">
+                        <i class="fa fa-camera text-primary me-1"></i>
+                        Photo de l'apprenant
+                    </label>
+                    <div class="d-flex align-items-center gap-3 mt-2">
+                        <div class="photo-preview">
+                            <img v-if="photoPreview" :src="photoPreview" alt="Aperçu" />
+                            <img v-else-if="typeof form.photo === 'string' && form.photo" :src="photoUrl(form.photo)" alt="Photo actuelle" />
+                            <div v-else class="photo-placeholder"><i class="fa fa-user"></i></div>
+                        </div>
+                        <div>
+                            <input ref="photoInputRef" type="file" accept="image/*" class="form-control form-control-sm" :disabled="isReadOnly" @change="onPhotoChange" />
+                            <button v-if="!isReadOnly && (photoPreview || form.photo)" type="button" class="btn btn-link btn-sm text-danger mt-1" @click="clearPhoto">
+                                <i class="fa fa-times"></i> Retirer
+                            </button>
                         </div>
                     </div>
-                    <!-- Actions -->
-                    <div class="d-flex flex-column gap-2">
-                        <input
-                            ref="photoInputRef"
-                            type="file"
-                            accept="image/*"
-                            class="form-control"
-                            :disabled="isReadOnly"
-                            @change="onPhotoChange"
-                        />
-                        <small class="text-muted">JPG, PNG ou WEBP — max 5 Mo</small>
-                        <button
-                            v-if="(photoPreview || (typeof form.photo === 'string' && form.photo)) && !isReadOnly"
-                            type="button"
-                            class="btn btn-sm btn-outline-danger align-self-start"
-                            @click="clearPhoto"
-                        >
-                            <i class="fa fa-times"></i> Retirer la photo
-                        </button>
+                </div>
+
+                <div class="col-md-6">
+                    <label>Nom <span class="text-danger">*</span></label>
+                    <input v-model="form.nom" type="text" class="form-control" :disabled="isReadOnly" />
+                    <span v-if="form.errors?.nom" class="text-danger small"><strong>{{ form.errors.nom }}</strong></span>
+                </div>
+                <div class="col-md-6">
+                    <label>Prénom(s) <span class="text-danger">*</span></label>
+                    <input v-model="form.prenoms" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
+                    <label>Date de naissance</label>
+                    <input v-model="form.date_naissance" type="date" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-2">
+                    <label>Âge <small class="text-muted">(auto)</small></label>
+                    <input :value="age !== null ? age + ' ans' : '—'" type="text" class="form-control" disabled style="background:#eef2f7;color:#64748b;" />
+                </div>
+                <div class="col-md-6">
+                    <label>Lieu de naissance</label>
+                    <input v-model="form.lieu_naissance" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
+                    <label>Genre</label>
+                    <SearchableSelect v-model.number="form.genre_id" :options="genres" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner" />
+                </div>
+                <div class="col-md-4">
+                    <label>Pays de naissance</label>
+                    <SearchableSelect v-model.number="form.pays_naissance_id" :options="pays" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner" @update:model-value="paysNaissanceChange" />
+                </div>
+                <div class="col-md-4">
+                    <label>Nationalité</label>
+                    <input v-model="form.nationalite" type="text" class="form-control" :disabled="isReadOnly" placeholder="Ex : Camerounaise" />
+                </div>
+            </div>
+        </template>
+
+        <!-- STEP 2 : SANITAIRE -->
+        <template #sante>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label>Groupe sanguin</label>
+                    <SearchableSelect v-model.number="form.groupe_sanguin_id" :options="groupesSanguins" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner" />
+                </div>
+                <div class="col-md-4">
+                    <label>Apte à la pratique du sport ?</label>
+                    <SearchableSelect v-model="form.apte_sport" :options="yesNoOptions" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner" />
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex gap-4 flex-wrap">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="drepano" v-model="form.drepanocytaire" :disabled="isReadOnly" />
+                            <label class="form-check-label" for="drepano">Drépanocytaire</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="asthme" v-model="form.asthmatique" :disabled="isReadOnly" />
+                            <label class="form-check-label" for="asthme">Asthmatique</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="diabete" v-model="form.diabetique" :disabled="isReadOnly" />
+                            <label class="form-check-label" for="diabete">Diabétique</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="epilepsie" v-model="form.epileptique" :disabled="isReadOnly" />
+                            <label class="form-check-label" for="epilepsie">Épileptique</label>
+                        </div>
                     </div>
                 </div>
-                <span v-if="form.errors?.photo" class="text-danger d-block mt-1">
-                    <strong>{{ form.errors.photo }}</strong>
-                </span>
+
+                <div class="col-md-6">
+                    <label>Réactions allergiques</label>
+                    <textarea v-model="form.allergies" class="form-control" rows="2" :disabled="isReadOnly"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label>Aliments interdits</label>
+                    <textarea v-model="form.aliments_interdits" class="form-control" rows="2" :disabled="isReadOnly"></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label>Hôpital préféré 1</label>
+                    <input v-model="form.hopital_prefere_1" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-6">
+                    <label>Hôpital préféré 2</label>
+                    <input v-model="form.hopital_prefere_2" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-6">
+                    <label>Téléphone médecin 1</label>
+                    <input v-model="form.telephone_medecin_1" type="tel" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-6">
+                    <label>Téléphone médecin 2</label>
+                    <input v-model="form.telephone_medecin_2" type="tel" class="form-control" :disabled="isReadOnly" />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Nom -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom') || 'Nom' }} <span class="text-danger">*</span></label>
-                <input
-                    v-model="form.nom"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.nom') || 'Nom de l\'apprenant'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom" class="text-danger">
-                    <strong>{{ form.errors.nom }}</strong>
-                </span>
+        <!-- STEP 3 : SCOLARITÉ -->
+        <template #scolarite>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label>Matricule <span class="text-danger">*</span></label>
+                    <input v-model="form.matricule" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-6">
+                    <label>Numéro d'inscription <small class="text-muted">(auto si vide)</small></label>
+                    <input v-model="form.numero_inscription" type="text" class="form-control" :disabled="isReadOnly" placeholder="INS-YYYY-NNNNN" />
+                </div>
+
+                <div class="col-md-6">
+                    <label>Classe <span class="text-danger">*</span></label>
+                    <SearchableSelect v-model.number="form.classe_id" :options="classes" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner la classe" />
+                </div>
+                <div class="col-md-6">
+                    <label>Type d'apprenant</label>
+                    <SearchableSelect v-model.number="form.type_apprenant_id" :options="typesApprenant" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner" />
+                </div>
+
+                <!-- Auto-fill readonly depuis la classe -->
+                <div class="col-md-3">
+                    <label>Section <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px">auto</span></label>
+                    <input :value="sectionLabel" type="text" class="form-control" disabled style="background:#eef2f7;color:#64748b;" />
+                </div>
+                <div class="col-md-3">
+                    <label>Cycle <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px">auto</span></label>
+                    <input :value="cycleLabel" type="text" class="form-control" disabled style="background:#eef2f7;color:#64748b;" />
+                </div>
+                <div class="col-md-3">
+                    <label>École <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px">auto</span></label>
+                    <input :value="ecoleLabel" type="text" class="form-control" disabled style="background:#eef2f7;color:#64748b;" />
+                </div>
+                <div class="col-md-3">
+                    <label>Campus <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px">auto</span></label>
+                    <input :value="campusLabel" type="text" class="form-control" disabled style="background:#eef2f7;color:#64748b;" />
+                </div>
+
+                <div class="col-md-6">
+                    <label>École précédente</label>
+                    <input v-model="form.ecole_precedente" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-6">
+                    <label>Classe précédente</label>
+                    <input v-model="form.classe_precedente" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Prénoms -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.prenoms') || 'Prénoms' }} <span class="text-danger">*</span></label>
-                <input
-                    v-model="form.prenoms"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.prenoms') || 'Prénoms'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.prenoms" class="text-danger">
-                    <strong>{{ form.errors.prenoms }}</strong>
-                </span>
+        <!-- STEP 4 : FAMILLE & CONTACT -->
+        <template #famille>
+            <div class="row g-3">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="fa fa-users me-1"></i> Famille</h6>
+                </div>
+                <div class="col-md-6">
+                    <label>Nom complet du père</label>
+                    <input v-model="form.nom_pere" type="text" class="form-control" :disabled="isReadOnly" placeholder="Nom(s) et prénom(s) du père" />
+                </div>
+                <div class="col-md-6">
+                    <label>Nom complet de la mère</label>
+                    <input v-model="form.nom_mere" type="text" class="form-control" :disabled="isReadOnly" placeholder="Nom(s) et prénom(s) de la mère" />
+                </div>
+                <div class="col-md-6">
+                    <label>Nom du tuteur légal</label>
+                    <input v-model="form.nom_tuteur" type="text" class="form-control" :disabled="isReadOnly" placeholder="Nom(s) et prénom(s) du tuteur" />
+                </div>
+                <div class="col-md-6">
+                    <label>Nom du responsable légal <small class="text-muted">(si distinct)</small></label>
+                    <input v-model="form.nom_responsable_legal" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+
+                <div class="col-12 mt-3">
+                    <h6 class="text-primary"><i class="fa fa-house me-1"></i> Adresse & Contact</h6>
+                </div>
+                <div class="col-md-6">
+                    <label>Quartier</label>
+                    <SearchableSelect v-model.number="form.quartier_id" :options="quartiers" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner (commune/dept/région/pays auto)" />
+                </div>
+                <div class="col-md-6">
+                    <label>Adresse</label>
+                    <input v-model="form.adresse" type="text" class="form-control" :disabled="isReadOnly" placeholder="Rue, immeuble, etc." />
+                </div>
+
+                <div class="col-md-4">
+                    <label>Téléphone</label>
+                    <input v-model="form.telephone" type="tel" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
+                    <label>WhatsApp</label>
+                    <input v-model="form.whatsapp1" type="tel" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
+                    <label>Email</label>
+                    <input v-model="form.email" type="email" class="form-control" :disabled="isReadOnly" />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Matricule -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matricule') || 'Matricule' }} <span class="text-danger">*</span></label>
-                <input
-                    v-model="form.matricule"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.matricule') || 'Matricule'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matricule" class="text-danger">
-                    <strong>{{ form.errors.matricule }}</strong>
-                </span>
+        <!-- STEP 5 : HÉBERGEMENT & SUIVI -->
+        <template #suivi>
+            <div class="row g-3">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="fa fa-bed me-1"></i> Hébergement</h6>
+                </div>
+                <div class="col-md-4">
+                    <label>Apprenant interne ?</label>
+                    <SearchableSelect v-model="form.est_interne" :options="yesNoOptions" option-value="id" option-label="libelle" :disabled="isReadOnly" />
+                </div>
+
+                <template v-if="form.est_interne">
+                    <div class="col-md-2">
+                        <label>Bâtiment</label>
+                        <input v-model="form.batiment" type="text" class="form-control" :disabled="isReadOnly" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Étage</label>
+                        <input v-model="form.etage" type="text" class="form-control" :disabled="isReadOnly" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>Chambre</label>
+                        <input v-model="form.chambre" type="text" class="form-control" :disabled="isReadOnly" />
+                    </div>
+                    <div class="col-md-2">
+                        <label>N° de lit</label>
+                        <input v-model="form.numero_lit" type="text" class="form-control" :disabled="isReadOnly" />
+                    </div>
+                </template>
+
+                <div class="col-12 mt-3">
+                    <h6 class="text-primary"><i class="fa fa-clipboard-list me-1"></i> Entrée / Sortie</h6>
+                </div>
+                <div class="col-md-4">
+                    <label>Date d'entrée à l'école</label>
+                    <input v-model="form.date_entree_ecole" type="date" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
+                    <label>Date de départ de l'école</label>
+                    <input v-model="form.date_depart_ecole" type="date" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
+                    <label>Motif de départ</label>
+                    <input v-model="form.motif_depart_ecole" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+
+                <div class="col-md-4">
+                    <label>Statut</label>
+                    <SearchableSelect v-model="form.statut" :options="statusOptions" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner le statut" />
+                </div>
             </div>
-        </div>
-
-        <!-- Numéro d'inscription -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.numero_inscription') || 'Numéro d\'inscription' }}</label>
-                <input
-                    v-model="form.numero_inscription"
-                    type="text"
-                    class="form-control"
-                    maxlength="100"
-                    :placeholder="t('fields.numero_inscription') || 'Numéro d\'inscription'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.numero_inscription" class="text-danger">
-                    <strong>{{ form.errors.numero_inscription }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date de naissance -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_naissance') || 'Date de naissance' }}</label>
-                <input
-                    v-model="form.date_naissance"
-                    type="date"
-                    class="form-control"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.date_naissance" class="text-danger">
-                    <strong>{{ form.errors.date_naissance }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Âge (calculé) -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.age') || 'Âge' }}</label>
-                <input
-                    :value="age || ''"
-                    type="text"
-                    class="form-control"
-                    :placeholder="t('fields.age') || 'Âge (calculé automatiquement)'"
-                    disabled
-                />
-            </div>
-        </div>
-
-        <!-- Lieu de naissance -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.lieu_naissance') || 'Lieu de naissance' }}</label>
-                <input
-                    v-model="form.lieu_naissance"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.lieu_naissance') || 'Lieu de naissance'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.lieu_naissance" class="text-danger">
-                    <strong>{{ form.errors.lieu_naissance }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Commune de naissance -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.commune_naissance') || 'Commune de naissance' }}</label>
-                <SearchableSelect
-                    v-model="form.commune_naissance_id"
-                    :options="communes"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.commune_naissance_id" class="text-danger">
-                    <strong>{{ form.errors.commune_naissance_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Département de naissance -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.departement_naissance') || 'Département de naissance' }}</label>
-                <SearchableSelect
-                    v-model="form.departement_naissance_id"
-                    :options="departements"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.departement_naissance_id" class="text-danger">
-                    <strong>{{ form.errors.departement_naissance_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Région de naissance -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.region_naissance') || 'Région de naissance' }}</label>
-                <SearchableSelect
-                    v-model="form.region_naissance_id"
-                    :options="regions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.region_naissance_id" class="text-danger">
-                    <strong>{{ form.errors.region_naissance_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Pays de naissance -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays_naissance') || 'Pays de naissance' }}</label>
-                <SearchableSelect
-                    v-model="form.pays_naissance_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_naissance_id" class="text-danger">
-                    <strong>{{ form.errors.pays_naissance_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Nationalité -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nationalite') || 'Nationalité' }}</label>
-                <input
-                    v-model="form.nationalite"
-                    type="text"
-                    class="form-control"
-                    maxlength="100"
-                    :placeholder="t('fields.nationalite') || 'Nationalité'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nationalite" class="text-danger">
-                    <strong>{{ form.errors.nationalite }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Genre -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.genre') || 'Genre' }}</label>
-                <SearchableSelect
-                    v-model="form.genre_id"
-                    :options="genres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <small class="text-muted">Paramétrable depuis Paramétrage → Genres</small>
-                <span v-if="form.errors?.genre_id" class="text-danger d-block">
-                    <strong>{{ form.errors.genre_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Groupe sanguin -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.groupe_sanguin') || 'Groupe sanguin' }}</label>
-                <SearchableSelect
-                    v-model="form.groupe_sanguin"
-                    :options="groupesSanguins"
-                    optionValue="libelle"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <small class="text-muted">Paramétrable depuis Paramétrage → Groupes sanguins</small>
-                <span v-if="form.errors?.groupe_sanguin" class="text-danger">
-                    <strong>{{ form.errors.groupe_sanguin }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 2: SCOLARITÉ -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.scholarity') || 'Scolarité' }}</h5>
-        </div>
-
-        <!-- Classe -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.classe') || 'Classe' }}</label>
-                <SearchableSelect
-                    v-model="form.classe_id"
-                    :options="classes"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.classe_id" class="text-danger">
-                    <strong>{{ form.errors.classe_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Contexte hiérarchique (auto-rempli par la classe) -->
-        <HierarchyContextBar :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
-
-        <!-- Section -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="sectionLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Cycle -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="cycleLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- École -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ecole') || 'École' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="ecoleLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Campus -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Année scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année scolaire' }}</label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Type d'apprenant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.type_apprenant') || 'Type d\'apprenant' }}</label>
-                <SearchableSelect
-                    v-model="form.type_apprenant_id"
-                    :options="typesApprenant"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.type_apprenant_id" class="text-danger">
-                    <strong>{{ form.errors.type_apprenant_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Catégorie d'apprenant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.categorie_apprenant') || 'Catégorie d\'apprenant' }}</label>
-                <SearchableSelect
-                    v-model="form.categorie_apprenant_id"
-                    :options="categoriesApprenant"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.categorie_apprenant_id" class="text-danger">
-                    <strong>{{ form.errors.categorie_apprenant_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- École précédente -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ecole_precedente') || 'École précédente' }}</label>
-                <input
-                    v-model="form.ecole_precedente"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.ecole_precedente') || 'École précédente'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.ecole_precedente" class="text-danger">
-                    <strong>{{ form.errors.ecole_precedente }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Classe précédente -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.classe_precedente') || 'Classe précédente' }}</label>
-                <input
-                    v-model="form.classe_precedente"
-                    type="text"
-                    class="form-control"
-                    maxlength="100"
-                    :placeholder="t('fields.classe_precedente') || 'Classe précédente'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.classe_precedente" class="text-danger">
-                    <strong>{{ form.errors.classe_precedente }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 3: HÉBERGEMENT -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.accommodation') || 'Hébergement' }}</h5>
-        </div>
-
-        <!-- Est interne -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.est_interne') || 'Est interne' }}</label>
-                <SearchableSelect
-                    v-model="form.est_interne"
-                    :options="estInterneOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.est_interne" class="text-danger">
-                    <strong>{{ form.errors.est_interne }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Bâtiment -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.batiment') || 'Bâtiment' }}</label>
-                <input
-                    v-model="form.batiment"
-                    type="text"
-                    class="form-control"
-                    maxlength="100"
-                    :placeholder="t('fields.batiment') || 'Bâtiment'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.batiment" class="text-danger">
-                    <strong>{{ form.errors.batiment }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Étage -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.etage') || 'Étage' }}</label>
-                <input
-                    v-model="form.etage"
-                    type="text"
-                    class="form-control"
-                    maxlength="50"
-                    :placeholder="t('fields.etage') || 'Étage'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.etage" class="text-danger">
-                    <strong>{{ form.errors.etage }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Chambre -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.chambre') || 'Chambre' }}</label>
-                <input
-                    v-model="form.chambre"
-                    type="text"
-                    class="form-control"
-                    maxlength="50"
-                    :placeholder="t('fields.chambre') || 'Chambre'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.chambre" class="text-danger">
-                    <strong>{{ form.errors.chambre }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Numéro de lit -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.numero_lit') || 'Numéro de lit' }}</label>
-                <input
-                    v-model="form.numero_lit"
-                    type="text"
-                    class="form-control"
-                    maxlength="50"
-                    :placeholder="t('fields.numero_lit') || 'Numéro de lit'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.numero_lit" class="text-danger">
-                    <strong>{{ form.errors.numero_lit }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 4: FAMILLE -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.family') || 'Famille' }}</h5>
-        </div>
-
-        <!-- Nom père -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom_pere') || 'Nom du père' }}</label>
-                <input
-                    v-model="form.nom_pere"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.nom_pere') || 'Nom du père'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom_pere" class="text-danger">
-                    <strong>{{ form.errors.nom_pere }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Nom mère -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom_mere') || 'Nom de la mère' }}</label>
-                <input
-                    v-model="form.nom_mere"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.nom_mere') || 'Nom de la mère'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom_mere" class="text-danger">
-                    <strong>{{ form.errors.nom_mere }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Nom tuteur -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom_tuteur') || 'Nom du tuteur' }}</label>
-                <input
-                    v-model="form.nom_tuteur"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.nom_tuteur') || 'Nom du tuteur'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom_tuteur" class="text-danger">
-                    <strong>{{ form.errors.nom_tuteur }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Nom responsable légal -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom_responsable_legal') || 'Nom du responsable légal' }}</label>
-                <input
-                    v-model="form.nom_responsable_legal"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.nom_responsable_legal') || 'Nom du responsable légal'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.nom_responsable_legal" class="text-danger">
-                    <strong>{{ form.errors.nom_responsable_legal }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 5: ADRESSE DE RÉSIDENCE -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.residence_address') || 'Adresse de résidence' }}</h5>
-        </div>
-
-        <!-- Adresse -->
-        <div class="col-12">
-            <div class="mb-3">
-                <label>{{ t('fields.adresse') || 'Adresse complète' }}</label>
-                <input
-                    v-model="form.adresse"
-                    type="text"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.adresse') || 'Adresse complète'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.adresse" class="text-danger">
-                    <strong>{{ form.errors.adresse }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Quartier -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.quartier') || 'Quartier' }}</label>
-                <SearchableSelect
-                    v-model="form.quartier_id"
-                    :options="quartiers"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.quartier_id" class="text-danger">
-                    <strong>{{ form.errors.quartier_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Commune de résidence -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.commune_residence') || 'Commune de résidence' }}</label>
-                <SearchableSelect
-                    v-model="form.commune_residence_id"
-                    :options="communes"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.commune_residence_id" class="text-danger">
-                    <strong>{{ form.errors.commune_residence_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Arrondissement -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.arrondissement') || 'Arrondissement' }}</label>
-                <input
-                    v-model="form.arrondissement"
-                    type="text"
-                    class="form-control"
-                    maxlength="100"
-                    :placeholder="t('fields.arrondissement') || 'Arrondissement'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.arrondissement" class="text-danger">
-                    <strong>{{ form.errors.arrondissement }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Ville -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ville') || 'Ville' }}</label>
-                <input
-                    v-model="form.ville"
-                    type="text"
-                    class="form-control"
-                    maxlength="100"
-                    :placeholder="t('fields.ville') || 'Ville'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.ville" class="text-danger">
-                    <strong>{{ form.errors.ville }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Département de résidence -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.departement_residence') || 'Département de résidence' }}</label>
-                <SearchableSelect
-                    v-model="form.departement_residence_id"
-                    :options="departements"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.departement_residence_id" class="text-danger">
-                    <strong>{{ form.errors.departement_residence_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Région de résidence -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.region_residence') || 'Région de résidence' }}</label>
-                <SearchableSelect
-                    v-model="form.region_residence_id"
-                    :options="regions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.region_residence_id" class="text-danger">
-                    <strong>{{ form.errors.region_residence_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Pays de résidence -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.pays_residence') || 'Pays de résidence' }}</label>
-                <SearchableSelect
-                    v-model="form.pays_residence_id"
-                    :options="pays"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.pays_residence_id" class="text-danger">
-                    <strong>{{ form.errors.pays_residence_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Code postal -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.code_postal') || 'Code postal' }}</label>
-                <input
-                    v-model="form.code_postal"
-                    type="text"
-                    class="form-control"
-                    maxlength="20"
-                    :placeholder="t('fields.code_postal') || 'Code postal'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.code_postal" class="text-danger">
-                    <strong>{{ form.errors.code_postal }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Boîte postale -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.boite_postal') || 'Boîte postale' }}</label>
-                <input
-                    v-model="form.boite_postal"
-                    type="text"
-                    class="form-control"
-                    maxlength="20"
-                    :placeholder="t('fields.boite_postal') || 'Boîte postale'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.boite_postal" class="text-danger">
-                    <strong>{{ form.errors.boite_postal }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 6: CONTACTS -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.contacts') || 'Contacts' }}</h5>
-        </div>
-
-        <!-- Téléphone 1 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.telephone') || 'Téléphone' }}</label>
-                <input
-                    v-model="form.telephone"
-                    type="tel"
-                    class="form-control"
-                    maxlength="20"
-                    :placeholder="t('fields.telephone') || 'Téléphone'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.telephone" class="text-danger">
-                    <strong>{{ form.errors.telephone }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Téléphone 2 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.telephone2') || 'Téléphone 2' }}</label>
-                <input
-                    v-model="form.telephone2"
-                    type="tel"
-                    class="form-control"
-                    maxlength="20"
-                    :placeholder="t('fields.telephone2') || 'Téléphone 2'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.telephone2" class="text-danger">
-                    <strong>{{ form.errors.telephone2 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Email -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.email') || 'Email' }}</label>
-                <input
-                    v-model="form.email"
-                    type="email"
-                    class="form-control"
-                    maxlength="255"
-                    :placeholder="t('fields.email') || 'Email'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.email" class="text-danger">
-                    <strong>{{ form.errors.email }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- WhatsApp 1 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.whatsapp1') || 'WhatsApp 1' }}</label>
-                <input
-                    v-model="form.whatsapp1"
-                    type="tel"
-                    class="form-control"
-                    maxlength="20"
-                    :placeholder="t('fields.whatsapp1') || 'WhatsApp 1'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.whatsapp1" class="text-danger">
-                    <strong>{{ form.errors.whatsapp1 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- WhatsApp 2 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.whatsapp2') || 'WhatsApp 2' }}</label>
-                <input
-                    v-model="form.whatsapp2"
-                    type="tel"
-                    class="form-control"
-                    maxlength="20"
-                    :placeholder="t('fields.whatsapp2') || 'WhatsApp 2'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.whatsapp2" class="text-danger">
-                    <strong>{{ form.errors.whatsapp2 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 7: ENTRÉE/SORTIE -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.entry_exit') || 'Entrée/Sortie à l\'école' }}</h5>
-        </div>
-
-        <!-- Date d'entrée à l'école -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_entree_ecole') || 'Date d\'entrée à l\'école' }}</label>
-                <input
-                    v-model="form.date_entree_ecole"
-                    type="date"
-                    class="form-control"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.date_entree_ecole" class="text-danger">
-                    <strong>{{ form.errors.date_entree_ecole }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date de départ de l'école -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_depart_ecole') || 'Date de départ de l\'école' }}</label>
-                <input
-                    v-model="form.date_depart_ecole"
-                    type="date"
-                    class="form-control"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.date_depart_ecole" class="text-danger">
-                    <strong>{{ form.errors.date_depart_ecole }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Motif de départ de l'école -->
-        <div class="col-12">
-            <div class="mb-3">
-                <label>{{ t('fields.motif_depart_ecole') || 'Motif de départ de l\'école' }}</label>
-                <textarea
-                    v-model="form.motif_depart_ecole"
-                    class="form-control"
-                    maxlength="500"
-                    :placeholder="t('fields.motif_depart_ecole') || 'Motif de départ (optionnel)'"
-                    :disabled="isReadOnly"
-                    rows="3"
-                />
-                <span v-if="form.errors?.motif_depart_ecole" class="text-danger">
-                    <strong>{{ form.errors.motif_depart_ecole }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- SECTION 8: STATUT -->
-        <div class="col-12">
-            <h5 class="section-title">{{ t('fields.status') || 'Statut' }}</h5>
-        </div>
-
-        <!-- Statut -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.statut') || 'Statut' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.statut"
-                    :options="statusOptions"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.statut" class="text-danger">
-                    <strong>{{ form.errors.statut }}</strong>
-                </span>
-            </div>
-        </div>
-    </div>
+        </template>
+    </FormStepper>
 </template>
 
 <style scoped>
-.section-title {
-    font-weight: 600;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    color: #333;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 0.5rem;
+.form-control, .form-select {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
 }
-
-.photo-upload-block {
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 12px;
-    padding: 16px 18px;
+.form-control:focus, .form-select:focus {
+    border-color: #0b5697;
+    box-shadow: 0 0 0 0.2rem rgba(11, 86, 151, 0.15);
 }
-
+label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    display: block;
+}
 .photo-preview {
-    width: 110px;
-    height: 130px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 2px solid #e2e8f0;
-    background: #fff;
-    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
+    border-radius: 8px;
+    border: 2px dashed #cbd5e1;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    background: #f8fafc;
 }
 .photo-preview img {
     width: 100%;
@@ -1191,7 +485,17 @@ const age = computed(() => {
     object-fit: cover;
 }
 .photo-placeholder {
-    color: #cbd5e1;
-    font-size: 42px;
+    color: #94a3b8;
+    font-size: 32px;
+}
+.form-check-label {
+    font-weight: 500;
+    color: #374151;
+}
+h6 {
+    font-weight: 600;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 0.5rem;
 }
 </style>

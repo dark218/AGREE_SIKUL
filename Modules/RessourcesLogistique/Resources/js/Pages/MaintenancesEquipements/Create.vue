@@ -6,6 +6,8 @@
         </div>
         <MaintenanceEquipementForm
             ref="formRef"
+            :equipements="equipements"
+            :techniciens="techniciens"
             :errors="form.errors"
             :submit-button-label="t('common.create')"
             @submit="submitForm"
@@ -26,6 +28,10 @@ defineOptions({
 });
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
+const props = defineProps({
+    equipements: { type: Array, default: () => [] },
+    techniciens: { type: Array, default: () => [] },
+});
 const formRef = ref(null);
 const isSubmitting = ref(false);
 const form = ref({
@@ -33,7 +39,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.post(route('maintenance-equipement.store'), formData, {
+    router.post(route('maintenances-equipements.store'), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

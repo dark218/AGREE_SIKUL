@@ -6,7 +6,7 @@ use App\Models\BaseModel;
 use Modules\Parametrage\Entities\NatureExamen;
 use Modules\Parametrage\Entities\TypeExamen;
 use Modules\Parametrage\Entities\Classe;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 
 class PlanificationExamen extends BaseModel
 {
@@ -52,7 +52,7 @@ class PlanificationExamen extends BaseModel
 
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class);
+        return $this->belongsTo(MatiereUnite::class);
     }
 
     // Finance Relations

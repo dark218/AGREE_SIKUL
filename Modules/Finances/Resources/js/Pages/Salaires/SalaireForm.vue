@@ -1,478 +1,331 @@
+<!--
+  SalaireForm.vue — Refonte Phase 4.3 (Steppers).
+  Historique : 478 lignes / 35 champs saisis → 4 steps avec dérivations auto.
+
+  Steps :
+    1. Contexte    (année, école → campus auto, mois de paie, intitulé)
+    2. Employé     (nom, prenoms, matricule interne, matricule CNPS, numéro identifiant)
+    3. Rémunération (base, primes, indemnités → brut auto — retenues → net auto)
+    4. Paiement    (intégral OU avances 1-4 → total_paye auto → restant_a_payer auto)
+
+  Dérivations automatiques (calcul côté client, à valider serveur) :
+    - salaire_brut  = salaire_base + primes + indemnites
+    - salaire_net   = salaire_brut - retenues_fiscales - retenues_sociales
+                                    - autres_retenues - saisies_oppositions
+    - total_paye    = paiement_integral || (avance1 + avance2 + avance3 + avance4)
+    - restant       = salaire_net - total_paye
+
+  Campus auto-rempli depuis l'école sélectionnée.
+-->
+
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
+import FormStepper from '@/Components/Common/FormStepper.vue';
 
 const { t } = useI18n();
 
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
+    form:            { type: Object, required: true },
+    anneesScolaires: { type: Array,  default: () => [] },
+    ecoles:          { type: Array,  default: () => [] },
+    campuses:        { type: Array,  default: () => [] },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
 });
 
+const emit = defineEmits(['submit']);
+
 const isReadOnly = props.mode === 'show';
+const currentStep = ref(0);
 
-const autoLabel = (list, id) => {
+// Auto-fill campus depuis l'école.
+watch(() => props.form.ecole_id, (id) => {
+    if (!id) return;
+    const e = props.ecoles.find(x => String(x.id) === String(id));
+    if (e?.campus_id) props.form.campus_id = e.campus_id;
+});
+
+const autoLabel = (list, id, keyLibelle = 'libelle', keyNom = 'nom') => {
     if (!id || !list?.length) return '—';
-    const found = list.find(item => String(item.id) === String(id));
-    return found?.libelle || found?.nom || found?.label || '—';
+    const f = list.find(x => String(x.id) === String(id));
+    return f?.[keyLibelle] || f?.[keyNom] || '—';
 };
-
 const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
 
+const n = (v) => Number(v) || 0;
+
+// Dérivations client.
+const salaireBrut = computed(() => n(props.form.salaire_base) + n(props.form.primes) + n(props.form.indemnites));
+const salaireNet  = computed(() =>
+    salaireBrut.value
+    - n(props.form.retenues_fiscales) - n(props.form.retenues_sociales)
+    - n(props.form.autres_retenues)   - n(props.form.saisies_oppositions)
+);
+const totalPaye   = computed(() =>
+    n(props.form.paiement_integral) > 0
+        ? n(props.form.paiement_integral)
+        : n(props.form.avance1) + n(props.form.avance2) + n(props.form.avance3) + n(props.form.avance4)
+);
+const restantAPayer = computed(() => Math.max(0, salaireNet.value - totalPaye.value));
+
+// Push dérivés dans le form pour submit.
+watch(salaireBrut,    (v) => { props.form.salaire_brut = v; });
+watch(salaireNet,     (v) => { props.form.salaire_net = v; });
+watch(totalPaye,      (v) => { props.form.total_paye = v; });
+watch(restantAPayer,  (v) => { props.form.restant_a_payer = v; });
+
 const etatOptions = [
-    { id: 'actif', libelle: 'Actif' },
+    { id: 'actif',   libelle: 'Actif' },
     { id: 'inactif', libelle: 'Inactif' },
 ];
+
+const steps = [
+    { key: 'contexte',    label: 'Contexte',      icon: 'fas fa-calendar-check',  requiredFields: ['annee_scolaire_id', 'ecole_id'] },
+    { key: 'employe',     label: 'Employé',       icon: 'fas fa-user-tie',         requiredFields: ['nom'] },
+    { key: 'remuneration',label: 'Rémunération',  icon: 'fas fa-coins',            requiredFields: ['salaire_base'] },
+    { key: 'paiement',    label: 'Paiement',      icon: 'fas fa-money-check-alt' },
+];
+
+// Init champs numériques à 0 pour éviter les null qui cassent les dérivations.
+['salaire_base', 'primes', 'indemnites',
+ 'retenues_fiscales', 'retenues_sociales', 'autres_retenues', 'saisies_oppositions',
+ 'paiement_integral', 'avance1', 'avance2', 'avance3', 'avance4'].forEach((k) => {
+    if (props.form[k] === null || props.form[k] === undefined) props.form[k] = 0;
+});
 </script>
 
 <template>
-    <div class="row g-3 custom-input">
-        <!-- Section 1: Scolarité -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-0">{{ t('common.scholarity') || 'Scolarité' }}</h5>
-        </div>
-
-        <!-- Année Scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année Scolaire' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
+    <FormStepper
+        v-model="currentStep"
+        :steps="steps"
+        :form="form"
+        persist-key="salaire-form"
+        @submit="$emit('submit')"
+    >
+        <!-- STEP 1 : CONTEXTE -->
+        <template #contexte>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label>Année scolaire <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.annee_scolaire_id"
+                        :options="anneesScolaires"
+                        option-value="id"
+                        option-label="libelle"
+                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :disabled="isReadOnly"
+                    />
+                    <span v-if="form.errors?.annee_scolaire_id" class="text-danger small">{{ form.errors.annee_scolaire_id }}</span>
+                </div>
+                <div class="col-md-4">
+                    <label>École <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.ecole_id"
+                        :options="ecoles"
+                        option-value="id"
+                        option-label="nom"
+                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        :disabled="isReadOnly"
+                    />
+                    <span v-if="form.errors?.ecole_id" class="text-danger small">{{ form.errors.ecole_id }}</span>
+                </div>
+                <div class="col-md-4">
+                    <label>Campus <span class="badge bg-secondary">auto</span></label>
+                    <input :value="campusLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-6">
+                    <label>Mois de paie</label>
+                    <input v-model="form.mois_paie" :disabled="isReadOnly" type="month" class="form-control" placeholder="YYYY-MM" />
+                </div>
+                <div class="col-md-6">
+                    <label>Intitulé</label>
+                    <input v-model="form.intitule" :disabled="isReadOnly" type="text" class="form-control" placeholder="Ex : Bulletin de paie" />
+                </div>
+                <div class="col-md-6">
+                    <label>Institution</label>
+                    <input v-model="form.institution" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label>État</label>
+                    <SearchableSelect
+                        v-model="form.etat"
+                        :options="etatOptions"
+                        option-value="id"
+                        option-label="libelle"
+                        :placeholder="t('actions.select')"
+                        :disabled="isReadOnly"
+                    />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- École -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ecole') || 'École' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.ecole_id"
-                    :options="ecoles"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="nom"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.ecole_id" class="text-danger">
-                    <strong>{{ form.errors.ecole_id }}</strong>
-                </span>
+        <!-- STEP 2 : EMPLOYÉ -->
+        <template #employe>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label>Nom <span class="text-danger">*</span></label>
+                    <input v-model="form.nom" :disabled="isReadOnly" type="text" class="form-control" />
+                    <span v-if="form.errors?.nom" class="text-danger small">{{ form.errors.nom }}</span>
+                </div>
+                <div class="col-md-6">
+                    <label>Prénoms</label>
+                    <input v-model="form.prenoms" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label>Noms complets</label>
+                    <input v-model="form.noms" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label>Nom à restituer</label>
+                    <input v-model="form.nom_restituer" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Matricule interne</label>
+                    <input v-model="form.matricule_interne" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Matricule CNPS</label>
+                    <input v-model="form.matricule_cnps" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>N° identifiant</label>
+                    <input v-model="form.numero_identifiant" :disabled="isReadOnly" type="text" class="form-control" />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Campus (auto — déduit de l'école) -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
+        <!-- STEP 3 : RÉMUNÉRATION (brut/net auto) -->
+        <template #remuneration>
+            <div class="row g-3">
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="fa fa-plus-circle me-1"></i> Éléments positifs</h6>
+                </div>
+                <div class="col-md-4">
+                    <label>Salaire de base <span class="text-danger">*</span></label>
+                    <input v-model.number="form.salaire_base" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                    <span v-if="form.errors?.salaire_base" class="text-danger small">{{ form.errors.salaire_base }}</span>
+                </div>
+                <div class="col-md-4">
+                    <label>Primes</label>
+                    <input v-model.number="form.primes" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Indemnités</label>
+                    <input v-model.number="form.indemnites" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <div class="p-3 bg-info bg-opacity-10 rounded border border-info">
+                        <strong class="text-info">Salaire brut = base + primes + indemnités : <span class="fs-5">{{ salaireBrut.toFixed(2) }}</span></strong>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <h6 class="text-danger"><i class="fa fa-minus-circle me-1"></i> Retenues</h6>
+                </div>
+                <div class="col-md-3">
+                    <label>Retenues fiscales</label>
+                    <input v-model.number="form.retenues_fiscales" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>Retenues sociales</label>
+                    <input v-model.number="form.retenues_sociales" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>Autres retenues</label>
+                    <input v-model.number="form.autres_retenues" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label>Saisies / oppositions</label>
+                    <input v-model.number="form.saisies_oppositions" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <div class="p-3 bg-success bg-opacity-10 rounded border border-success">
+                        <strong class="text-success">Salaire net à payer : <span class="fs-4">{{ salaireNet.toFixed(2) }}</span></strong>
+                    </div>
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Mois de paie -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.mois_paie') || 'Mois de paie' }}</label>
-                <input type="text" v-model="form.mois_paie" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.mois_paie" class="text-danger">
-                    <strong>{{ form.errors.mois_paie }}</strong>
-                </span>
+        <!-- STEP 4 : PAIEMENT (intégral OU avances) -->
+        <template #paiement>
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="alert alert-info d-flex align-items-center py-2">
+                        <i class="fa fa-info-circle me-2"></i>
+                        <div class="small">
+                            Renseignez <strong>soit le paiement intégral</strong>, <strong>soit une ou plusieurs avances</strong>.
+                            Le restant à payer est calculé automatiquement.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <h6 class="text-primary"><i class="fa fa-hand-holding-usd me-1"></i> Paiement intégral</h6>
+                </div>
+                <div class="col-md-6">
+                    <label>Montant paiement intégral</label>
+                    <input v-model.number="form.paiement_integral" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label>Date paiement intégral</label>
+                    <input v-model="form.date_paiement_integral" :disabled="isReadOnly" type="date" class="form-control" />
+                </div>
+
+                <div class="col-12 mt-3">
+                    <h6 class="text-primary"><i class="fa fa-list-ol me-1"></i> Avances (jusqu'à 4)</h6>
+                </div>
+                <div v-for="i in 4" :key="`avance-${i}`" class="col-md-6">
+                    <div class="p-2 border rounded">
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <label>Avance {{ i }}</label>
+                                <input v-model.number="form[`avance${i}`]" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control form-control-sm" />
+                            </div>
+                            <div class="col-5">
+                                <label>Date</label>
+                                <input v-model="form[`date_avance${i}`]" :disabled="isReadOnly" type="date" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="mt-3" />
+                <div class="col-md-6">
+                    <div class="p-3 bg-primary bg-opacity-10 rounded border border-primary">
+                        <strong class="text-primary">Total payé : <span class="fs-5">{{ totalPaye.toFixed(2) }}</span></strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-warning bg-opacity-10 rounded border border-warning">
+                        <strong class="text-warning">Restant à payer : <span class="fs-5">{{ restantAPayer.toFixed(2) }}</span></strong>
+                    </div>
+                </div>
             </div>
-        </div>
-
-        <!-- Section 2: Identification -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.identification') || 'Identification' }}</h5>
-        </div>
-
-        <!-- Nom -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom') || 'Nom' }} <span class="text-danger">*</span></label>
-                <input type="text" v-model="form.nom" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.nom" class="text-danger">
-                    <strong>{{ form.errors.nom }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Institution -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.institution') || 'Institution' }}</label>
-                <input type="text" v-model="form.institution" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.institution" class="text-danger">
-                    <strong>{{ form.errors.institution }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Intitulé -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.intitule') || 'Intitulé' }}</label>
-                <input type="text" v-model="form.intitule" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.intitule" class="text-danger">
-                    <strong>{{ form.errors.intitule }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Noms -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.noms') || 'Noms' }}</label>
-                <input type="text" v-model="form.noms" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.noms" class="text-danger">
-                    <strong>{{ form.errors.noms }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Prénoms -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.prenoms') || 'Prénoms' }}</label>
-                <input type="text" v-model="form.prenoms" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.prenoms" class="text-danger">
-                    <strong>{{ form.errors.prenoms }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Nom à restituer -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nom_restituer') || 'Nom à restituer' }}</label>
-                <input type="text" v-model="form.nom_restituer" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.nom_restituer" class="text-danger">
-                    <strong>{{ form.errors.nom_restituer }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Matricule Interne -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matricule_interne') || 'Matricule Interne' }}</label>
-                <input type="text" v-model="form.matricule_interne" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.matricule_interne" class="text-danger">
-                    <strong>{{ form.errors.matricule_interne }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Matricule CNPS -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matricule_cnps') || 'Matricule CNPS' }}</label>
-                <input type="text" v-model="form.matricule_cnps" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.matricule_cnps" class="text-danger">
-                    <strong>{{ form.errors.matricule_cnps }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Numéro Identifiant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.numero_identifiant') || 'Numéro Identifiant' }}</label>
-                <input type="text" v-model="form.numero_identifiant" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.numero_identifiant" class="text-danger">
-                    <strong>{{ form.errors.numero_identifiant }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 3: Salaire -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.salary') || 'Salaire' }}</h5>
-        </div>
-
-        <!-- Salaire Base -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.salaire_base') || 'Salaire Base' }}</label>
-                <input type="number" v-model.number="form.salaire_base" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.salaire_base" class="text-danger">
-                    <strong>{{ form.errors.salaire_base }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Primes -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.primes') || 'Primes' }}</label>
-                <input type="number" v-model.number="form.primes" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.primes" class="text-danger">
-                    <strong>{{ form.errors.primes }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Indemnités -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.indemnites') || 'Indemnités' }}</label>
-                <input type="number" v-model.number="form.indemnites" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.indemnites" class="text-danger">
-                    <strong>{{ form.errors.indemnites }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Salaire Brut -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.salaire_brut') || 'Salaire Brut' }}</label>
-                <input type="number" v-model.number="form.salaire_brut" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.salaire_brut" class="text-danger">
-                    <strong>{{ form.errors.salaire_brut }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Retenues Fiscales -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.retenues_fiscales') || 'Retenues Fiscales' }}</label>
-                <input type="number" v-model.number="form.retenues_fiscales" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.retenues_fiscales" class="text-danger">
-                    <strong>{{ form.errors.retenues_fiscales }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Retenues Sociales -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.retenues_sociales') || 'Retenues Sociales' }}</label>
-                <input type="number" v-model.number="form.retenues_sociales" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.retenues_sociales" class="text-danger">
-                    <strong>{{ form.errors.retenues_sociales }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Autres Retenues -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.autres_retenues') || 'Autres Retenues' }}</label>
-                <input type="number" v-model.number="form.autres_retenues" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.autres_retenues" class="text-danger">
-                    <strong>{{ form.errors.autres_retenues }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Saisies Oppositions -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.saisies_oppositions') || 'Saisies/Oppositions' }}</label>
-                <input type="number" v-model.number="form.saisies_oppositions" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.saisies_oppositions" class="text-danger">
-                    <strong>{{ form.errors.saisies_oppositions }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Salaire Net -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.salaire_net') || 'Salaire Net' }}</label>
-                <input type="number" v-model.number="form.salaire_net" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.salaire_net" class="text-danger">
-                    <strong>{{ form.errors.salaire_net }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 4: Paiements -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.payments') || 'Paiements' }}</h5>
-        </div>
-
-        <!-- Paiement Intégral -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.paiement_integral') || 'Paiement Intégral' }}</label>
-                <input type="number" v-model.number="form.paiement_integral" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.paiement_integral" class="text-danger">
-                    <strong>{{ form.errors.paiement_integral }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date Paiement Intégral -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_paiement_integral') || 'Date Paiement Intégral' }}</label>
-                <input type="date" v-model="form.date_paiement_integral" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_paiement_integral" class="text-danger">
-                    <strong>{{ form.errors.date_paiement_integral }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Avance 1 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.avance1') || 'Avance 1' }}</label>
-                <input type="number" v-model.number="form.avance1" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.avance1" class="text-danger">
-                    <strong>{{ form.errors.avance1}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date Avance 1 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_avance1') || 'Date Avance 1' }}</label>
-                <input type="date" v-model="form.date_avance1" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_avance1" class="text-danger">
-                    <strong>{{ form.errors.date_avance1}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Avance 2 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.avance2') || 'Avance 2' }}</label>
-                <input type="number" v-model.number="form.avance2" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.avance2" class="text-danger">
-                    <strong>{{ form.errors.avance2}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date Avance 2 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_avance2') || 'Date Avance 2' }}</label>
-                <input type="date" v-model="form.date_avance2" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_avance2" class="text-danger">
-                    <strong>{{ form.errors.date_avance2}}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Avance 3 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.avance3') || 'Avance 3' }}</label>
-                <input type="number" v-model.number="form.avance3" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.avance3" class="text-danger">
-                    <strong>{{ form.errors.avance3 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date Avance 3 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_avance3') || 'Date Avance 3' }}</label>
-                <input type="date" v-model="form.date_avance3" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_avance3" class="text-danger">
-                    <strong>{{ form.errors.date_avance3 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Avance 4 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.avance4') || 'Avance 4' }}</label>
-                <input type="number" v-model.number="form.avance4" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.avance4" class="text-danger">
-                    <strong>{{ form.errors.avance4 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Date Avance 4 -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_avance4') || 'Date Avance 4' }}</label>
-                <input type="date" v-model="form.date_avance4" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_avance4" class="text-danger">
-                    <strong>{{ form.errors.date_avance4 }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Total Payé -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.total_paye') || 'Total Payé' }}</label>
-                <input type="number" v-model.number="form.total_paye" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.total_paye" class="text-danger">
-                    <strong>{{ form.errors.total_paye }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Restant à Payer -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.restant_a_payer') || 'Restant à Payer' }}</label>
-                <input type="number" v-model.number="form.restant_a_payer" class="form-control" step="0.01" :disabled="isReadOnly">
-                <span v-if="form.errors?.restant_a_payer" class="text-danger">
-                    <strong>{{ form.errors.restant_a_payer }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 5: État -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.state') || 'État' }}</h5>
-        </div>
-
-        <!-- État -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.etat') || 'État' }}</label>
-                <SearchableSelect
-                    v-model="form.etat"
-                    :options="etatOptions"
-                    :disabled="isReadOnly"
-                    option-value="id"
-                    option-label="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.etat" class="text-danger">
-                    <strong>{{ form.errors.etat }}</strong>
-                </span>
-            </div>
-        </div>
-    </div>
+        </template>
+    </FormStepper>
 </template>
+
+<style scoped>
+.form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+}
+.form-control:focus {
+    border-color: #0b5697;
+    box-shadow: 0 0 0 0.2rem rgba(11, 86, 151, 0.15);
+}
+label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+</style>

@@ -6,14 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Finances\Entities\Echeancier;
+use Modules\Finances\Entities\Frais;
 
 class EcheancierController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:echeanciers-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:echeanciers-list',   ['only' => ['index', 'show']]);
         $this->middleware('permission.check:echeanciers-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:echeanciers-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:echeanciers-edit',   ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:echeanciers-delete', ['only' => ['destroy', 'statut']]);
     }
 
@@ -24,19 +25,22 @@ class EcheancierController extends Controller
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->where('libelle', 'like', "%$search%")
-                    ->orWhere('numero_echeance', 'like', "%$search%");
+                $query->where('numero_echeance', 'like', "%$search%");
             }
 
             if ($request->filled('statut')) {
                 $query->where('statut', $request->input('statut'));
             }
 
-            $echeanciers = $query->with(['frais', 'apprenant'])->paginate(10)->withQueryString();
+            $echeanciers = $query
+                ->with(['frais.typeFrais', 'frais.apprenant'])
+                ->orderBy('date_echeance')
+                ->paginate(10)
+                ->withQueryString();
 
             return Inertia::render('Finances::Echeanciers/Index', [
                 'echeanciers' => $echeanciers,
-                'filters' => $request->only(['search', 'statut']),
+                'filters'     => $request->only(['search', 'statut']),
             ]);
         } catch (\Throwable $th) {
             log_error("Finances", "EcheancierController::index", $th->getMessage());
@@ -47,7 +51,11 @@ class EcheancierController extends Controller
     public function create()
     {
         try {
-            return Inertia::render('Finances::Echeanciers/Create');
+            return Inertia::render('Finances::Echeanciers/Create', [
+                'frais' => Frais::with(['typeFrais', 'apprenant'])
+                    ->orderByDesc('created_at')
+                    ->get(['id', 'apprenant_id', 'type_frais_id', 'montant_cents', 'montant_paye_cents']),
+            ]);
         } catch (\Throwable $th) {
             log_error("Finances", "EcheancierController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -58,14 +66,13 @@ class EcheancierController extends Controller
     {
         try {
             $validated = $request->validate([
-                'frais_id' => 'required|exists:frais,id',
-                'apprenant_id' => 'required|exists:apprenants,id',
+                'frais_id'        => 'required|exists:frais,id',
                 'numero_echeance' => 'required|integer|min:1',
-                'libelle' => 'required|string|max:255',
-                'montant_cents' => 'required|integer|min:0',
-                'date_echeance' => 'required|date',
-                'date_paiement' => 'nullable|date',
-                'statut' => 'required|in:non_payee,payee,en_retard,annulee',
+                'montant_cents'   => 'required|integer|min:0',
+                'date_echeance'   => 'required|date',
+                'date_paiement'   => 'nullable|date',
+                // Enum DB : en_attente, paye, retard
+                'statut'          => 'required|in:en_attente,paye,retard',
             ]);
 
             Echeancier::create($validated);
@@ -73,16 +80,18 @@ class EcheancierController extends Controller
             return redirect()->route('finances.echeanciers.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Finances", "EcheancierController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
     public function show(Echeancier $echeancier)
     {
         try {
-            $echeancier->load('frais', 'apprenant');
+            $echeancier->load(['frais.typeFrais', 'frais.apprenant']);
 
             return Inertia::render('Finances::Echeanciers/Show', [
                 'echeancier' => $echeancier,
@@ -97,7 +106,10 @@ class EcheancierController extends Controller
     {
         try {
             return Inertia::render('Finances::Echeanciers/Edit', [
-                'echeancier' => $echeancier->load('frais', 'apprenant'),
+                'echeancier' => $echeancier->load(['frais.typeFrais', 'frais.apprenant']),
+                'frais'      => Frais::with(['typeFrais', 'apprenant'])
+                    ->orderByDesc('created_at')
+                    ->get(['id', 'apprenant_id', 'type_frais_id', 'montant_cents', 'montant_paye_cents']),
             ]);
         } catch (\Throwable $th) {
             log_error("Finances", "EcheancierController::edit", $th->getMessage());
@@ -109,14 +121,12 @@ class EcheancierController extends Controller
     {
         try {
             $validated = $request->validate([
-                'frais_id' => 'required|exists:frais,id',
-                'apprenant_id' => 'required|exists:apprenants,id',
+                'frais_id'        => 'required|exists:frais,id',
                 'numero_echeance' => 'required|integer|min:1',
-                'libelle' => 'required|string|max:255',
-                'montant_cents' => 'required|integer|min:0',
-                'date_echeance' => 'required|date',
-                'date_paiement' => 'nullable|date',
-                'statut' => 'required|in:non_payee,payee,en_retard,annulee',
+                'montant_cents'   => 'required|integer|min:0',
+                'date_echeance'   => 'required|date',
+                'date_paiement'   => 'nullable|date',
+                'statut'          => 'required|in:en_attente,paye,retard',
             ]);
 
             $echeancier->update($validated);
@@ -124,9 +134,11 @@ class EcheancierController extends Controller
             return redirect()->route('finances.echeanciers.show', $echeancier)
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Finances", "EcheancierController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 

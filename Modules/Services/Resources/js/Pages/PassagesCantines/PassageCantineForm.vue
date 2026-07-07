@@ -1,122 +1,116 @@
+<!--
+  PassageCantineForm.vue — Fix Phase 4.6 (§11.8).
+  Historique : form envoyait {nom, code, statut} — décorrélé du fillable réel
+  {inscription_cantine_id, date_passage, heure_passage}. Aucun de ces champs
+  n'existait — plus les colonnes menu_id/apprenant_id/montant_cents inventées
+  par le controller.
+
+  Refonte : aligné exactement sur schéma DB.
+-->
+
 <template>
     <form @submit.prevent="submit" class="passage-cantine-form">
-        <div class="row">
+        <div class="row g-3">
+            <div class="col-12">
+                <label>Inscription cantine <span class="text-danger">*</span></label>
+                <select
+                    v-model.number="form.inscription_cantine_id"
+                    class="form-control"
+                    :class="{ 'is-invalid': errors.inscription_cantine_id }"
+                    :disabled="isReadOnly"
+                    required
+                >
+                    <option value="">-- Sélectionner l'inscription concernée --</option>
+                    <option v-for="i in inscriptions" :key="i.id" :value="i.id">
+                        {{ i.apprenant?.nom }} {{ i.apprenant?.prenoms || '' }}
+                        <template v-if="i.service_cantine?.nom">— {{ i.service_cantine.nom }}</template>
+                    </option>
+                </select>
+                <div v-if="errors.inscription_cantine_id" class="invalid-feedback">{{ errors.inscription_cantine_id[0] || errors.inscription_cantine_id }}</div>
+            </div>
+
             <div class="col-md-6">
-                <div class="form-group">
-                    <label>{{ t('common.nom') }} <span class="text-danger">*</span></label>
-                    <input
-                        v-model="form.nom"
-                        type="text"
-                        class="form-control"
-                        :class="{ 'is-invalid': errors.nom }"
-                        :disabled="isReadOnly"
-                        required
-                    />
-                    <div v-if="errors.nom" class="invalid-feedback">
-                        {{ errors.nom[0] || errors.nom }}
-                    </div>
-                </div>
+                <label>Date du passage <span class="text-danger">*</span></label>
+                <input
+                    v-model="form.date_passage"
+                    type="date"
+                    class="form-control"
+                    :class="{ 'is-invalid': errors.date_passage }"
+                    :disabled="isReadOnly"
+                    required
+                />
+                <div v-if="errors.date_passage" class="invalid-feedback">{{ errors.date_passage[0] || errors.date_passage }}</div>
             </div>
             <div class="col-md-6">
-                <div class="form-group">
-                    <label>{{ t('common.code') }}</label>
-                    <input
-                        v-model="form.code"
-                        type="text"
-                        class="form-control"
-                        :class="{ 'is-invalid': errors.code }"
-                        :disabled="isReadOnly"
-                    />
-                    <div v-if="errors.code" class="invalid-feedback">
-                        {{ errors.code[0] || errors.code }}
-                    </div>
-                </div>
+                <label>Heure du passage</label>
+                <input
+                    v-model="form.heure_passage"
+                    type="time"
+                    class="form-control"
+                    :class="{ 'is-invalid': errors.heure_passage }"
+                    :disabled="isReadOnly"
+                />
+                <small class="text-muted">Facultatif</small>
+                <div v-if="errors.heure_passage" class="invalid-feedback">{{ errors.heure_passage[0] || errors.heure_passage }}</div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label>{{ t('common.statut') }}</label>
-                    <SearchableSelect
-                        v-model="form.statut"
-                        :options="[{id:'actif', libelle:'Actif'}, {id:'inactif', libelle:'Inactif'}]"
-                        optionValue="id"
-                        optionLabel="libelle"
-                        :placeholder="t('actions.select') || 'Sélectionner'"
-                        class="form-control-sm"
-                        :disabled="isReadOnly"
-                    />
-                    <div v-if="errors.statut" class="invalid-feedback">
-                        {{ errors.statut[0] || errors.statut }}
-                    </div>
-                </div>
-            </div>
-        </div>
+
         <div v-if="!isReadOnly" class="form-actions mt-4">
             <button type="submit" class="btn btn-primary">
                 <i class="fa fa-save"></i> {{ submitButtonLabel }}
             </button>
-            <Link :href="route('passage-cantine.index')" class="btn btn-secondary ms-2">
-                {{ t('common.cancel') }}
+            <Link :href="route('passages-cantine.index')" class="btn btn-outline-secondary ms-2">
+                Annuler
             </Link>
         </div>
     </form>
 </template>
+
 <script setup>
 import { ref } from 'vue';
-import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import { useI18n } from 'vue-i18n';
 import { Link } from '@inertiajs/vue3';
-const { t } = useI18n();
+
 const props = defineProps({
-    passageCantine: {
-        type: Object,
-        default: () => ({}),
-    },
-    errors: {
-        type: Object,
-        default: () => ({}),
-    },
-    isReadOnly: {
-        type: Boolean,
-        default: false,
-    },
-    submitButtonLabel: {
-        type: String,
-        default: 'Enregistrer',
-    },
+    passage:           { type: Object,  default: () => ({}) },
+    inscriptions:      { type: Array,   default: () => [] },
+    errors:            { type: Object,  default: () => ({}) },
+    isReadOnly:        { type: Boolean, default: false },
+    submitButtonLabel: { type: String,  default: 'Enregistrer' },
 });
+
 const emit = defineEmits(['submit']);
+
 const form = ref({
-    nom: props.passageCantine?.nom || '',
-    code: props.passageCantine?.code || '',
-    statut: props.passageCantine?.statut || 'actif',
+    inscription_cantine_id: props.passage?.inscription_cantine_id || '',
+    date_passage:           props.passage?.date_passage
+        ? String(props.passage.date_passage).split('T')[0].split(' ')[0]
+        : new Date().toISOString().split('T')[0],
+    heure_passage:          props.passage?.heure_passage
+        ? String(props.passage.heure_passage).substring(0, 5)
+        : '',
 });
-function submit() {
-    emit('submit', form.value);
-}
-defineExpose({
-    getFormData: () => form.value,
-    form,
-});
+
+function submit() { emit('submit', form.value); }
+
+defineExpose({ getFormData: () => form.value, form });
 </script>
+
 <style scoped>
 .passage-cantine-form {
     background: white;
     padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
-.form-group {
-    margin-bottom: 20px;
-}
-.form-group label {
+label {
     font-weight: 500;
-    margin-bottom: 8px;
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
     display: block;
 }
 .form-control:disabled {
-    background-color: #e9ecef;
+    background-color: #f1f5f9;
     cursor: not-allowed;
 }
 .form-actions {
@@ -124,10 +118,5 @@ defineExpose({
     gap: 10px;
     padding-top: 20px;
     border-top: 1px solid #dee2e6;
-}
-.form-actions button,
-.form-actions a {
-    padding: 10px 20px;
-    font-weight: 500;
 }
 </style>

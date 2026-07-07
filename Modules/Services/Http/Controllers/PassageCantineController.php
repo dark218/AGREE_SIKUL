@@ -5,45 +5,45 @@ namespace Modules\Services\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\Services\Entities\InscriptionCantine;
 use Modules\Services\Entities\PassageCantine;
 
 class PassageCantineController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:passages-cantine-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:passages-cantine-list',   ['only' => ['index', 'show']]);
         $this->middleware('permission.check:passages-cantine-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:passages-cantine-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:passages-cantine-edit',   ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:passages-cantine-delete', ['only' => ['destroy', 'statut']]);
     }
 
     public function index(Request $request)
     {
         try {
-            \Log::info('🚀 PassageCantineController::index() - START');
-            \Log::info('URL: ' . request()->fullUrl());
-
             $query = PassageCantine::query();
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->whereHas('apprenant', function ($q) use ($search) {
-                    $q->whereHas('user', function ($user) use ($search) {
-                        $user->where('nom', 'like', "%$search%")
-                            ->orWhere('prenoms', 'like', "%$search%");
-                    });
+                $query->whereHas('inscriptionCantine.apprenant', function ($q) use ($search) {
+                    $q->where('nom', 'like', "%$search%")
+                      ->orWhere('prenoms', 'like', "%$search%");
                 });
             }
 
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+            if ($request->filled('date')) {
+                $query->whereDate('date_passage', $request->input('date'));
             }
 
-            $passages = $query->with(['apprenant', 'menu'])->paginate(10)->withQueryString();
+            $passages = $query
+                ->with(['inscriptionCantine.apprenant', 'inscriptionCantine.serviceCantine'])
+                ->orderByDesc('date_passage')
+                ->paginate(10)
+                ->withQueryString();
 
             return Inertia::render('Services::PassagesCantines/Index', [
                 'passages' => $passages,
-                'filters' => $request->only(['search', 'statut']),
+                'filters'  => $request->only(['search', 'date']),
             ]);
         } catch (\Throwable $th) {
             log_error("Services", "PassageCantineController::index", $th->getMessage());
@@ -54,7 +54,11 @@ class PassageCantineController extends Controller
     public function create()
     {
         try {
-            return Inertia::render('Services::PassagesCantines/Create');
+            return Inertia::render('Services::PassagesCantines/Create', [
+                'inscriptions' => InscriptionCantine::with(['apprenant', 'serviceCantine'])
+                    ->orderByDesc('created_at')
+                    ->get(['id', 'apprenant_id', 'service_cantine_id']),
+            ]);
         } catch (\Throwable $th) {
             log_error("Services", "PassageCantineController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -65,13 +69,9 @@ class PassageCantineController extends Controller
     {
         try {
             $validated = $request->validate([
-                'apprenant_id' => 'required|exists:apprenants,id',
-                'menu_id' => 'required|exists:menus,id',
-                'date_passage' => 'required|date',
-                'heure_passage' => 'required|date_format:H:i',
-                'montant_cents' => 'required|integer|min:0',
-                'observations' => 'nullable|string',
-                'statut' => 'required|in:confirmé,annulé,remboursé',
+                'inscription_cantine_id' => 'required|exists:inscriptions_cantines,id',
+                'date_passage'           => 'required|date',
+                'heure_passage'          => 'nullable|date_format:H:i',
             ]);
 
             PassageCantine::create($validated);
@@ -79,22 +79,18 @@ class PassageCantineController extends Controller
             return redirect()->route('passages-cantine.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Services", "PassageCantineController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
     public function show(PassageCantine $passageCantine)
     {
         try {
-            // MANUAL FIX: If model is empty, load it from route parameter
-            if (!$passageCantine->exists) {
-                $id = request()->route('passageCantine');
-                $passageCantine = PassageCantine::find($id);
-            }
-
-            $passageCantine->load('apprenant', 'menu');
+            $passageCantine->load(['inscriptionCantine.apprenant', 'inscriptionCantine.serviceCantine']);
 
             return Inertia::render('Services::PassagesCantines/Show', [
                 'passage' => $passageCantine,
@@ -108,14 +104,11 @@ class PassageCantineController extends Controller
     public function edit(PassageCantine $passageCantine)
     {
         try {
-            // MANUAL FIX: If model is empty, load it from route parameter
-            if (!$passageCantine->exists) {
-                $id = request()->route('passageCantine');
-                $passageCantine = PassageCantine::find($id);
-            }
-
             return Inertia::render('Services::PassagesCantines/Edit', [
-                'passage' => $passageCantine->load('apprenant', 'menu'),
+                'passage'      => $passageCantine->load(['inscriptionCantine.apprenant', 'inscriptionCantine.serviceCantine']),
+                'inscriptions' => InscriptionCantine::with(['apprenant', 'serviceCantine'])
+                    ->orderByDesc('created_at')
+                    ->get(['id', 'apprenant_id', 'service_cantine_id']),
             ]);
         } catch (\Throwable $th) {
             log_error("Services", "PassageCantineController::edit", $th->getMessage());
@@ -126,20 +119,10 @@ class PassageCantineController extends Controller
     public function update(Request $request, PassageCantine $passageCantine)
     {
         try {
-            // MANUAL FIX: If model is empty, load it from route parameter
-            if (!$passageCantine->exists) {
-                $id = request()->route('passageCantine');
-                $passageCantine = PassageCantine::find($id);
-            }
-
             $validated = $request->validate([
-                'apprenant_id' => 'required|exists:apprenants,id',
-                'menu_id' => 'required|exists:menus,id',
-                'date_passage' => 'required|date',
-                'heure_passage' => 'required|date_format:H:i',
-                'montant_cents' => 'required|integer|min:0',
-                'observations' => 'nullable|string',
-                'statut' => 'required|in:confirmé,annulé,remboursé',
+                'inscription_cantine_id' => 'required|exists:inscriptions_cantines,id',
+                'date_passage'           => 'required|date',
+                'heure_passage'          => 'nullable|date_format:H:i',
             ]);
 
             $passageCantine->update($validated);
@@ -147,21 +130,17 @@ class PassageCantineController extends Controller
             return redirect()->route('passages-cantine.show', $passageCantine)
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Services", "PassageCantineController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
     public function destroy(PassageCantine $passageCantine)
     {
         try {
-            // MANUAL FIX: If model is empty, load it from route parameter
-            if (!$passageCantine->exists) {
-                $id = request()->route('passageCantine');
-                $passageCantine = PassageCantine::find($id);
-            }
-
             $passageCantine->delete();
 
             return back()->with('success', __('messages.deleted_successfully'));
@@ -175,12 +154,6 @@ class PassageCantineController extends Controller
     public function statut(PassageCantine $passageCantine)
     {
         try {
-            // MANUAL FIX: If model is empty, load it from route parameter
-            if (!$passageCantine->exists) {
-                $id = request()->route('passageCantine');
-                $passageCantine = PassageCantine::find($id);
-            }
-
             if ($passageCantine->trashed()) {
                 $passageCantine->restore();
             } else {

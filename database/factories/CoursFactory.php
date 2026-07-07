@@ -15,7 +15,7 @@ class CoursFactory extends Factory
     public function definition(): array
     {
         return [
-            'matiere_id' => Matiere::factory(),
+            'matiere_id' => MatiereUnite::factory(),
             'classe_id' => Classe::factory(),
             'enseignant_id' => User::factory(),
             'annee_scolaire_id' => null,

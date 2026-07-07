@@ -24,12 +24,14 @@ class TypeFraisController extends Controller
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->where('libelle', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('libelle', 'like', "%$search%")
+                      ->orWhere('code', 'like', "%$search%");
+                });
             }
 
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+            if ($request->filled('obligatoire')) {
+                $query->where('obligatoire', (bool) $request->input('obligatoire'));
             }
 
             $types = $query->paginate(10)->withQueryString();
@@ -58,11 +60,13 @@ class TypeFraisController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:types_frais',
-                'libelle' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'statut' => 'required|in:actif,inactif',
+                'code'          => 'required|string|max:100|unique:types_frais',
+                'libelle'       => 'required|string|max:255',
+                'description'   => 'nullable|string',
+                'montant_cents' => 'nullable|integer|min:0',
+                'obligatoire'   => 'nullable|boolean',
             ]);
+            $validated['obligatoire'] = (bool) ($validated['obligatoire'] ?? true);
 
             TypeFrais::create($validated);
 
@@ -105,11 +109,13 @@ class TypeFraisController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:types_frais,code,' . $typeFrai->id,
-                'libelle' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'statut' => 'required|in:actif,inactif',
+                'code'          => 'required|string|max:100|unique:types_frais,code,' . $typeFrai->id,
+                'libelle'       => 'required|string|max:255',
+                'description'   => 'nullable|string',
+                'montant_cents' => 'nullable|integer|min:0',
+                'obligatoire'   => 'nullable|boolean',
             ]);
+            $validated['obligatoire'] = (bool) ($validated['obligatoire'] ?? $typeFrai->obligatoire);
 
             $typeFrai->update($validated);
 

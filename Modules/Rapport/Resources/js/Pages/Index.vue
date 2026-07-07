@@ -158,7 +158,7 @@ const maxApprenants = Math.max(...(props.apprenantParEcole?.map(e => e.nombre) |
             <div class="quick-links mt-3">
                 <h6 class="chart-box-title"><i class="fa fa-link me-2"></i> Accès Rapides</h6>
                 <div class="links-grid">
-                    <Link :href="route('rapport.statistiques-ecole.index')" class="q-link">
+                    <Link :href="route('statistiques-ecole.index')" class="q-link">
                         <i class="fa fa-school"></i><span>Statistiques École</span>
                     </Link>
                     <Link :href="route('rapport.statistiques-classes.index')" class="q-link">

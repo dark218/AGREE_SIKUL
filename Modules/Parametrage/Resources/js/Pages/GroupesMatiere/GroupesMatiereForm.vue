@@ -155,48 +155,24 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
-        <div class="col-md-4">
+        <!-- Matières du groupe (multi-select via pivot groupe_matiere_items).
+             Remplace les 10 slots hardcodés matiere1_id..matiere10_id. -->
+        <div class="col-12">
             <div class="mb-3">
-                <label>Matière 1</label>
+                <label class="mb-2">
+                    Matières du groupe
+                    <small class="text-muted">— sélectionne autant de matières que nécessaire</small>
+                </label>
                 <SearchableSelect
-                    v-model.number="form.matiere1_id"
+                    v-model="form.matieres"
                     :options="matieres"
                     optionValue="id"
                     optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    :multiple="true"
+                    :placeholder="t('actions.select') || 'Cliquer pour ajouter…'"
                     :disabled="isReadOnly"
                 />
-                <span v-if="form.errors?.matiere1_id" class="text-danger"><strong>{{ form.errors.matiere1_id }}</strong></span>
-            </div>
-        </div>
-
-        <!-- LIGNES 5-9 : Matière 2 → Matière 10 -->
-        <div v-for="n in [2, 4, 6, 8, 10]" :key="`pair-${n}`" class="row g-3 col-12 mx-0 px-0">
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <label>Matière {{ n }}</label>
-                    <SearchableSelect
-                        v-model.number="form[`matiere${n}_id`]"
-                        :options="matieres"
-                        optionValue="id"
-                        optionLabel="libelle"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
-                        :disabled="isReadOnly"
-                    />
-                </div>
-            </div>
-            <div v-if="n !== 10" class="col-md-4">
-                <div class="mb-3">
-                    <label>Matière {{ n + 1 }}</label>
-                    <SearchableSelect
-                        v-model.number="form[`matiere${n + 1}_id`]"
-                        :options="matieres"
-                        optionValue="id"
-                        optionLabel="libelle"
-                        :placeholder="t('actions.select') || '-- Sélectionner --'"
-                        :disabled="isReadOnly"
-                    />
-                </div>
+                <span v-if="form.errors?.matieres" class="text-danger"><strong>{{ form.errors.matieres }}</strong></span>
             </div>
         </div>
 

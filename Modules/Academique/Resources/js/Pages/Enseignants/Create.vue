@@ -68,30 +68,17 @@ const form = useForm({
     telephone: '',
     photo: '',
     statut: 'actif',
-    matiere_1_id: '',
-    matiere_2_id: '',
-    matiere_3_id: '',
-    matiere_4_id: '',
-    matiere_5_id: '',
-    matiere_6_id: '',
-    matiere_7_id: '',
-    cycle_1_id: '',
-    cycle_2_id: '',
-    niveau_1_id: '',
-    niveau_2_id: '',
-    niveau_3_id: '',
-    niveau_4_id: '',
-    classe_1_id: '',
-    classe_2_id: '',
-    classe_3_id: '',
-    classe_4_id: '',
-    classe_5_id: '',
+    // Multi-select n-n (Phase 3.1 : pivots BelongsToMany)
+    matieres_ids: [],
+    cycles_ids: [],
+    niveaux_ids: [],
+    classes_ids: [],
 });
 
 const submitForm = () => {
     showStoreLoader(t('common.saving'));
     form.post(route('academique.enseignants.store'), {
-        multipart: true,
+        forceFormData: true,
         onSuccess: () => hideLoader(),
         onError: () => hideLoader(),
     });
@@ -117,7 +104,8 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <EnseignantForm
                                     :form="form"
                                     :communes="communes"
@@ -136,26 +124,18 @@ const submitForm = () => {
                                     :statutsEmployes="statutsEmployes"
                                     :fonctions="fonctions"
                                     mode="create"
+                                    @submit="submitForm"
                                 />
-                                <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('academique.enseignants.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('academique.enseignants.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary ms-2"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

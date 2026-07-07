@@ -105,7 +105,7 @@ class AccompagnateurController extends Controller
                 'institutions' => $institutions,
                 'campuses' => $campuses,
                 'apprenants' => $apprenants,
-                'civilites' => \Modules\Parametrage\Entities\Civilite::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+                'civilites' => \Modules\Parametrage\Entities\TitreCivilite::actif()->orderBy('id')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::create", $th->getMessage());
@@ -305,7 +305,7 @@ class AccompagnateurController extends Controller
                 'institutions' => $institutions,
                 'campuses' => $campuses,
                 'apprenants' => $apprenants,
-                'civilites' => \Modules\Parametrage\Entities\Civilite::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
+                'civilites' => \Modules\Parametrage\Entities\TitreCivilite::actif()->orderBy('id')->get(['id', 'code', 'libelle'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Personnel", "AccompagnateurController::edit", $th->getMessage());

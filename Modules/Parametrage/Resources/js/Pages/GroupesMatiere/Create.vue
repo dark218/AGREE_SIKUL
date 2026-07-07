@@ -31,16 +31,11 @@ const form = useForm({
     niveau_id: null,
     section_id: null,
     cycle_id: null,
-    matiere1_id: null,
-    matiere2_id: null,
-    matiere3_id: null,
-    matiere4_id: null,
-    matiere5_id: null,
-    matiere6_id: null,
-    matiere7_id: null,
-    matiere8_id: null,
-    matiere9_id: null,
-    matiere10_id: null,
+    // matieres[] : ids MatiereUnite envoyés au store et sync sur la pivot.
+
+    // Remplace les 10 slots matiere1_id..matiere10_id.
+
+    matieres: [],
     etat: 'actif',
 });
 const submitForm = () => {

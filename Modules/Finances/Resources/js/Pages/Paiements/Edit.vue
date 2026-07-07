@@ -2,11 +2,13 @@
     <Head :title="t('common.edit')" />
     <div class="body-wrapper">
         <div class="dashboard-header-wrapper">
-            <h4 class="title">{{ t('common.edit') }} - {{ item.nom || item.name || item.titre }}</h4>
+            <h4 class="title">{{ t('common.edit') }} — Paiement du {{ paiement?.date_paiement }}</h4>
         </div>
         <PaiementForm
             ref="formRef"
-            :paiement="item"
+            :paiement="paiement"
+            :frais="frais"
+            :apprenants="apprenants"
             :errors="form.errors"
             :submit-button-label="t('common.update')"
             @submit="submitForm"
@@ -28,7 +30,9 @@ defineOptions({
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
 const props = defineProps({
-    item: Object,
+    paiement:   Object,
+    frais:      { type: Array, default: () => [] },
+    apprenants: { type: Array, default: () => [] },
 });
 const formRef = ref(null);
 const isSubmitting = ref(false);
@@ -37,7 +41,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.put(route('finances.paiement.update', props.item.id), formData, {
+    router.put(route('finances.paiements.update', props.paiement.id), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

@@ -7,6 +7,7 @@
         <DepenseForm
             ref="formRef"
             :depense="item"
+            :ecoles="ecoles"
             :errors="form.errors"
             :submit-button-label="t('common.update')"
             @submit="submitForm"
@@ -28,7 +29,8 @@ defineOptions({
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
 const props = defineProps({
-    item: Object,
+    item:   Object,
+    ecoles: { type: Array, default: () => [] },
 });
 const formRef = ref(null);
 const isSubmitting = ref(false);
@@ -37,7 +39,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.put(route('finances.depense.update', props.item.id), formData, {
+    router.put(route('finances.depenses.update', props.item.id), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

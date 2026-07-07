@@ -6,7 +6,7 @@ use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\CycleEnseignement;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 
 class Passage extends BaseModel
 {
@@ -44,12 +44,12 @@ class Passage extends BaseModel
 
     public function niveau()
     {
-        return $this->belongsTo(Niveau::class);
+        return $this->belongsTo(NiveauEtude::class);
     }
 
     public function niveauSuperieur()
     {
-        return $this->belongsTo(Niveau::class, 'niveau_superieur_id');
+        return $this->belongsTo(NiveauEtude::class, 'niveau_superieur_id');
     }
 
     // Scopes

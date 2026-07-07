@@ -19,12 +19,16 @@ const toggleCollapse = () => {
     isCollapsed.value = !isCollapsed.value;
 };
 
+const props = defineProps({
+    users: { type: Array, default: () => [] },
+});
+
 const form = useForm({
+    user_id: null,
+    type: 'info',
     titre: '',
-    contenu: '',
-    type: '',
-    lue: false,
-    etat: 'actif',
+    message: '',
+    action_url: '',
 });
 
 const submitForm = () => {
@@ -63,6 +67,7 @@ const submitForm = () => {
                             <form @submit.prevent="submitForm">
                                 <NotificationForm
                                     :form="form"
+                                    :users="props.users"
                                     mode="create"
                                 />
                                 <!-- Boutons -->

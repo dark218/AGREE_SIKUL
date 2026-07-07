@@ -21,14 +21,16 @@ const toggleCollapse = () => {
 
 const props = defineProps({
     item: Object,
+    users: { type: Array, default: () => [] },
 });
 
 const form = useForm({
+    user_id: props.item?.user_id || null,
+    type: props.item?.type || 'info',
     titre: props.item?.titre || '',
-    contenu: props.item?.contenu || '',
-    type: props.item?.type || '',
-    lue: props.item?.lue || false,
-    etat: props.item?.etat || 'actif',
+    message: props.item?.message || '',
+    action_url: props.item?.action_url || '',
+    lu_at: props.item?.lu_at || null,
 });
 
 const submitForm = () => {
@@ -67,6 +69,7 @@ const submitForm = () => {
                             <form @submit.prevent="submitForm">
                                 <NotificationForm
                                     :form="form"
+                                    :users="props.users"
                                     mode="edit"
                                 />
                                 <!-- Boutons -->

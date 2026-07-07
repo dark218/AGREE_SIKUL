@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Academique\Entities\Devoir;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Classe;
 use Modules\Parametrage\Entities\Classe as ParametrageClasse;
 
@@ -58,7 +58,7 @@ class DevoirController extends Controller
             \Log::info('📚 DevoirController::create() started');
 
             // Get matieres with proper formatting
-            $matieres = Matiere::select('id', 'libelle')->get()
+            $matieres = MatiereUnite::select('id', 'libelle')->get()
                 ->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])
                 ->toArray();
             \Log::info('✅ Matieres loaded: ' . count($matieres));
@@ -114,7 +114,7 @@ class DevoirController extends Controller
             \Log::info('📋 Request data:', $request->all());
 
             $validated = $request->validate([
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'classe_id' => 'required|exists:classes,id',
                 'titre' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -197,7 +197,7 @@ class DevoirController extends Controller
             return Inertia::render('Academique::Devoirs/Show', [
                 'title' => 'Détails du Devoir',
                 'devoir' => $arr,
-                'matieres' => Matiere::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])->toArray(),
+                'matieres' => MatiereUnite::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])->toArray(),
                 'classes' => ParametrageClasse::select('id', 'nom')->get()->map(fn($c) => ['id' => $c->id, 'nom' => $c->nom ?? 'Sans nom'])->toArray(),
             ]);
         } catch (\Throwable $th) {
@@ -245,7 +245,7 @@ class DevoirController extends Controller
                 'nombre_heures' => $arr['nombre_heures'],
             ]);
 
-            $matieres = Matiere::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])->toArray();
+            $matieres = MatiereUnite::select('id', 'libelle')->get()->map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle ?? 'Sans nom'])->toArray();
             $classes = ParametrageClasse::select('id', 'nom')->get()->map(fn($c) => ['id' => $c->id, 'nom' => $c->nom ?? 'Sans nom'])->toArray();
 
             return Inertia::render('Academique::Devoirs/Edit', [
@@ -265,7 +265,7 @@ class DevoirController extends Controller
     {
         try {
             $validated = $request->validate([
-                'matiere_id' => 'required|exists:matieres,id',
+                'matiere_id' => 'required|exists:matieres_unites,id',
                 'classe_id' => 'required|exists:classes,id',
                 'titre' => 'required|string|max:255',
                 'description' => 'nullable|string',

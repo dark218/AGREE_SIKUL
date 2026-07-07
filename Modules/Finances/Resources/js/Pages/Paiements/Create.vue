@@ -6,6 +6,8 @@
         </div>
         <PaiementForm
             ref="formRef"
+            :frais="frais"
+            :apprenants="apprenants"
             :errors="form.errors"
             :submit-button-label="t('common.create')"
             @submit="submitForm"
@@ -26,6 +28,10 @@ defineOptions({
 });
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
+const props = defineProps({
+    frais:      { type: Array, default: () => [] },
+    apprenants: { type: Array, default: () => [] },
+});
 const formRef = ref(null);
 const isSubmitting = ref(false);
 const form = ref({
@@ -33,7 +39,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.post(route('finances.paiement.store'), formData, {
+    router.post(route('finances.paiements.store'), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

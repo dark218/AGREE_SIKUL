@@ -10,7 +10,7 @@ use Modules\Finances\Entities\Ecolage;
 use Modules\Finances\Entities\PosteRecette;
 use Modules\Finances\Entities\PlanCompte;
 use Modules\Parametrage\Entities\AnneeScolaire;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Entities\Section;
@@ -75,7 +75,7 @@ class EcolageController extends Controller
             $anneesScolaires = AnneeScolaire::where('etat', 'actif')->get();
             \Log::info("AnneeScolaires loaded", ['count' => $anneesScolaires->count()]);
 
-            $niveaux = Niveau::where('statut', 'actif')->get();
+            $niveaux = NiveauEtude::where('statut', 'actif')->get();
             \Log::info("Niveaux loaded", ['count' => $niveaux->count()]);
 
             $ecoles = Ecole::where('statut', 'actif')->get();
@@ -221,7 +221,7 @@ class EcolageController extends Controller
     {
         return [
             'anneesScolaires' => AnneeScolaire::where('etat', 'actif')->get(['id', 'libelle']),
-            'niveaux' => Niveau::where('statut', 'actif')->get(),
+            'niveaux' => NiveauEtude::where('statut', 'actif')->get(),
             'ecoles' => Ecole::where('statut', 'actif')->get(['id', 'nom']),
             'campuses' => Campus::where('statut', 'actif')->get(['id', 'nom']),
             'sections' => Section::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),

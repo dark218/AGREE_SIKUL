@@ -131,7 +131,8 @@ const errorList = () => Object.entries(form.errors || {}).map(([field, msg]) => 
                                 </ul>
                             </div>
 
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <InstitutionForm
                                     :form="form"
                                     mode="create"
@@ -142,25 +143,18 @@ const errorList = () => Object.entries(form.errors || {}).map(([field, msg]) => 
                                     :quartiers="quartiers"
                                     :devises="devises"
                                     :directeurs="directeurs"
+                                    @submit="submitForm"
                                 />
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('parametrage.institution.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('parametrage.institution.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') || 'Retour' }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-success ms-2"
-                                                :disabled="form.processing"
-                                            >
-                                                <i class="fa fa-save"></i>
-                                                {{ form.processing ? (t('actions.saving') || 'Enregistrement...') : (t('actions.save') || 'Enregistrer') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

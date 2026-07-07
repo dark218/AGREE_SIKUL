@@ -3,17 +3,19 @@
 namespace Modules\RessourcesLogistique\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\RessourcesLogistique\Entities\Equipement;
 use Modules\RessourcesLogistique\Entities\MaintenanceEquipement;
 
 class MaintenanceEquipementController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:maintenances-equipements-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:maintenances-equipements-list',   ['only' => ['index', 'show']]);
         $this->middleware('permission.check:maintenances-equipements-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:maintenances-equipements-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:maintenances-equipements-edit',   ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:maintenances-equipements-delete', ['only' => ['destroy', 'statut']]);
     }
 
@@ -24,29 +26,25 @@ class MaintenanceEquipementController extends Controller
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->where('titre', 'like', "%$search%")
-                    ->orWhere('description', 'like', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('description', 'like', "%$search%")
+                      ->orWhereHas('equipement', fn ($qe) => $qe->where('nom', 'like', "%$search%"));
+                });
             }
 
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+            if ($request->filled('type_maintenance')) {
+                $query->where('type_maintenance', $request->input('type_maintenance'));
             }
 
-            $maintenances = $query->with(['equipement', 'technicien'])->paginate(10)->withQueryString()
-                ->through(fn ($maintenance) => [
-                    'id' => $maintenance->id,
-                    'titre' => $maintenance->titre,
-                    'description' => $maintenance->description,
-                    'statut' => $maintenance->statut,
-                    'date_debut' => $maintenance->date_debut?->toDateString(),
-                    'date_fin' => $maintenance->date_fin?->toDateString(),
-                    'equipement' => $maintenance->equipement?->nom,
-                    'technicien' => $maintenance->technicien?->nom,
-                ]);
+            $maintenances = $query
+                ->with(['equipement', 'technicien'])
+                ->orderByDesc('date_maintenance')
+                ->paginate(10)
+                ->withQueryString();
 
             return Inertia::render('RessourcesLogistique::MaintenancesEquipements/Index', [
                 'maintenances' => $maintenances,
-                'filters' => $request->only(['search', 'statut']),
+                'filters'      => $request->only(['search', 'type_maintenance']),
             ]);
         } catch (\Throwable $th) {
             log_error("Inventaire", "MaintenanceEquipementController::index", $th->getMessage());
@@ -57,7 +55,10 @@ class MaintenanceEquipementController extends Controller
     public function create()
     {
         try {
-            return Inertia::render('RessourcesLogistique::MaintenancesEquipements/Create');
+            return Inertia::render('RessourcesLogistique::MaintenancesEquipements/Create', [
+                'equipements' => Equipement::orderBy('nom')->get(['id', 'nom']),
+                'techniciens' => User::orderBy('nom')->get(['id', 'nom', 'prenoms']),
+            ]);
         } catch (\Throwable $th) {
             log_error("Inventaire", "MaintenanceEquipementController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -68,16 +69,13 @@ class MaintenanceEquipementController extends Controller
     {
         try {
             $validated = $request->validate([
-                'equipement_id' => 'required|exists:equipements,id',
-                'titre' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'type' => 'required|in:preventive,corrective,urgente',
-                'date_debut' => 'required|date',
-                'date_fin' => 'nullable|date|after_or_equal:date_debut',
-                'cout_cents' => 'nullable|integer|min:0',
-                'technicien_id' => 'nullable|exists:users,id',
-                'observations' => 'nullable|string',
-                'statut' => 'required|in:planifiee,en_cours,terminee,suspendue',
+                'equipement_id'    => 'required|exists:equipements,id',
+                'date_maintenance' => 'required|date',
+                // Enum DB : preventive, corrective, inspection
+                'type_maintenance' => 'required|in:preventive,corrective,inspection',
+                'description'      => 'nullable|string',
+                'cout_cents'       => 'nullable|integer|min:0',
+                'technicien_id'    => 'nullable|exists:users,id',
             ]);
 
             MaintenanceEquipement::create($validated);
@@ -85,16 +83,18 @@ class MaintenanceEquipementController extends Controller
             return redirect()->route('maintenances-equipements.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Inventaire", "MaintenanceEquipementController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
     public function show(MaintenanceEquipement $maintenanceEquipement)
     {
         try {
-            $maintenanceEquipement->load('equipement', 'technicien');
+            $maintenanceEquipement->load(['equipement', 'technicien']);
 
             return Inertia::render('RessourcesLogistique::MaintenancesEquipements/Show', [
                 'maintenance' => $maintenanceEquipement,
@@ -109,7 +109,9 @@ class MaintenanceEquipementController extends Controller
     {
         try {
             return Inertia::render('RessourcesLogistique::MaintenancesEquipements/Edit', [
-                'maintenance' => $maintenanceEquipement->load('equipement', 'technicien'),
+                'maintenance' => $maintenanceEquipement->load(['equipement', 'technicien']),
+                'equipements' => Equipement::orderBy('nom')->get(['id', 'nom']),
+                'techniciens' => User::orderBy('nom')->get(['id', 'nom', 'prenoms']),
             ]);
         } catch (\Throwable $th) {
             log_error("Inventaire", "MaintenanceEquipementController::edit", $th->getMessage());
@@ -121,16 +123,12 @@ class MaintenanceEquipementController extends Controller
     {
         try {
             $validated = $request->validate([
-                'equipement_id' => 'required|exists:equipements,id',
-                'titre' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'type' => 'required|in:preventive,corrective,urgente',
-                'date_debut' => 'required|date',
-                'date_fin' => 'nullable|date|after_or_equal:date_debut',
-                'cout_cents' => 'nullable|integer|min:0',
-                'technicien_id' => 'nullable|exists:users,id',
-                'observations' => 'nullable|string',
-                'statut' => 'required|in:planifiee,en_cours,terminee,suspendue',
+                'equipement_id'    => 'required|exists:equipements,id',
+                'date_maintenance' => 'required|date',
+                'type_maintenance' => 'required|in:preventive,corrective,inspection',
+                'description'      => 'nullable|string',
+                'cout_cents'       => 'nullable|integer|min:0',
+                'technicien_id'    => 'nullable|exists:users,id',
             ]);
 
             $maintenanceEquipement->update($validated);
@@ -138,9 +136,11 @@ class MaintenanceEquipementController extends Controller
             return redirect()->route('maintenances-equipements.show', $maintenanceEquipement)
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Inventaire", "MaintenanceEquipementController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 

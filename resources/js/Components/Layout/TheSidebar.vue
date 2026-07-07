@@ -89,7 +89,8 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'apprenants', libelle: 'Apprenants', libelle_en: 'Students', icone: 'fas fa-users' },
             { menu_url: 'enseignants', libelle: 'Enseignants', libelle_en: 'Teachers', icone: 'fas fa-chalkboard-user' },
             { menu_url: 'tuteurs', libelle: 'Tuteurs', libelle_en: 'Guardians', icone: 'fas fa-user-shield' },
-            { menu_url: 'matieres', libelle: 'Matières', libelle_en: 'Subjects', icone: 'fas fa-book-open' },
+            // (Matières retiré du menu Académique : géré désormais uniquement
+            // via Paramétrage → Matières Unités, seule source de vérité.)
 
             // Pédagogie
             { menu_url: 'cours', libelle: 'Cours', libelle_en: 'Courses', icone: 'fas fa-graduation-cap' },
@@ -107,11 +108,11 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'dossiers-apprenants', libelle: 'Dossiers', libelle_en: 'Student Files', icone: 'fas fa-folder' },
 
             // Absences & Présences
-            { menu_url: 'absences-apprenants', libelle: 'Absences Apprenants', libelle_en: 'Student Absences', icone: 'fas fa-xmark-circle' },
+            // (Absences Apprenants retiré : source unique = Presence avec statut != 'present'.)
             { menu_url: 'absences-enseignants', libelle: 'Absences Enseignants', libelle_en: 'Teacher Absences', icone: 'fas fa-calendar-xmark' },
             { menu_url: 'presences', libelle: 'Présences (Board)', libelle_en: 'Attendance Board', icone: 'fas fa-user-check' },
             { menu_url: 'presences-seances', libelle: 'Présences Séances', libelle_en: 'Session Attendance', icone: 'fas fa-check-circle' },
-            { menu_url: 'justificatifs-absences', libelle: 'Justificatifs', libelle_en: 'Justifications', icone: 'fas fa-file-check' },
+            // (Justificatifs retiré : redondant avec justificatif_path des entités Presence/AbsenceEnseignant.)
 
             // Travaux Académiques
             { menu_url: 'devoirs', libelle: 'Devoirs', libelle_en: 'Assignments', icone: 'fas fa-tasks' },
@@ -125,10 +126,9 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'exam-finance', libelle: 'Financements Examens', libelle_en: 'Exam Financing', icone: 'fas fa-coins' },
 
             // Bibliothèque
-            { menu_url: 'bibliotheque-structures', libelle: 'Bibliothèques', libelle_en: 'Libraries', icone: 'fas fa-book-open' },
-            { menu_url: 'entrees-livres', libelle: 'Entrées de livres', libelle_en: 'Book Entries', icone: 'fas fa-arrow-down' },
-            { menu_url: 'sorties-livres', libelle: 'Sorties de livres', libelle_en: 'Book Exits', icone: 'fas fa-arrow-up' },
-            { menu_url: 'inventaire-livres', libelle: 'Inventaire', libelle_en: 'Inventory', icone: 'fas fa-boxes-stacked' },
+            // (Bibliothèque catalogue+entrées+sorties+inventaire retiré :
+            // gestion complète Bibliothèque/Ouvrage/Exemplaire/Emprunt/Réservation
+            // désormais consolidée dans le module RessourcesLogistique.)
 
             // Administration
             { menu_url: 'personnels-administratifs', libelle: 'Personnel Admin', libelle_en: 'Admin Staff', icone: 'fas fa-briefcase' }
@@ -178,7 +178,7 @@ const DEFAULT_MENU_CONFIG = [
             // Academic Organization
             { menu_url: 'annees_scolaires', libelle: 'Années Scolaires', libelle_en: 'School Years', icone: 'fas fa-calendar-alt' },
             { menu_url: 'periodes_colaires', libelle: 'Périodes Colaires', libelle_en: 'School Periods', icone: 'fas fa-hourglass' },
-            { menu_url: 'niveaux', libelle: 'Niveaux', libelle_en: 'Levels', icone: 'fas fa-bars' },
+            // (Niveaux retiré : doublon de Niveaux d'Étude, unique source de vérité.)
             { menu_url: 'niveaux_etude', libelle: 'Niveaux Études', libelle_en: 'Study Levels', icone: 'fas fa-graduation-cap' },
             { menu_url: 'cycles_enseignement', libelle: 'Cycles Enseignement', libelle_en: 'Teaching Cycles', icone: 'fas fa-circle' },
             { menu_url: 'classes', libelle: 'Classes', libelle_en: 'Classes', icone: 'fas fa-chalkboard' },
@@ -196,7 +196,7 @@ const DEFAULT_MENU_CONFIG = [
 
             // Students & Teachers
             { menu_url: 'types_apprenants', libelle: 'Types Apprenants', libelle_en: 'Student Types', icone: 'fas fa-user-graduate' },
-            { menu_url: 'categories_apprenant', libelle: 'Catégories Apprenant', libelle_en: 'Student Categories', icone: 'fas fa-tags' },
+            // (Catégories Apprenant retiré : doublon TypeApprenant + StatutApprenant.)
             { menu_url: 'categories_enseignant', libelle: 'Catégories Enseignant', libelle_en: 'Teacher Categories', icone: 'fas fa-tags' },
 
             // Institutions
@@ -223,18 +223,18 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'departements', libelle: 'Départements', libelle_en: 'Departments', icone: 'fas fa-sitemap' },
             { menu_url: 'communes', libelle: 'Communes', libelle_en: 'Communes', icone: 'fas fa-city' },
             { menu_url: 'quartiers', libelle: 'Quartiers', libelle_en: 'Districts', icone: 'fas fa-compass' },
-            { menu_url: 'zones', libelle: 'Zones', libelle_en: 'Zones', icone: 'fas fa-border-all' },
+            // (Zones retiré : référentiel dormant, hiérarchie géo suffit.)
             { menu_url: 'jours_feries', libelle: 'Jours Fériés', libelle_en: 'Holidays', icone: 'fas fa-flag' },
 
             // People & Events
             { menu_url: 'titres_civilites', libelle: 'Titres Civilité', libelle_en: 'Titles', icone: 'fas fa-user-tie' },
-            { menu_url: 'civilites', libelle: 'Civilités', libelle_en: 'Titles', icone: 'fas fa-id-badge' },
+            // (Civilités retiré : fusionné dans Titres Civilité, unique source de vérité.)
             { menu_url: 'genres', libelle: 'Genres', libelle_en: 'Genders', icone: 'fas fa-venus-mars' },
             { menu_url: 'liens_parente', libelle: 'Liens de parenté', libelle_en: 'Kinship links', icone: 'fas fa-heart' },
             { menu_url: 'situations_matrimoniales', libelle: 'Situations matrimoniales', libelle_en: 'Marital status', icone: 'fas fa-ring' },
             { menu_url: 'groupes_sanguins', libelle: 'Groupes sanguins', libelle_en: 'Blood groups', icone: 'fas fa-tint' },
-            { menu_url: 'langues', libelle: 'Langues', libelle_en: 'Languages', icone: 'fas fa-language' },
-            { menu_url: 'types_contrats', libelle: 'Types de contrat', libelle_en: 'Contract types', icone: 'fas fa-file-signature' },
+            // (Langues retiré : dormant, les enseignants stockent leurs langues dans le JSON `languages`.)
+            // (Types de contrat retiré : fusionné dans Natures de contrat.)
             { menu_url: 'statuts_employes', libelle: 'Statuts employé', libelle_en: 'Employee statuses', icone: 'fas fa-user-check' },
             { menu_url: 'statuts_apprenants', libelle: 'Statuts apprenant', libelle_en: 'Student statuses', icone: 'fas fa-user-graduate' },
             { menu_url: 'types_inscriptions', libelle: 'Types d\'inscription', libelle_en: 'Enrollment types', icone: 'fas fa-clipboard-list' },
@@ -267,13 +267,13 @@ const DEFAULT_MENU_CONFIG = [
  */
 const PARAMETRAGE_GROUPS = [
     { id: 'org-academique', libelle: 'Organisation Académique', libelle_en: 'Academic Organization', icone: 'fas fa-sitemap',
-      items: ['annees_scolaires', 'periodes_colaires', 'niveaux', 'niveaux_etude', 'cycles_enseignement', 'classes', 'sections'] },
+      items: ['annees_scolaires', 'periodes_colaires', 'niveaux_etude', 'cycles_enseignement', 'classes', 'sections'] },
     { id: 'enseignement', libelle: 'Enseignement & Cours', libelle_en: 'Teaching & Courses', icone: 'fas fa-chalkboard-teacher',
       items: ['types_cours', 'types_enseignement', 'groupes_matiere', 'matiere_unites'] },
     { id: 'examens', libelle: 'Examens & Évaluations', libelle_en: 'Exams & Assessments', icone: 'fas fa-pen-to-square',
       items: ['natures_examens', 'types_examens'] },
     { id: 'acteurs', libelle: 'Apprenants & Enseignants', libelle_en: 'Students & Teachers', icone: 'fas fa-users',
-      items: ['types_apprenants', 'categories_apprenant', 'categories_enseignant'] },
+      items: ['types_apprenants', 'categories_enseignant'] },
     { id: 'institutions', libelle: 'Institutions', libelle_en: 'Institutions', icone: 'fas fa-school',
       items: ['campuses', 'ecoles', 'institution', 'types_etablissements'] },
     { id: 'structure', libelle: 'Structure Organisationnelle', libelle_en: 'Organizational Structure', icone: 'fas fa-object-group',
@@ -283,9 +283,9 @@ const PARAMETRAGE_GROUPS = [
     { id: 'financier', libelle: 'Financier', libelle_en: 'Financial', icone: 'fas fa-money-bill',
       items: ['devises'] },
     { id: 'geographie', libelle: 'Géographie & Calendrier', libelle_en: 'Geography & Calendar', icone: 'fas fa-earth-africa',
-      items: ['pays', 'regions', 'departements', 'communes', 'quartiers', 'zones', 'jours_feries'] },
+      items: ['pays', 'regions', 'departements', 'communes', 'quartiers', 'jours_feries'] },
     { id: 'personnes', libelle: 'Personnes & Événements', libelle_en: 'People & Events', icone: 'fas fa-user-tie',
-      items: ['titres_civilites', 'civilites', 'genres', 'liens_parente', 'situations_matrimoniales', 'groupes_sanguins', 'langues', 'types_contrats', 'statuts_employes', 'statuts_apprenants', 'types_inscriptions', 'types_evenement'] },
+      items: ['titres_civilites', 'genres', 'liens_parente', 'situations_matrimoniales', 'groupes_sanguins', 'statuts_employes', 'statuts_apprenants', 'types_inscriptions', 'types_evenement'] },
 ];
 
 /**
@@ -303,11 +303,10 @@ const ACADEMIQUE_GROUPS = [
     { id: 'inscriptions', libelle: 'Inscriptions & Dossiers', libelle_en: 'Enrollments & Files', icone: 'fas fa-clipboard-check',
       items: ['inscriptions', 'dossiers-apprenants'] },
     { id: 'absences', libelle: 'Absences & Présences', libelle_en: 'Absences & Attendance', icone: 'fas fa-user-check',
-      items: ['absences-apprenants', 'absences-enseignants', 'presences', 'presences-seances', 'justificatifs-absences'] },
+      items: ['presences', 'presences-seances', 'absences-enseignants'] },
     { id: 'examens', libelle: 'Examens', libelle_en: 'Exams', icone: 'fas fa-file-pen',
       items: ['planification-examens', 'examens-en-ligne', 'mes-examens', 'exam-finance'] },
-    { id: 'bibliotheque', libelle: 'Bibliothèque', libelle_en: 'Library', icone: 'fas fa-book-open',
-      items: ['bibliotheque-structures', 'entrees-livres', 'sorties-livres', 'inventaire-livres'] },
+    // (Group 'bibliotheque' retiré — voir RessourcesLogistique pour la gestion des livres.)
     { id: 'administration', libelle: 'Administration', libelle_en: 'Administration', icone: 'fas fa-briefcase',
       items: ['personnels-administratifs'] },
 ];
@@ -376,12 +375,26 @@ let closeTimer = null;
 // ============================================================================
 
 /**
- * Menu items from backend navbars prop, or fallback to default config
- * Check both existence AND length > 0 because empty array [] is truthy in JS
+ * Menu items — source unique = `navbars` fourni par HandleInertiaRequests
+ * (build depuis Module + Feature filtrés par permission côté serveur).
+ * Fallback DEFAULT_MENU_CONFIG uniquement si la DB est vide (dev / onboarding).
+ * Un warning console signale ce fallback pour éviter qu'il devienne invisible.
  */
 const menuItems = computed(() => {
     const navbars = page.props.navbars;
-    const baseMenus = (navbars && navbars.length > 0) ? navbars : DEFAULT_MENU_CONFIG;
+    let baseMenus;
+
+    if (navbars && navbars.length > 0) {
+        baseMenus = navbars;
+    } else {
+        // eslint-disable-next-line no-console
+        console.warn(
+            '[TheSidebar] Backend a renvoyé un `navbars` vide — fallback sur ' +
+            'DEFAULT_MENU_CONFIG hardcodé. Vérifiez le seeding Module/Feature ' +
+            'ou les permissions du rôle courant.'
+        );
+        baseMenus = DEFAULT_MENU_CONFIG;
+    }
 
     // Ajouter le menu élève si l'utilisateur a le rôle 'eleve'
     if (isEleve.value) {
@@ -409,7 +422,7 @@ const currentMenu = computed(() => page.props.menu_url || '');
  * Fonctionnalités masquées du menu, quelle que soit la source (backend ou
  * fallback local) et même pour le Super Admin. Clés normalisées (voir normalizeKey).
  */
-const HIDDEN_FEATURES = ['types_etablissement_spe', 'civilites', 'absences'].map(normalizeKey);
+const HIDDEN_FEATURES = ['absences'].map(normalizeKey);
 
 /**
  * Vérifie si l'utilisateur a la permission "list" pour une feature
@@ -425,9 +438,17 @@ function canAccessFeature(feature) {
     // Les features du menu élève sont toujours accessibles pour les élèves
     if (isEleve.value && feature.menu_url?.startsWith('apprenant/')) return true;
 
-    // Vérifier la permission "list" pour cette feature
-    const permissionName = `${feature.menu_url}-list`;
-    return hasPermission(permissionName);
+    // Vérifier la permission "list" pour cette feature.
+    // On teste les variantes dash/underscore : la DB peut utiliser l'une
+    // (`matieres-unites`) et le fallback JS l'autre (`matiere_unites`).
+    // Sans cette normalisation, la permission "existe" mais le check rate.
+    const raw = String(feature.menu_url || '');
+    const variants = new Set([
+        `${raw}-list`,
+        `${raw.replace(/_/g, '-')}-list`,
+        `${raw.replace(/-/g, '_')}-list`,
+    ]);
+    return Array.from(variants).some(p => hasPermission(p));
 }
 
 /**

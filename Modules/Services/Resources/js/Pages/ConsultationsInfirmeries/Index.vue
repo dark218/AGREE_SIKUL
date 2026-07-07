@@ -45,14 +45,14 @@ const performSearch = () => {
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 function search() {
-    router.get(route('consultation-infirmerie.index'), searchFilters.value, {
+    router.get(route('consultations-infirmeries.index'), searchFilters.value, {
         preserveState: true,
         preserveScroll: true,
     });
 }
 const resetFilters = () => {
     Object.keys(searchFilters.value).forEach((k) => { searchFilters.value[k] = ''; });
-    router.get(route('consultation-infirmerie.index'));
+    router.get(route('consultations-infirmeries.index'));
 };
 function confirmDelete(item) {
     itemToDelete.value = item;
@@ -60,7 +60,7 @@ function confirmDelete(item) {
 }
 function deleteConsultationInfirmerie() {
     showStoreLoader();
-    router.put(route('consultation-infirmerie.statut', itemToDelete.value.id), {}, {
+    router.put(route('consultations-infirmeries.statut', itemToDelete.value.id), {}, {
         onSuccess: () => {
             showDeleteModal.value = false;
             hideLoader();
@@ -104,7 +104,7 @@ watch(
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ t('common.consultation-infirmerie') }}</h4>
             <div v-if="can('consultation-infirmerie-create')" class="dashboard-btn">
-                <Link :href="route('consultation-infirmerie.create')" class="btn btn-primary">
+                <Link :href="route('consultations-infirmeries.create')" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ t('common.add') }}
                 </Link>
             </div>
@@ -131,7 +131,7 @@ watch(
                         <td class="fit">
                             <div class="action-buttons">
                                 <Link
-                                    :href="route('consultation-infirmerie.show', consultationInfirmerie.id)"
+                                    :href="route('consultations-infirmeries.show', consultationInfirmerie.id)"
                                     class="btn btn-secondary btn-sm"
                                     title="Voir"
                                 >
@@ -139,7 +139,7 @@ watch(
                                 </Link>
                                 <Link
                                     v-if="can('consultation-infirmerie-edit')"
-                                    :href="route('consultation-infirmerie.edit', consultationInfirmerie.id)"
+                                    :href="route('consultations-infirmeries.edit', consultationInfirmerie.id)"
                                     class="btn btn-primary btn-sm"
                                     title="Modifier"
                                 >

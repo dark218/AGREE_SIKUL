@@ -36,7 +36,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::model('matiere_unite', \Modules\Parametrage\Entities\MatiereUnite::class);
         Route::model('groupe_matiere', \Modules\Parametrage\Entities\GroupeMatiere::class);
         Route::model('type_apprenant', \Modules\Parametrage\Entities\TypeApprenant::class);
-        Route::model('categorie_apprenant', \Modules\Parametrage\Entities\CategorieApprenant::class);
+        // (route model binding 'categorie_apprenant' retiré — feature droppée)
         Route::model('titre_civilite', \Modules\Parametrage\Entities\TitreCivilite::class);
         Route::model('type_evenement_agenda', \Modules\Parametrage\Entities\TypeEvenementAgenda::class);
         Route::model('periode_colaire', \Modules\Parametrage\Entities\PeriodeColaire::class);

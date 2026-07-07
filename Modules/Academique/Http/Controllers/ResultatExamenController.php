@@ -4,7 +4,7 @@ namespace Modules\Academique\Http\Controllers;
 
 use Modules\Academique\Entities\ExamenEnLigne;
 use Modules\Academique\Entities\TentativeExamen;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Parametrage\Entities\Classe;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -76,7 +76,7 @@ class ResultatExamenController extends Controller
             ->get()
             ->map(fn($e) => ['id' => $e->id, 'titre' => $e->titre . ' (' . ($e->matiere?->libelle ?? '') . ')']);
 
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
         $classes = Classe::where('statut', 'actif')
             ->with(['ecole:id,nom', 'campus:id,nom', 'niveau:id,libelle', 'section:id,libelle', 'cycle:id,libelle', 'anneeScolaire:id,libelle'])
             ->select('id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'niveau_id', 'section_id', 'cycle_id', 'annee_scolaire_id')

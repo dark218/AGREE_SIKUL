@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use Modules\Academique\Entities\Bulletin;
 use Modules\Academique\Entities\Apprenant;
 use Modules\Academique\Entities\Note;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Services\BulletinService;
 use Modules\Academique\Services\AcademicCalculationService;
 use Modules\Parametrage\Entities\Classe;
@@ -371,7 +371,7 @@ class BulletinController extends Controller
         try {
             $validated = $request->validate([
                 'bulletin_id' => 'required|integer|exists:bulletins,id',
-                'matiere_id' => 'nullable|integer|exists:matieres,id',
+                'matiere_id' => 'nullable|integer|exists:matieres_unites,id',
             ]);
 
             // Charger le bulletin avec ses relations
@@ -394,7 +394,7 @@ class BulletinController extends Controller
             // Si matiere_id passé: calculer juste pour cette matière
             if (!empty($validated['matiere_id'])) {
                 $matiereId = $validated['matiere_id'];
-                $matiere = Matiere::findOrFail($matiereId);
+                $matiere = MatiereUnite::findOrFail($matiereId);
 
                 // Calculer la moyenne pour cette matière
                 $moyenne = $calculationService->calculateMoyenneMatiere(

@@ -32,16 +32,9 @@ const form = useForm({
     niveau_id: i.niveau_id || null,
     section_id: i.section_id || null,
     cycle_id: i.cycle_id || null,
-    matiere1_id: i.matiere1_id || null,
-    matiere2_id: i.matiere2_id || null,
-    matiere3_id: i.matiere3_id || null,
-    matiere4_id: i.matiere4_id || null,
-    matiere5_id: i.matiere5_id || null,
-    matiere6_id: i.matiere6_id || null,
-    matiere7_id: i.matiere7_id || null,
-    matiere8_id: i.matiere8_id || null,
-    matiere9_id: i.matiere9_id || null,
-    matiere10_id: i.matiere10_id || null,
+    // matieres[] : ids MatiereUnite sync sur la pivot groupe_matiere_items.
+    // Remplace les 10 slots matiere1_id..matiere10_id.
+    matieres: (i.matieres ?? []).map((m) => m.id ?? m),
     etat: i.etat || 'actif',
 });
 const submitForm = () => {

@@ -30,7 +30,7 @@ class MatiereClasseTestSeeder extends Seeder
 
         foreach ($matieres as $matiere) {
             try {
-                \Modules\Parametrage\Entities\Matiere::create($matiere);
+                \Modules\Parametrage\Entities\MatiereUnite::create($matiere);
             } catch (\Exception $e) {
                 // Matiere may already exist
             }

@@ -140,7 +140,8 @@ const submitForm = () => {
 
                             <!-- Tab: Informations -->
                             <div v-show="activeTab === 'infos'">
-                                <form @submit.prevent="submitForm">
+                                <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                                <div>
                                     <ExamenEnLigneForm
                                         :form="form"
                                         :matieres="matieres"
@@ -148,25 +149,18 @@ const submitForm = () => {
                                         :enseignants="enseignants"
                                         :statuts="statuts"
                                         mode="edit"
+                                        @submit="submitForm"
                                     />
                                     <div class="row mt-3">
                                         <div class="col">
-                                            <div class="text-end">
-                                                <Link :href="route('academique.examens-en-ligne.index')" class="btn btn-danger">
+                                            <div class="text-start">
+                                                <Link :href="route('academique.examens-en-ligne.index')" class="btn btn-outline-secondary">
                                                     <i class="fa fa-arrow-left"></i> {{ t('actions.back') || 'Retour' }}
                                                 </Link>
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-primary"
-                                                    :disabled="form.processing"
-                                                >
-                                                    <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                    <i class="fa fa-save"></i> {{ t('actions.validate') || 'Valider' }}
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                </form>
+                                </div>
                             </div>
 
                             <!-- Tab: Questions -->

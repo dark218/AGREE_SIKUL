@@ -8,7 +8,7 @@ use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\Pays;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\CycleEnseignement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -202,7 +202,7 @@ class ListeManuelsController extends Controller
             'anneesScolaires' => AnneeScolaire::select('id', 'libelle')->where('etat', 'actif')->orderBy('libelle', 'desc')->get(),
             'ecoles' => Ecole::select('id', 'nom as libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
             'sections' => Section::select('id', 'nom as libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
-            'niveaux' => Niveau::where('statut', 'actif')->get(),
+            'niveaux' => NiveauEtude::where('statut', 'actif')->get(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
             'pays' => Pays::select('id', 'libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
         ];

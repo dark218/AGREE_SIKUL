@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 
 const { t } = useI18n();
 
@@ -9,6 +10,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    users: {
+        type: Array,
+        default: () => [],
+    },
     mode: {
         type: String,
         default: 'create',
@@ -16,196 +21,57 @@ const props = defineProps({
     },
 });
 
-const isReadOnly = ref(props.mode === 'show');
+const isReadOnly = computed(() => props.mode === 'show');
 </script>
 
 <template>
-    <!-- Information Section -->
-    <div class="section">
-        <h6 class="section-title">{{ t('common.information') || 'Information' }}</h6>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="titre">{{ t('fields.titre') || 'Titre' }} <span class="text-danger">*</span></label>
-                    <input
-                        id="titre"
-                        v-model="form.titre"
-                        type="text"
-                        class="form-control"
-                        :class="{ 'is-invalid': form.errors?.titre }"
-                        :disabled="isReadOnly"
-                        :placeholder="t('placeholders.titre') || 'Entrez le titre de la notification'"
-                    />
-                    <div v-if="form.errors?.titre" class="invalid-feedback d-block">
-                        {{ form.errors.titre[0] || form.errors.titre }}
-                    </div>
-                </div>
-            </div>
+    <div class="row g-3 custom-input">
+        <!-- Destinataire -->
+        <div class="col-md-6">
+            <label class="mb-10">{{ t('fields.destinataire') || 'Destinataire' }} <span class="text-danger">*</span></label>
+            <SearchableSelect
+                v-model.number="form.user_id"
+                :options="users"
+                optionValue="id"
+                :optionLabel="(u) => `${u.nom || ''} ${u.prenoms || ''}`.trim() || u.email"
+                :placeholder="t('actions.select') || '-- Sélectionner --'"
+                :disabled="isReadOnly"
+            />
+            <span v-if="form.errors?.user_id" class="text-danger"><strong>{{ form.errors.user_id }}</strong></span>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="contenu">{{ t('fields.contenu') || 'Contenu' }} <span class="text-danger">*</span></label>
-                    <textarea
-                        id="contenu"
-                        v-model="form.contenu"
-                        class="form-control"
-                        :class="{ 'is-invalid': form.errors?.contenu }"
-                        :disabled="isReadOnly"
-                        rows="5"
-                        :placeholder="t('placeholders.contenu') || 'Entrez le contenu de la notification'"
-                    />
-                    <div v-if="form.errors?.contenu" class="invalid-feedback d-block">
-                        {{ form.errors.contenu[0] || form.errors.contenu }}
-                    </div>
-                </div>
-            </div>
+        <!-- Type -->
+        <div class="col-md-6">
+            <label class="mb-10">{{ t('fields.type') || 'Type' }} <span class="text-danger">*</span></label>
+            <input v-model="form.type" type="text" class="form-control" placeholder="Ex: info, alerte, message" :disabled="isReadOnly" />
+            <span v-if="form.errors?.type" class="text-danger"><strong>{{ form.errors.type }}</strong></span>
         </div>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="type">{{ t('fields.type') || 'Type' }}</label>
-                    <input
-                        id="type"
-                        v-model="form.type"
-                        type="text"
-                        class="form-control"
-                        :class="{ 'is-invalid': form.errors?.type }"
-                        :disabled="isReadOnly"
-                        :placeholder="t('placeholders.type') || 'Ex: info, warning, error'"
-                    />
-                    <div v-if="form.errors?.type" class="invalid-feedback d-block">
-                        {{ form.errors.type[0] || form.errors.type }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="lue">{{ t('fields.lue') || 'Lue' }}</label>
-                    <select
-                        id="lue"
-                        v-model="form.lue"
-                        class="form-control"
-                        :class="{ 'is-invalid': form.errors?.lue }"
-                        :disabled="isReadOnly"
-                    >
-                        <option :value="false">{{ t('common.no') || 'Non' }}</option>
-                        <option :value="true">{{ t('common.yes') || 'Oui' }}</option>
-                    </select>
-                    <div v-if="form.errors?.lue" class="invalid-feedback d-block">
-                        {{ form.errors.lue[0] || form.errors.lue }}
-                    </div>
-                </div>
-            </div>
+        <!-- Titre -->
+        <div class="col-md-12">
+            <label class="mb-10">{{ t('fields.titre') || 'Titre' }} <span class="text-danger">*</span></label>
+            <input v-model="form.titre" type="text" class="form-control" :placeholder="t('placeholders.titre') || 'Titre'" :disabled="isReadOnly" />
+            <span v-if="form.errors?.titre" class="text-danger"><strong>{{ form.errors.titre }}</strong></span>
         </div>
-    </div>
 
-    <!-- État Section -->
-    <div class="section">
-        <h6 class="section-title">{{ t('common.status') || 'État' }}</h6>
+        <!-- Message -->
+        <div class="col-md-12">
+            <label class="mb-10">{{ t('fields.message') || 'Message' }} <span class="text-danger">*</span></label>
+            <textarea v-model="form.message" class="form-control" rows="4" :placeholder="t('placeholders.message') || 'Contenu du message'" :disabled="isReadOnly"></textarea>
+            <span v-if="form.errors?.message" class="text-danger"><strong>{{ form.errors.message }}</strong></span>
+        </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label for="etat">{{ t('common.status') || 'État' }}</label>
-                    <select
-                        id="etat"
-                        v-model="form.etat"
-                        class="form-control"
-                        :class="{ 'is-invalid': form.errors?.etat }"
-                        :disabled="isReadOnly"
-                    >
-                        <option value="actif">{{ t('common.actif') || 'Actif' }}</option>
-                        <option value="inactif">{{ t('common.inactif') || 'Inactif' }}</option>
-                    </select>
-                    <div v-if="form.errors?.etat" class="invalid-feedback d-block">
-                        {{ form.errors.etat[0] || form.errors.etat }}
-                    </div>
-                </div>
-            </div>
+        <!-- Lien action (optionnel) -->
+        <div class="col-md-6">
+            <label class="mb-10">{{ t('fields.action_url') || 'Lien action' }}</label>
+            <input v-model="form.action_url" type="text" class="form-control" placeholder="https://..." :disabled="isReadOnly" />
+            <span v-if="form.errors?.action_url" class="text-danger"><strong>{{ form.errors.action_url }}</strong></span>
+        </div>
+
+        <!-- Date lecture (read-only info, auto-remplie serveur) -->
+        <div class="col-md-6" v-if="mode !== 'create'">
+            <label class="mb-10">{{ t('fields.lu_at') || 'Date de lecture' }}</label>
+            <input v-model="form.lu_at" type="datetime-local" class="form-control" disabled />
         </div>
     </div>
 </template>
-
-<style scoped>
-.section {
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid #e0e0e0;
-}
-
-.section:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-    padding-bottom: 0;
-}
-
-.section-title {
-    font-weight: 600;
-    font-size: 14px;
-    text-transform: uppercase;
-    color: #333;
-    margin-bottom: 16px;
-    letter-spacing: 0.5px;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-group label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 6px;
-    font-size: 14px;
-    color: #333;
-}
-
-.form-control {
-    height: 36px;
-    font-size: 14px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 6px 10px;
-    transition: all 0.3s ease;
-}
-
-textarea.form-control {
-    height: auto;
-    resize: vertical;
-    padding: 10px;
-}
-
-.form-control:focus {
-    border-color: #0B5697;
-    box-shadow: 0 0 0 3px rgba(11, 86, 151, 0.1);
-}
-
-.form-control:disabled {
-    background-color: #f5f5f5;
-    color: #999;
-    cursor: not-allowed;
-}
-
-.form-control.is-invalid {
-    border-color: #dc3545;
-}
-
-.form-control.is-invalid:focus {
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
-}
-
-.invalid-feedback {
-    color: #dc3545;
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-.text-danger {
-    color: #dc3545;
-}
-</style>

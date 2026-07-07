@@ -2,7 +2,6 @@
 
 use Modules\Academique\Http\Controllers\ApprenantController;
 use Modules\Academique\Http\Controllers\EnseignantController;
-use Modules\Academique\Http\Controllers\MatiereController;
 use Modules\Academique\Http\Controllers\CoursController;
 use Modules\Academique\Http\Controllers\SeanceController;
 use Modules\Academique\Http\Controllers\EmploiTempsController;
@@ -11,24 +10,15 @@ use Modules\Academique\Http\Controllers\NoteController;
 use Modules\Academique\Http\Controllers\BulletinController;
 use Modules\Academique\Http\Controllers\InscriptionController;
 use Modules\Academique\Http\Controllers\DossierApprenantController;
-use Modules\Academique\Http\Controllers\AbsenceApprenantController;
 use Modules\Academique\Http\Controllers\AbsenceEnseignantController;
 use Modules\Academique\Http\Controllers\AffectationEnseignantController;
 use Modules\Academique\Http\Controllers\PresencesController;
-use Modules\Academique\Http\Controllers\JustificatifAbsenceController;
 use Modules\Academique\Http\Controllers\DevoirController;
 use Modules\Academique\Http\Controllers\RenduDevoirController;
 use Modules\Academique\Http\Controllers\MoyenneMatiereController;
-use Modules\Academique\Http\Controllers\PersonnelAdministratifController;
 use Modules\Academique\Http\Controllers\ListeManuelsController;
-use Modules\Academique\Http\Controllers\ManuelController;
 use Modules\Academique\Http\Controllers\PassageController;
 use Modules\Academique\Http\Controllers\ClassesApprenantsController;
-use Modules\Academique\Http\Controllers\BibliothequeController;
-use Modules\Academique\Http\Controllers\BibliothequeStructureController;
-use Modules\Academique\Http\Controllers\EntreeLivreController;
-use Modules\Academique\Http\Controllers\SortieLivreController;
-use Modules\Academique\Http\Controllers\InventaireLivreController;
 use Modules\Academique\Http\Controllers\PlanificationExamenController;
 use Modules\Academique\Http\Controllers\ExamenEnLigneController;
 use Modules\Academique\Http\Controllers\QuestionExamenController;
@@ -81,19 +71,8 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{enseignant}', [EnseignantController::class, 'destroy'])->name('destroy');
     });
 
-    // Matieres
-    Route::prefix('matieres')->name('matieres.')->group(function () {
-        Route::get('/', [MatiereController::class, 'index'])->name('index');
-        Route::get('/create', [MatiereController::class, 'create'])->name('create');
-        Route::post('/', [MatiereController::class, 'store'])->name('store');
-        // API endpoint for auto-fill matiere details (coefficient) - must come before /{matiere}
-        Route::get('/{id}/api-show', [MatiereController::class, 'apiShow'])->name('api_show');
-        Route::get('/{matiere}', [MatiereController::class, 'show'])->name('show');
-        Route::get('/{matiere}/edit', [MatiereController::class, 'edit'])->name('edit');
-        Route::put('/{matiere}', [MatiereController::class, 'update'])->name('update');
-        Route::put('/{matiere}/statut', [MatiereController::class, 'statut'])->name('statut');
-        Route::delete('/{matiere}', [MatiereController::class, 'destroy'])->name('destroy');
-    });
+    // (Bloc Matieres retiré — la feature vit désormais sous
+    // Parametrage → MatiereUnite : `parametrage.matiere-unites.*`.)
 
     // Cours
     Route::prefix('cours')->name('cours.')->group(function () {
@@ -213,20 +192,9 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
 
     // PHASE 4: Absences, Presences, Justifications
 
-    // Absences Apprenants
-    Route::prefix('absences-apprenants')->name('absences_apprenants.')->group(function () {
-        Route::get('/', [AbsenceApprenantController::class, 'index'])->name('index');
-        Route::get('/create', [AbsenceApprenantController::class, 'create'])->name('create');
-        Route::post('/', [AbsenceApprenantController::class, 'store'])->name('store');
-        Route::get('/{absence_apprenant}', [AbsenceApprenantController::class, 'show'])->name('show');
-        Route::get('/{absence_apprenant}/edit', [AbsenceApprenantController::class, 'edit'])->name('edit');
-        Route::put('/{absence_apprenant}', [AbsenceApprenantController::class, 'update'])->name('update');
-        Route::put('/{absence_apprenant}/statut', [AbsenceApprenantController::class, 'activate'])->name('statut');
-        Route::delete('/{absence_apprenant}', [AbsenceApprenantController::class, 'destroy'])->name('destroy');
-    });
-
-    // API endpoint for schedule slots - Apprenants
-    Route::get('/api/absence-apprenants/schedule-slots', [AbsenceApprenantController::class, 'getScheduleSlots']);
+    // (Bloc "Absences Apprenants" retiré : Presence est la source unique
+    // désormais. `absences apprenants` = `presences` avec statut in
+    // ('absent', 'malade', 'permis').)
 
     // Absences Enseignants
     Route::prefix('absences-enseignants')->name('absences_enseignants.')->group(function () {
@@ -266,17 +234,8 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{presence}', [PresencesController::class, 'destroy'])->name('destroy');
     });
 
-    // Justificatifs Absences
-    Route::prefix('justificatifs-absences')->name('justificatifs_absences.')->group(function () {
-        Route::get('/', [JustificatifAbsenceController::class, 'index'])->name('index');
-        Route::get('/create', [JustificatifAbsenceController::class, 'create'])->name('create');
-        Route::post('/', [JustificatifAbsenceController::class, 'store'])->name('store');
-        Route::get('/{justificatif_absence}', [JustificatifAbsenceController::class, 'show'])->name('show');
-        Route::get('/{justificatif_absence}/edit', [JustificatifAbsenceController::class, 'edit'])->name('edit');
-        Route::put('/{justificatif_absence}', [JustificatifAbsenceController::class, 'update'])->name('update');
-        Route::put('/{justificatif_absence}/statut', [JustificatifAbsenceController::class, 'statut'])->name('statut');
-        Route::delete('/{justificatif_absence}', [JustificatifAbsenceController::class, 'destroy'])->name('destroy');
-    });
+    // (Bloc "Justificatifs Absences" retiré : redondant avec le champ
+    // `justificatif_path` déjà présent sur AbsenceEnseignant et sur Presence.)
 
     // PHASE 5: Devoirs, Rendus, Moyennes, Personnel Admin
 
@@ -318,23 +277,13 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{moyenne_matiere}', [MoyenneMatiereController::class, 'destroy'])->name('destroy');
     });
 
-    // Personnels Administratifs
-    Route::prefix('personnels-administratifs')->name('personnels_administratifs.')->group(function () {
-        Route::get('/', [PersonnelAdministratifController::class, 'index'])->name('index');
-        Route::get('/create', [PersonnelAdministratifController::class, 'create'])->name('create');
-        Route::post('/', [PersonnelAdministratifController::class, 'store'])->name('store');
-        Route::get('/{personnel_administratif}', [PersonnelAdministratifController::class, 'show'])->name('show');
-        Route::get('/{personnel_administratif}/edit', [PersonnelAdministratifController::class, 'edit'])->name('edit');
-        Route::put('/{personnel_administratif}', [PersonnelAdministratifController::class, 'update'])->name('update');
-        Route::put('/{personnel_administratif}/statut', [PersonnelAdministratifController::class, 'statut'])->name('statut');
-        Route::delete('/{personnel_administratif}', [PersonnelAdministratifController::class, 'destroy'])->name('destroy');
-    });
+    // (Personnels Administratifs déplacé vers Modules/Personnel — non pertinent en Académique)
 
     // Absences génériques : feature consolidée dans /absences-apprenants et /absences-enseignants
     // (la table `absences` générique a été dropée pour éliminer la triple redondance)
 
-    // Route pour télécharger/visualiser les fichiers d'absence
-    Route::get('/download-absence/{filePath}', [AbsenceApprenantController::class, 'downloadFile'])->name('download_absence_file');
+    // (Route "download-absence" retirée : dépendait d'AbsenceApprenant supprimée.
+    // Les téléchargements de justificatifs se font via AbsenceEnseignant directement.)
 
     // Listes Manuels
     Route::prefix('listes-manuels')->name('listes-manuels.')->group(function () {
@@ -348,17 +297,9 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{listeManuels}', [ListeManuelsController::class, 'destroy'])->name('destroy');
     });
 
-    // Manuels
-    Route::prefix('manuels')->name('manuels.')->group(function () {
-        Route::get('/', [ManuelController::class, 'index'])->name('index');
-        Route::get('/create', [ManuelController::class, 'create'])->name('create');
-        Route::post('/', [ManuelController::class, 'store'])->name('store');
-        Route::get('/{listeManuels}', [ManuelController::class, 'show'])->name('show');
-        Route::get('/{listeManuels}/edit', [ManuelController::class, 'edit'])->name('edit');
-        Route::put('/{listeManuels}', [ManuelController::class, 'update'])->name('update');
-        Route::put('/{listeManuels}/statut', [ManuelController::class, 'statut'])->name('statut');
-        Route::delete('/{listeManuels}', [ManuelController::class, 'destroy'])->name('destroy');
-    });
+    // (Bloc "Manuels" retiré : doublon complet — ManuelController et
+    // ListeManuelsController utilisent tous deux le modèle ListeManuels.
+    // Route "listes-manuels" ci-dessus est la seule source de vérité.)
 
     // Passages
     Route::prefix('passages')->name('passages.')->group(function () {
@@ -383,54 +324,9 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
         Route::delete('/{apprenant}', [ClassesApprenantsController::class, 'destroy'])->name('destroy');
     });
 
-    // Bibliotheques
-    Route::prefix('bibliotheques')->name('bibliotheques.')->group(function () {
-        Route::get('/', [BibliothequeController::class, 'index'])->name('index');
-        Route::get('/create', [BibliothequeController::class, 'create'])->name('create');
-        Route::post('/', [BibliothequeController::class, 'store'])->name('store');
-        Route::get('/{bibliotheque}', [BibliothequeController::class, 'show'])->name('show');
-        Route::get('/{bibliotheque}/edit', [BibliothequeController::class, 'edit'])->name('edit');
-        Route::put('/{bibliotheque}', [BibliothequeController::class, 'update'])->name('update');
-        Route::put('/{bibliotheque}/statut', [BibliothequeController::class, 'statut'])->name('statut');
-        Route::delete('/{bibliotheque}', [BibliothequeController::class, 'destroy'])->name('destroy');
-    });
-
-    // Bibliothèque - Liste des bibliothèques (structures / lieux)
-    Route::prefix('bibliotheque-structures')->name('bibliotheque-structures.')->group(function () {
-        Route::get('/', [BibliothequeStructureController::class, 'index'])->name('index');
-        Route::get('/create', [BibliothequeStructureController::class, 'create'])->name('create');
-        Route::post('/', [BibliothequeStructureController::class, 'store'])->name('store');
-        Route::get('/{bibliothequeStructure}', [BibliothequeStructureController::class, 'show'])->name('show');
-        Route::get('/{bibliothequeStructure}/edit', [BibliothequeStructureController::class, 'edit'])->name('edit');
-        Route::match(['put', 'post'], '/{bibliothequeStructure}', [BibliothequeStructureController::class, 'update'])->name('update');
-        Route::put('/{bibliothequeStructure}/statut', [BibliothequeStructureController::class, 'statut'])->name('statut');
-        Route::delete('/{bibliothequeStructure}', [BibliothequeStructureController::class, 'destroy'])->name('destroy');
-    });
-
-    // Bibliothèque - Entrées de livres
-    Route::prefix('entrees-livres')->name('entrees-livres.')->group(function () {
-        Route::get('/', [EntreeLivreController::class, 'index'])->name('index');
-        Route::get('/create', [EntreeLivreController::class, 'create'])->name('create');
-        Route::post('/', [EntreeLivreController::class, 'store'])->name('store');
-        Route::get('/{entreesLivre}', [EntreeLivreController::class, 'show'])->name('show');
-        Route::get('/{entreesLivre}/edit', [EntreeLivreController::class, 'edit'])->name('edit');
-        Route::match(['put', 'post'], '/{entreesLivre}', [EntreeLivreController::class, 'update'])->name('update');
-        Route::delete('/{entreesLivre}', [EntreeLivreController::class, 'destroy'])->name('destroy');
-    });
-
-    // Bibliothèque - Sorties de livres
-    Route::prefix('sorties-livres')->name('sorties-livres.')->group(function () {
-        Route::get('/', [SortieLivreController::class, 'index'])->name('index');
-        Route::get('/create', [SortieLivreController::class, 'create'])->name('create');
-        Route::post('/', [SortieLivreController::class, 'store'])->name('store');
-        Route::get('/{sortiesLivre}', [SortieLivreController::class, 'show'])->name('show');
-        Route::get('/{sortiesLivre}/edit', [SortieLivreController::class, 'edit'])->name('edit');
-        Route::match(['put', 'post'], '/{sortiesLivre}', [SortieLivreController::class, 'update'])->name('update');
-        Route::delete('/{sortiesLivre}', [SortieLivreController::class, 'destroy'])->name('destroy');
-    });
-
-    // Bibliothèque - Inventaire (calculé)
-    Route::get('/inventaire-livres', [InventaireLivreController::class, 'index'])->name('inventaire-livres.index');
+    // (Bloc "Bibliothèque" — catalogue livres + entrées/sorties/inventaire —
+    // retiré du module Académique. La gestion complète Bibliothèque/Ouvrage/
+    // Exemplaire/Emprunt vit désormais dans le module RessourcesLogistique.)
 
     // Planification Examens
     Route::prefix('planification-examens')->name('planification-examens.')->group(function () {

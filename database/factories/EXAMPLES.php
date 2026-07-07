@@ -192,7 +192,7 @@ public function setupAcademicData()
         );
     });
 
-    $matieres = Matiere::factory(6)
+    $matieres = MatiereUnite::factory(6)
         ->for($ecole)
         ->create();
 
@@ -212,7 +212,7 @@ foreach (range(1, 5) as $i) {
             Campus::factory(2)
                 ->has(
                     Ecole::factory(2)
-                        ->has(Matiere::factory(8), 'matieres')
+                        ->has(MatiereUnite::factory(8), 'matieres')
                         ->has(
                             Niveau::factory(3)
                                 ->has(

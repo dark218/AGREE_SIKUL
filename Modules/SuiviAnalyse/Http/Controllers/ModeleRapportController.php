@@ -11,9 +11,9 @@ class ModeleRapportController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:modeles-rapports-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:modeles-rapports-list',   ['only' => ['index', 'show']]);
         $this->middleware('permission.check:modeles-rapports-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:modeles-rapports-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:modeles-rapports-edit',   ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:modeles-rapports-delete', ['only' => ['destroy', 'statut']]);
     }
 
@@ -24,19 +24,21 @@ class ModeleRapportController extends Controller
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->where('titre', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('titre', 'like', "%$search%")
+                      ->orWhere('code', 'like', "%$search%");
+                });
             }
 
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+            if ($request->filled('type')) {
+                $query->where('type', $request->input('type'));
             }
 
             $modeles = $query->paginate(10)->withQueryString();
 
             return Inertia::render('SuiviAnalyse::ModelesRapports/Index', [
                 'modeles' => $modeles,
-                'filters' => $request->only(['search', 'statut']),
+                'filters' => $request->only(['search', 'type']),
             ]);
         } catch (\Throwable $th) {
             log_error("SuiviAnalyse", "ModeleRapportController::index", $th->getMessage());
@@ -58,24 +60,23 @@ class ModeleRapportController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:modeles_rapports',
-                'titre' => 'required|string|max:255',
+                'code'        => 'required|string|max:100|unique:modeles_rapports,code',
+                'titre'       => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'type' => 'required|string|max:100',
-                'contenu_template' => 'nullable|string',
-                'variables_disponibles' => 'nullable|string',
-                'notes' => 'nullable|string',
-                'statut' => 'required|in:actif,inactif,archive',
+                'type'        => 'required|in:pdf,excel,csv,html',
+                'parametres'  => 'nullable|array',
             ]);
 
             ModeleRapport::create($validated);
 
-            return redirect()->route('modeles-rapports.index')
+            return redirect()->route('suivi-analyse.modeles-rapports.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("SuiviAnalyse", "ModeleRapportController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
@@ -109,24 +110,23 @@ class ModeleRapportController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:modeles_rapports,code,' . $modeleRapport->id,
-                'titre' => 'required|string|max:255',
+                'code'        => 'required|string|max:100|unique:modeles_rapports,code,' . $modeleRapport->id,
+                'titre'       => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'type' => 'required|string|max:100',
-                'contenu_template' => 'nullable|string',
-                'variables_disponibles' => 'nullable|string',
-                'notes' => 'nullable|string',
-                'statut' => 'required|in:actif,inactif,archive',
+                'type'        => 'required|in:pdf,excel,csv,html',
+                'parametres'  => 'nullable|array',
             ]);
 
             $modeleRapport->update($validated);
 
-            return redirect()->route('modeles-rapports.show', $modeleRapport)
+            return redirect()->route('suivi-analyse.modeles-rapports.show', $modeleRapport)
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("SuiviAnalyse", "ModeleRapportController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
@@ -152,7 +152,7 @@ class ModeleRapportController extends Controller
                 $modeleRapport->delete();
             }
 
-            return redirect()->route('modeles-rapports.index')
+            return redirect()->route('suivi-analyse.modeles-rapports.index')
                 ->with('success', __('messages.status_changed'));
 
         } catch (\Throwable $th) {

@@ -45,14 +45,14 @@ const performSearch = () => {
 const showDeleteModal = ref(false);
 const itemToDelete = ref(null);
 function search() {
-    router.get(route('finances.paiement.index'), searchFilters.value, {
+    router.get(route('finances.paiements.index'), searchFilters.value, {
         preserveState: true,
         preserveScroll: true,
     });
 }
 function resetFilters() {
     searchFilters.value = { search: '', statut: '' };
-    router.get(route('finances.paiement.index'));
+    router.get(route('finances.paiements.index'));
 }
 function confirmDelete(item) {
     itemToDelete.value = item;
@@ -60,7 +60,7 @@ function confirmDelete(item) {
 }
 function deletePaiement() {
     showStoreLoader();
-    router.put(route('finances.paiement.statut', itemToDelete.value.id), {}, {
+    router.put(route('finances.paiements.statut', itemToDelete.value.id), {}, {
         onSuccess: () => {
             showDeleteModal.value = false;
             hideLoader();
@@ -104,7 +104,7 @@ watch(
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ t('common.paiement') }}</h4>
             <div v-if="can('paiement-create')" class="dashboard-btn">
-                <Link :href="route('finances.paiement.create')" class="btn btn-primary">
+                <Link :href="route('finances.paiements.create')" class="btn btn-primary">
                     <i class="fa fa-plus"></i> {{ t('common.add') }}
                 </Link>
             </div>
@@ -131,7 +131,7 @@ watch(
                         <td class="fit">
                             <div class="action-buttons">
                                 <Link
-                                    :href="route('finances.paiement.show', paiement.id)"
+                                    :href="route('finances.paiements.show', paiement.id)"
                                     class="btn btn-secondary btn-sm"
                                     title="Voir"
                                 >
@@ -139,7 +139,7 @@ watch(
                                 </Link>
                                 <Link
                                     v-if="can('paiement-edit')"
-                                    :href="route('finances.paiement.edit', paiement.id)"
+                                    :href="route('finances.paiements.edit', paiement.id)"
                                     class="btn btn-primary btn-sm"
                                     title="Modifier"
                                 >

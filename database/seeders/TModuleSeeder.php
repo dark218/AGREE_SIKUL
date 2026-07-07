@@ -256,6 +256,18 @@ class TModuleSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            // Ajouté : module 27 (Paramétrage Généraux) était référencé par la
+            // feature id 166 sans exister ici → FK cassée au seed.
+            [
+                'id' => 27,
+                'libelle' => 'Paramétrage Généraux',
+                'libelle_en' => 'General Settings',
+                'menu_url' => 'javascript:;',
+                'icone' => "fas fa-sliders-h",
+                'ordre' => 19,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

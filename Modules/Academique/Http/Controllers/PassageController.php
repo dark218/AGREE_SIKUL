@@ -50,7 +50,7 @@ class PassageController extends Controller
 
         $sections = Section::where('etat', 'actif')->select('id', 'libelle')->get();
         $cycles = CycleEnseignement::where('etat', 'actif')->select('id', 'libelle')->get();
-        $niveaux = Niveau::where('statut', 'actif')->select('id', 'libelle')->get();
+        $niveaux = NiveauEtude::where('statut', 'actif')->select('id', 'libelle')->get();
 
         return Inertia::render('Academique::Passages/Index', [
             'passages' => $passages,
@@ -70,7 +70,7 @@ class PassageController extends Controller
     {
         $sections = Section::where('etat', 'actif')->select('id', 'libelle')->get();
         $cycles = CycleEnseignement::where('etat', 'actif')->select('id', 'libelle')->get();
-        $niveaux = Niveau::where('statut', 'actif')->select('id', 'libelle')->get();
+        $niveaux = NiveauEtude::where('statut', 'actif')->select('id', 'libelle')->get();
 
         return Inertia::render('Academique::Passages/Create', [
             'sections' => $sections,
@@ -103,7 +103,7 @@ class PassageController extends Controller
 
         $sections = Section::where('etat', 'actif')->select('id', 'libelle')->get();
         $cycles = CycleEnseignement::where('etat', 'actif')->select('id', 'libelle')->get();
-        $niveaux = Niveau::where('statut', 'actif')->select('id', 'libelle')->get();
+        $niveaux = NiveauEtude::where('statut', 'actif')->select('id', 'libelle')->get();
 
         return Inertia::render('Academique::Passages/Show', [
             'passage' => $passage,
@@ -119,7 +119,7 @@ class PassageController extends Controller
 
         $sections = Section::where('etat', 'actif')->select('id', 'libelle')->get();
         $cycles = CycleEnseignement::where('etat', 'actif')->select('id', 'libelle')->get();
-        $niveaux = Niveau::where('statut', 'actif')->select('id', 'libelle')->get();
+        $niveaux = NiveauEtude::where('statut', 'actif')->select('id', 'libelle')->get();
 
         return Inertia::render('Academique::Passages/Edit', [
             'passage' => $passage,

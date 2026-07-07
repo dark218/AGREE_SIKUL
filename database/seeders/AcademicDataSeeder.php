@@ -46,7 +46,7 @@ class AcademicDataSeeder extends Seeder
                     $niveaux = Niveau::factory(3)->for($ecole)->create();
 
                     // Créer matieres pour l'école
-                    $matieres = Matiere::factory(8)->for($ecole)->create();
+                    $matieres = MatiereUnite::factory(8)->for($ecole)->create();
 
                     // Créer classes pour chaque niveau
                     $niveaux->each(function ($niveau) use ($ecole) {

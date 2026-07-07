@@ -1,8 +1,24 @@
+<!--
+  NoteForm.vue — Refonte Phase 4.2 (Steppers).
+  Historique : 565 lignes / 6 sections / 18 champs saisis → 2 steps / 3-4 champs saisis.
+
+  Steps :
+    1. Contexte  (apprenant, évaluation → tout le reste auto-fill via API évaluation +
+                  cascade apprenant/classe).
+    2. Résultat  (note_originale, note_sur, note normalisée auto, remarques, statut).
+
+  Auto-fill préservé :
+    - matiere_id → coefficient (API /matieres/{id}/api-show)
+    - evaluation_id → date_examen (API /evaluations/{id}/api-show)
+    - classe_id → ecole/campus/section/cycle/annee (useClasseCascade)
+    - apprenant_id → classe (useApprenantCascade)
+-->
+
 <script setup>
-import { computed, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
-import HierarchyContextBar from '@/Components/Common/HierarchyContextBar.vue';
+import FormStepper from '@/Components/Common/FormStepper.vue';
 import InheritedContextBar from '@/Components/Common/InheritedContextBar.vue';
 import { useClasseCascade } from '@/Composables/useClasseCascade';
 import { useApprenantCascade } from '@/Composables/useApprenantCascade';
@@ -10,555 +26,330 @@ import { useApprenantCascade } from '@/Composables/useApprenantCascade';
 const { t } = useI18n();
 
 const props = defineProps({
-    form: {
-        type: Object,
-        required: true,
-    },
-    apprenants: {
-        type: Array,
-        default: () => [],
-    },
-    evaluations: {
-        type: Array,
-        default: () => [],
-    },
-    anneesScolaires: {
-        type: Array,
-        default: () => [],
-    },
-    sections: {
-        type: Array,
-        default: () => [],
-    },
-    cycles: {
-        type: Array,
-        default: () => [],
-    },
-    classes: {
-        type: Array,
-        default: () => [],
-    },
-    ecoles: {
-        type: Array,
-        default: () => [],
-    },
-    campuses: {
-        type: Array,
-        default: () => [],
-    },
-    periodes: {
-        type: Array,
-        default: () => [],
-    },
-    natureExamens: {
-        type: Array,
-        default: () => [],
-    },
-    typeExamens: {
-        type: Array,
-        default: () => [],
-    },
-    matieres: {
-        type: Array,
-        default: () => [],
-    },
-    groupes: {
-        type: Array,
-        default: () => [],
-    },
-    enseignants: {
-        type: Array,
-        default: () => [],
-    },
+    form:            { type: Object, required: true },
+    apprenants:      { type: Array,  default: () => [] },
+    evaluations:     { type: Array,  default: () => [] },
+    anneesScolaires: { type: Array,  default: () => [] },
+    sections:        { type: Array,  default: () => [] },
+    cycles:          { type: Array,  default: () => [] },
+    classes:         { type: Array,  default: () => [] },
+    ecoles:          { type: Array,  default: () => [] },
+    campuses:        { type: Array,  default: () => [] },
+    periodes:        { type: Array,  default: () => [] },
+    natureExamens:   { type: Array,  default: () => [] },
+    typeExamens:     { type: Array,  default: () => [] },
+    matieres:        { type: Array,  default: () => [] },
+    groupes:         { type: Array,  default: () => [] },
+    enseignants:     { type: Array,  default: () => [] },
     mode: {
         type: String,
         default: 'create',
-        validator: (value) => ['create', 'edit', 'show'].includes(value),
+        validator: (v) => ['create', 'edit', 'show'].includes(v),
     },
 });
 
+const emit = defineEmits(['submit']);
+
 const isReadOnly = props.mode === 'show';
-const classeSelected = computed(() => !!props.form.classe_id);
+const currentStep = ref(0);
 
-const autoLabel = (list, id) => {
-    if (!id || !list?.length) return '—';
-    const found = list.find(item => String(item.id) === String(id));
-    return found?.libelle || found?.nom || found?.label || '—';
-};
-const sectionLabel = computed(() => autoLabel(props.sections, props.form.section_id));
-const cycleLabel = computed(() => autoLabel(props.cycles, props.form.cycle_id));
-const ecoleLabel = computed(() => autoLabel(props.ecoles, props.form.ecole_id));
-const campusLabel = computed(() => autoLabel(props.campuses, props.form.campus_id));
-
-// COMPREHENSIVE DEBUGGING
-console.log('🔵 [NoteForm] Component initialized');
-console.log('📋 [NoteForm] Props:', {
-    formKeys: Object.keys(props.form),
-    formValues: props.form,
-    mode: props.mode,
-    isReadOnly: isReadOnly,
-    apparenantsCoun: props.apprenants.length,
-    evaluationsCount: props.evaluations.length,
-    matiuresCount: props.matieres.length,
-});
-
-watch(() => props.form, (newForm) => {
-    console.log('🔄 [NoteForm] Form data changed:', newForm);
-}, { deep: true });
-
-// Cascade auto via composables (instantané, depuis listes en props)
+// Cascades auto : classe → ecole/campus/section/cycle/année, apprenant → classe.
 useClasseCascade(props.form, () => props.classes);
 useApprenantCascade(props.form, () => props.apprenants);
 
-const handleClasseChange = () => { /* composable gère tout via watch */ };
+// Auto-fill coefficient depuis matière (API).
+const handleMatiereChange = async (id) => {
+    if (!id) return;
+    try {
+        const r = await fetch(`/academique/matieres/${id}/api-show`);
+        if (!r.ok) return;
+        const d = await r.json();
+        props.form.coefficient = d.coefficient || 0;
+    } catch (e) { console.error('handleMatiereChange:', e); }
+};
+
+// Auto-fill date_examen depuis évaluation (API).
+const handleEvaluationChange = async (id) => {
+    if (!id) return;
+    try {
+        const r = await fetch(`/academique/evaluations/${id}/api-show`);
+        if (!r.ok) return;
+        const d = await r.json();
+        props.form.date_examen = d.date || null;
+    } catch (e) { console.error('handleEvaluationChange:', e); }
+};
+
+if (props.mode !== 'show') {
+    watch(() => props.form.matiere_id,    (v) => v && handleMatiereChange(v));
+    watch(() => props.form.evaluation_id, (v) => v && handleEvaluationChange(v));
+}
+onMounted(() => {
+    if (props.form?.matiere_id)    handleMatiereChange(props.form.matiere_id);
+    if (props.form?.evaluation_id) handleEvaluationChange(props.form.evaluation_id);
+});
+
+// Labels auto pour affichage read-only.
+const autoLabel = (list, id, keyLibelle = 'libelle', keyNom = 'nom') => {
+    if (!id || !list?.length) return '—';
+    const f = list.find(x => String(x.id) === String(id));
+    return f?.[keyLibelle] || f?.[keyNom] || '—';
+};
+const anneeScolaireLabel = computed(() => autoLabel(props.anneesScolaires, props.form.annee_scolaire_id));
+const classeLabel        = computed(() => autoLabel(props.classes,        props.form.classe_id));
+const sectionLabel       = computed(() => autoLabel(props.sections,       props.form.section_id));
+const cycleLabel         = computed(() => autoLabel(props.cycles,         props.form.cycle_id));
+const ecoleLabel         = computed(() => autoLabel(props.ecoles,         props.form.ecole_id));
+const campusLabel        = computed(() => autoLabel(props.campuses,       props.form.campus_id));
+const matiereLabel       = computed(() => autoLabel(props.matieres,       props.form.matiere_id));
+const enseignantLabel    = computed(() => autoLabel(props.enseignants,    props.form.enseignant_id));
+
+const noteNormalisee = computed(() =>
+    props.form.note_originale && props.form.note_sur
+        ? ((props.form.note_originale / props.form.note_sur) * 20).toFixed(2)
+        : ''
+);
 
 const statutOptions = [
-    { id: 'en_attente', libelle: t('common.en_attente') || 'En attente' },
-    { id: 'validee', libelle: t('common.validee') || 'Validée' },
-    { id: 'rejetee', libelle: t('common.rejetee') || 'Rejetée' },
-    { id: 'suspendue', libelle: t('common.suspendue') || 'Suspendue' },
+    { id: 'en_attente', libelle: 'En attente' },
+    { id: 'validee',    libelle: 'Validée' },
+    { id: 'rejetee',    libelle: 'Rejetée' },
+    { id: 'suspendue',  libelle: 'Suspendue' },
 ];
 
-const handleApprenantChange = () => { /* composable useApprenantCascade gère tout via watch */ };
-
-// Handle matiere selection to auto-fill coefficient
-const handleMatiereChange = async (newMatiereId) => {
-    if (!newMatiereId) return;
-
-    try {
-        console.log('[Auto-fill Matiere] Fetching matiere data for ID:', newMatiereId);
-        const response = await fetch(`/academique/matieres/${newMatiereId}/api-show`);
-        if (!response.ok) {
-            console.error('[Auto-fill Matiere] API error:', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log('[Auto-fill Matiere] Data received:', data);
-
-        // Auto-fill coefficient from matiere
-        props.form.coefficient = data.coefficient || 0;
-
-        console.log('[Auto-fill Matiere] Form updated:', {
-            coefficient: props.form.coefficient
-        });
-    } catch (error) {
-        console.error('[Auto-fill Matiere] Error:', error);
-    }
-};
-
-// Handle evaluation selection to auto-fill date
-const handleEvaluationChange = async (newEvaluationId) => {
-    if (!newEvaluationId) return;
-
-    try {
-        console.log('[Auto-fill Evaluation] Fetching evaluation data for ID:', newEvaluationId);
-        const response = await fetch(`/academique/evaluations/${newEvaluationId}/api-show`);
-        if (!response.ok) {
-            console.error('[Auto-fill Evaluation] API error:', response.status);
-            return;
-        }
-        const data = await response.json();
-        console.log('[Auto-fill Evaluation] Data received:', data);
-
-        // Auto-fill date_examen from evaluation date
-        props.form.date_examen = data.date || null;
-
-        console.log('[Auto-fill Evaluation] Form updated:', {
-            date_examen: props.form.date_examen
-        });
-    } catch (error) {
-        console.error('[Auto-fill Evaluation] Error:', error);
-    }
-};
-
-// Watch classe_id changes in create/edit mode
-if (props.mode !== 'show') {
-    watch(() => props.form.classe_id, (newVal) => {
-        if (newVal) {
-            handleClasseChange(newVal);
-        }
-    });
-
-    // Watch apprenant_id changes in create mode only
-    if (props.mode === 'create') {
-        watch(() => props.form.apprenant_id, (newVal) => {
-            if (newVal) {
-                handleApprenantChange(newVal);
-            }
-        });
-    }
-
-    // Watch matiere_id changes to auto-fill coefficient
-    watch(() => props.form.matiere_id, (newVal) => {
-        if (newVal) {
-            handleMatiereChange(newVal);
-        }
-    });
-
-    // Watch evaluation_id changes to auto-fill date
-    watch(() => props.form.evaluation_id, (newVal) => {
-        if (newVal) {
-            handleEvaluationChange(newVal);
-        }
-    });
-}
-
-// Auto-fill on mount if values are already selected
-onMounted(() => {
-    if (props.form?.matiere_id) {
-        handleMatiereChange(props.form.matiere_id);
-    }
-    if (props.form?.evaluation_id) {
-        handleEvaluationChange(props.form.evaluation_id);
-    }
-});
+const steps = [
+    { key: 'contexte',  label: 'Contexte',  icon: 'fas fa-user-graduate', requiredFields: ['apprenant_id', 'evaluation_id'] },
+    { key: 'resultat',  label: 'Résultat',  icon: 'fas fa-star',           requiredFields: ['note_originale', 'note_sur', 'statut'] },
+];
 </script>
 
 <template>
-    <div class="row g-3 custom-input">
-        <!-- Section 1: Informations de base -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-0">{{ t('common.basic_information') || 'Informations de base' }}</h5>
-        </div>
+    <FormStepper
+        v-model="currentStep"
+        :steps="steps"
+        :form="form"
+        persist-key="note-form"
+        @submit="$emit('submit')"
+    >
+        <!-- STEP 1 : CONTEXTE (apprenant + évaluation → tout auto) -->
+        <template #contexte>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label>Apprenant <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        v-model="form.apprenant_id"
+                        :options="apprenants"
+                        :disabled="isReadOnly || mode === 'edit'"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                    />
+                    <span v-if="form.errors?.apprenant_id" class="text-danger small">{{ form.errors.apprenant_id }}</span>
+                </div>
+                <div class="col-md-6">
+                    <label>Évaluation <span class="text-danger">*</span></label>
+                    <SearchableSelect
+                        :model-value="form.evaluation_id"
+                        :options="evaluations"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select') || '-- Sélectionner --'"
+                        @update:model-value="(v) => { form.evaluation_id = v; handleEvaluationChange(v); }"
+                    />
+                    <span v-if="form.errors?.evaluation_id" class="text-danger small">{{ form.errors.evaluation_id }}</span>
+                </div>
 
-        <!-- Apprenant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('common.apprenant') || 'Apprenant' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    v-model="form.apprenant_id"
-                    :options="apprenants"
-                    :disabled="isReadOnly || props.mode === 'edit'"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.apprenant_id" class="text-danger">
-                    <strong>{{ form.errors.apprenant_id }}</strong>
-                </span>
+                <!-- Contexte hérité de la classe (via cascade) -->
+                <div class="col-12">
+                    <InheritedContextBar
+                        v-if="form.classe_id"
+                        :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
+                        title="Contexte hérité de la classe"
+                    />
+                </div>
+
+                <hr class="mt-3" />
+                <div class="col-12">
+                    <h6 class="text-muted"><i class="fa fa-magic me-1"></i> Champs auto-remplis</h6>
+                    <small class="text-muted d-block mb-2">Ces champs sont dérivés de l'apprenant et de l'évaluation sélectionnés.</small>
+                </div>
+                <div class="col-md-4">
+                    <label>Classe <span class="badge bg-secondary">auto</span></label>
+                    <input :value="classeLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>Année scolaire <span class="badge bg-secondary">auto</span></label>
+                    <input :value="anneeScolaireLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>Section <span class="badge bg-secondary">auto</span></label>
+                    <input :value="sectionLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>Cycle <span class="badge bg-secondary">auto</span></label>
+                    <input :value="cycleLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>École <span class="badge bg-secondary">auto</span></label>
+                    <input :value="ecoleLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>Campus <span class="badge bg-secondary">auto</span></label>
+                    <input :value="campusLabel" type="text" class="form-control" readonly disabled />
+                </div>
+                <div class="col-md-4">
+                    <label>Date d'examen <span class="badge bg-secondary">auto</span></label>
+                    <input v-model="form.date_examen" type="date" class="form-control" :disabled="isReadOnly" />
+                </div>
+
+                <hr class="mt-3" />
+                <div class="col-12">
+                    <h6 class="text-muted"><i class="fa fa-pencil-alt me-1"></i> Précisions (optionnel)</h6>
+                    <small class="text-muted d-block mb-2">Ajustez si nécessaire — sinon les valeurs déduites de l'évaluation sont utilisées.</small>
+                </div>
+                <div class="col-md-4">
+                    <label>Période</label>
+                    <SearchableSelect
+                        v-model="form.periode_id"
+                        :options="periodes"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>Nature d'examen</label>
+                    <SearchableSelect
+                        v-model="form.nature_examen_id"
+                        :options="natureExamens"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>Type d'examen</label>
+                    <SearchableSelect
+                        v-model="form.type_examen_id"
+                        :options="typeExamens"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>Matière</label>
+                    <SearchableSelect
+                        :model-value="form.matiere_id"
+                        :options="matieres"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                        @update:model-value="(v) => { form.matiere_id = v; handleMatiereChange(v); }"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>Groupe</label>
+                    <SearchableSelect
+                        v-model="form.groupe_id"
+                        :options="groupes"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                    />
+                </div>
+                <div class="col-md-4">
+                    <label>Enseignant</label>
+                    <SearchableSelect
+                        v-model="form.enseignant_id"
+                        :options="enseignants"
+                        :disabled="isReadOnly"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        :placeholder="t('actions.select')"
+                    />
+                </div>
             </div>
-        </div>
+        </template>
 
-        <!-- Évaluation -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('common.evaluation') || 'Évaluation' }} <span class="text-danger">*</span></label>
-                <SearchableSelect
-                    :model-value="form.evaluation_id"
-                    :options="evaluations"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    @update:model-value="(val) => { form.evaluation_id = val; handleEvaluationChange(val); }"
-                />
-                <span v-if="form.errors?.evaluation_id" class="text-danger">
-                    <strong>{{ form.errors.evaluation_id }}</strong>
-                </span>
+        <!-- STEP 2 : RÉSULTAT (les seuls VRAIS champs à saisir) -->
+        <template #resultat>
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="alert alert-info d-flex align-items-center py-2">
+                        <i class="fa fa-user-graduate me-2"></i>
+                        <div class="small">
+                            Note pour <strong>{{ apprenants.find(a => String(a.id) === String(form.apprenant_id))?.libelle || '—' }}</strong>
+                            en <strong>{{ matiereLabel }}</strong>
+                            (Enseignant : {{ enseignantLabel }})
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <label>Note originale <span class="text-danger">*</span></label>
+                    <input v-model.number="form.note_originale" :disabled="isReadOnly" type="number" min="0" step="0.01" class="form-control" placeholder="Ex: 15" />
+                    <small class="text-muted">Note saisie par l'enseignant</small>
+                    <span v-if="form.errors?.note_originale" class="text-danger small d-block">{{ form.errors.note_originale }}</span>
+                </div>
+                <div class="col-md-4">
+                    <label>Note sur (échelle) <span class="text-danger">*</span></label>
+                    <select v-model.number="form.note_sur" :disabled="isReadOnly" class="form-control">
+                        <option value="">-- Sélectionner --</option>
+                        <option :value="10">10 (Interrogation)</option>
+                        <option :value="20">20 (Devoir, Contrôle)</option>
+                        <option :value="100">100 (Examen)</option>
+                        <option :value="5">5</option>
+                        <option :value="50">50</option>
+                        <option :value="200">200</option>
+                    </select>
+                    <span v-if="form.errors?.note_sur" class="text-danger small d-block">{{ form.errors.note_sur }}</span>
+                </div>
+                <div class="col-md-4">
+                    <label>Note normalisée /20 <span class="badge bg-secondary">auto</span></label>
+                    <input :value="noteNormalisee" type="text" class="form-control fw-bold text-primary" readonly disabled />
+                    <small class="text-muted">Formule : (originale / sur) × 20</small>
+                </div>
+
+                <div class="col-12">
+                    <label>Remarques</label>
+                    <textarea v-model="form.remarques" :disabled="isReadOnly" class="form-control" rows="2" placeholder="Optionnel"></textarea>
+                </div>
+
+                <div class="col-md-6">
+                    <label>Statut <span class="text-danger">*</span></label>
+                    <select v-model="form.statut" :disabled="isReadOnly" class="form-control">
+                        <option value="">-- Sélectionner --</option>
+                        <option v-for="o in statutOptions" :key="o.id" :value="o.id">{{ o.libelle }}</option>
+                    </select>
+                    <span v-if="form.errors?.statut" class="text-danger small d-block">{{ form.errors.statut }}</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Date Examen -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.date_examen') || 'Date Examen' }}</label>
-                <input type="date" v-model="form.date_examen" class="form-control" :disabled="isReadOnly">
-                <span v-if="form.errors?.date_examen" class="text-danger">
-                    <strong>{{ form.errors.date_examen }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 2: Affectation scolaire -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.academic_assignment') || 'Affectation scolaire' }}</h5>
-        </div>
-
-        <!-- Année scolaire -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.annee_scolaire') || 'Année scolaire' }}</label>
-                <SearchableSelect
-                    v-model="form.annee_scolaire_id"
-                    :options="anneesScolaires"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.annee_scolaire_id" class="text-danger">
-                    <strong>{{ form.errors.annee_scolaire_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.section') || 'Section' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="sectionLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Cycle -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="cycleLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Classe -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.classe') || 'Classe' }}</label>
-                <SearchableSelect
-                    v-model="form.classe_id"
-                    @update:modelValue="handleClasseChange"
-                    :options="classes"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.classe_id" class="text-danger">
-                    <strong>{{ form.errors.classe_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <InheritedContextBar
-            v-if="classeSelected"
-            :source="classes?.find(c => String(c.id) === String(form.classe_id)) || null"
-            title="Hérité de la classe"
-        />
-
-        <!-- École -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.ecole') || 'École' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="ecoleLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Campus -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.campus') || 'Campus' }} <span class="badge bg-secondary bg-opacity-25 text-secondary ms-1" style="font-size:10px;">auto</span></label>
-                <input type="text" class="form-control" :value="campusLabel" disabled style="background:#eef2f7; color:#64748b; cursor:not-allowed;" />
-            </div>
-        </div>
-
-        <!-- Section 3: Examen -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.exam') || 'Examen' }}</h5>
-        </div>
-
-        <!-- Période -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.periode') || 'Période' }}</label>
-                <SearchableSelect
-                    v-model="form.periode_id"
-                    :options="periodes"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.periode_id" class="text-danger">
-                    <strong>{{ form.errors.periode_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Nature Examen -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.nature_examen') || 'Nature d\'examen' }}</label>
-                <SearchableSelect
-                    v-model="form.nature_examen_id"
-                    :options="natureExamens"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.nature_examen_id" class="text-danger">
-                    <strong>{{ form.errors.nature_examen_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Type Examen -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.type_examen') || 'Type d\'examen' }}</label>
-                <SearchableSelect
-                    v-model="form.type_examen_id"
-                    :options="typeExamens"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.type_examen_id" class="text-danger">
-                    <strong>{{ form.errors.type_examen_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 4: Matière -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.subject') || 'Matière' }}</h5>
-        </div>
-
-        <!-- Matière -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }}</label>
-                <SearchableSelect
-                    :model-value="form.matiere_id"
-                    :options="matieres"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                    @update:model-value="(val) => { form.matiere_id = val; handleMatiereChange(val); }"
-                />
-                <span v-if="form.errors?.matiere_id" class="text-danger">
-                    <strong>{{ form.errors.matiere_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Groupe -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.groupe') || 'Groupe' }}</label>
-                <SearchableSelect
-                    v-model="form.groupe_id"
-                    :options="groupes"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.groupe_id" class="text-danger">
-                    <strong>{{ form.errors.groupe_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Enseignant -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.enseignant') || 'Enseignant' }}</label>
-                <SearchableSelect
-                    v-model="form.enseignant_id"
-                    :options="enseignants"
-                    :disabled="isReadOnly"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :placeholder="t('actions.select') || '-- Sélectionner --'"
-                />
-                <span v-if="form.errors?.enseignant_id" class="text-danger">
-                    <strong>{{ form.errors.enseignant_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 5: Résultats -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.results') || 'Résultats' }}</h5>
-        </div>
-
-        <!-- Note Originale (saisie par l'enseignant) -->
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>Note Originale <span class="text-danger">*</span></label>
-                <input type="number" v-model.number="form.note_originale" class="form-control" placeholder="Ex: 8, 15, 72..." :disabled="isReadOnly" min="0" step="0.01">
-                <small class="text-muted d-block mt-1">La note saisie (interrogation, devoir, etc.)</small>
-                <span v-if="form.errors?.note_originale" class="text-danger">
-                    <strong>{{ form.errors.note_originale }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Note Sur (échelle) -->
-        <div class="col-sm-3">
-            <div class="mb-3">
-                <label>Note Sur <span class="text-danger">*</span></label>
-                <select v-model.number="form.note_sur" class="form-control" :disabled="isReadOnly">
-                    <option value="">-- Sélectionner --</option>
-                    <option :value="10">10 (Interrogation)</option>
-                    <option :value="20">20 (Devoir, Contrôle)</option>
-                    <option :value="100">100 (Examen)</option>
-                    <option :value="0" disabled>---</option>
-                    <option :value="5">5</option>
-                    <option :value="50">50</option>
-                    <option :value="200">200</option>
-                </select>
-                <small class="text-muted d-block mt-1">Échelle de la note</small>
-                <span v-if="form.errors?.note_sur" class="text-danger">
-                    <strong>{{ form.errors.note_sur }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Note Normalisée (calculée automatiquement à /20) -->
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>Note Normalisée (auto)</label>
-                <input type="number"
-                    :value="form.note_originale && form.note_sur ? ((form.note_originale / form.note_sur) * 20).toFixed(2) : ''"
-                    class="form-control"
-                    disabled
-                    placeholder="Calculée">
-                <small class="text-muted d-block mt-1">Formule: (original / sur) × 20</small>
-            </div>
-        </div>
-
-        <!-- Remarques -->
-        <div class="col-12">
-            <div class="mb-3">
-                <label>{{ t('fields.remarques') || 'Remarques' }}</label>
-                <textarea v-model="form.remarques" class="form-control" :placeholder="t('fields.remarques')" :disabled="isReadOnly" rows="3"></textarea>
-                <span v-if="form.errors?.remarques" class="text-danger">
-                    <strong>{{ form.errors.remarques }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Section 6: Statut (last) -->
-        <div class="col-12">
-            <h5 class="section-title mb-3 mt-4">{{ t('common.status') || 'Statut' }}</h5>
-        </div>
-
-        <!-- Statut -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.statut') || 'Statut' }} <span class="text-danger">*</span></label>
-                <select v-model="form.statut" class="form-control" :disabled="isReadOnly">
-                    <option value="">{{ t('actions.select') || '-- Sélectionner --' }}</option>
-                    <option v-for="option in statutOptions" :key="option.id" :value="option.id">
-                        {{ option.libelle }}
-                    </option>
-                </select>
-                <span v-if="form.errors?.statut" class="text-danger">
-                    <strong>{{ form.errors.statut }}</strong>
-                </span>
-            </div>
-        </div>
-    </div>
+        </template>
+    </FormStepper>
 </template>
 
 <style scoped>
-.section-title {
-    font-weight: 600;
-    color: #333;
-    font-size: 1.1rem;
-    border-bottom: 2px solid #f0f0f0;
-    padding-bottom: 0.5rem;
+.form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.95rem;
+}
+.form-control:focus {
+    border-color: #0b5697;
+    box-shadow: 0 0 0 0.2rem rgba(11, 86, 151, 0.15);
+}
+label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+    display: block;
 }
 </style>

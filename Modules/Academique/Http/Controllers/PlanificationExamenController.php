@@ -3,7 +3,7 @@
 namespace Modules\Academique\Http\Controllers;
 
 use Modules\Academique\Entities\PlanificationExamen;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
 use Modules\Parametrage\Entities\NatureExamen;
 use Modules\Parametrage\Entities\TypeExamen;
@@ -68,7 +68,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
 
         return Inertia::render('Academique::PlanificationExamens/Index', [
             'planifications' => $planifications,
@@ -99,7 +99,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
         $enseignants = Enseignant::whereNotNull('id')->get(['id', 'prenoms', 'nom']);
 
         return Inertia::render('Academique::PlanificationExamens/Create', [
@@ -118,7 +118,7 @@ class PlanificationExamenController extends Controller
             'nature_examen_id' => 'nullable|exists:natures_examens,id',
             'type_examen_id' => 'nullable|exists:type_examens,id',
             'classe_id' => 'nullable|exists:classes,id',
-            'matiere_id' => 'nullable|exists:matieres,id',
+            'matiere_id' => 'nullable|exists:matieres_unites,id',
             'enseignant_id' => 'nullable|exists:enseignants,id',
             'jour' => 'nullable|string',
             'date' => 'nullable|date',
@@ -163,7 +163,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
         $enseignants = Enseignant::whereNotNull('id')->get(['id', 'prenoms', 'nom']);
 
         return Inertia::render('Academique::PlanificationExamens/Show', [
@@ -201,7 +201,7 @@ class PlanificationExamenController extends Controller
                 'cycle_id' => $c->cycle_id, 'cycle_libelle' => $c->cycle?->libelle,
                 'annee_scolaire_id' => $c->annee_scolaire_id, 'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
             ]);
-        $matieres = Matiere::where('statut', 'actif')->get(['id', 'libelle']);
+        $matieres = MatiereUnite::where('statut', 'actif')->get(['id', 'libelle']);
 
         // Format dates and times for form input
         $item = $planificationExamen->toArray();
@@ -228,7 +228,7 @@ class PlanificationExamenController extends Controller
             'nature_examen_id' => 'nullable|exists:natures_examens,id',
             'type_examen_id' => 'nullable|exists:type_examens,id',
             'classe_id' => 'nullable|exists:classes,id',
-            'matiere_id' => 'nullable|exists:matieres,id',
+            'matiere_id' => 'nullable|exists:matieres_unites,id',
             'enseignant_id' => 'nullable|exists:enseignants,id',
             'jour' => 'nullable|string',
             'date' => 'nullable|date',

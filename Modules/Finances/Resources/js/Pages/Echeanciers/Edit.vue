@@ -2,11 +2,12 @@
     <Head :title="t('common.edit')" />
     <div class="body-wrapper">
         <div class="dashboard-header-wrapper">
-            <h4 class="title">{{ t('common.edit') }} - {{ item.nom || item.name || item.titre }}</h4>
+            <h4 class="title">{{ t('common.edit') }} — Échéance n°{{ echeancier?.numero_echeance }}</h4>
         </div>
         <EcheancierForm
             ref="formRef"
-            :echeancier="item"
+            :echeancier="echeancier"
+            :frais="frais"
             :errors="form.errors"
             :submit-button-label="t('common.update')"
             @submit="submitForm"
@@ -28,7 +29,8 @@ defineOptions({
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
 const props = defineProps({
-    item: Object,
+    echeancier: Object,
+    frais:      { type: Array, default: () => [] },
 });
 const formRef = ref(null);
 const isSubmitting = ref(false);
@@ -37,7 +39,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.put(route('finances.echeancier.update', props.item.id), formData, {
+    router.put(route('finances.echeanciers.update', props.echeancier.id), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

@@ -2,11 +2,11 @@
     <Head :title="t('common.edit')" />
     <div class="body-wrapper">
         <div class="dashboard-header-wrapper">
-            <h4 class="title">{{ t('common.edit') }} - {{ item.nom || item.name || item.titre }}</h4>
+            <h4 class="title">{{ t('common.edit') }} — {{ modele?.titre }}</h4>
         </div>
         <ModeleRapportForm
             ref="formRef"
-            :modelerapport="item"
+            :modele="modele"
             :errors="form.errors"
             :submit-button-label="t('common.update')"
             @submit="submitForm"
@@ -28,7 +28,7 @@ defineOptions({
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
 const props = defineProps({
-    item: Object,
+    modele: Object,
 });
 const formRef = ref(null);
 const isSubmitting = ref(false);
@@ -37,7 +37,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.put(route('modele-rapport.update', props.item.id), formData, {
+    router.put(route('suivi-analyse.modeles-rapports.update', props.modele.id), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

@@ -23,26 +23,19 @@ class CategorieEquipementController extends Controller
             $query = CategorieEquipement::query();
 
             if ($request->filled('search')) {
-                $search = $request->input('search');
-                $query->where('libelle', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
-            }
-
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+                $query->where('libelle', 'like', '%' . $request->input('search') . '%');
             }
 
             $categories = $query->paginate(10)->withQueryString()
                 ->through(fn ($categorie) => [
-                    'id' => $categorie->id,
-                    'code' => $categorie->code,
-                    'libelle' => $categorie->libelle,
-                    'statut' => $categorie->statut,
+                    'id'          => $categorie->id,
+                    'libelle'     => $categorie->libelle,
+                    'description' => $categorie->description,
                 ]);
 
             return Inertia::render('RessourcesLogistique::CategoriesEquipements/Index', [
                 'categories' => $categories,
-                'filters' => $request->only(['search', 'statut']),
+                'filters'    => $request->only(['search']),
             ]);
         } catch (\Throwable $th) {
             log_error("Inventaire", "CategorieEquipementController::index", $th->getMessage());
@@ -64,10 +57,8 @@ class CategorieEquipementController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:categories_equipements',
-                'libelle' => 'required|string|max:255',
+                'libelle'     => 'required|string|max:255|unique:categories_equipements,libelle',
                 'description' => 'nullable|string',
-                'statut' => 'required|in:actif,inactif',
             ]);
 
             CategorieEquipement::create($validated);
@@ -111,10 +102,8 @@ class CategorieEquipementController extends Controller
     {
         try {
             $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:categories_equipements,code,' . $categorieEquipement->id,
-                'libelle' => 'required|string|max:255',
+                'libelle'     => 'required|string|max:255|unique:categories_equipements,libelle,' . $categorieEquipement->id,
                 'description' => 'nullable|string',
-                'statut' => 'required|in:actif,inactif',
             ]);
 
             $categorieEquipement->update($validated);

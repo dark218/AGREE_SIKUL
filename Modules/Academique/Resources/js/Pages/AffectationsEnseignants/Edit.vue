@@ -61,27 +61,11 @@ const form = useForm({
     ecole_id: props.affectation?.ecole_id || '',
     institution_id: props.affectation?.institution_id || '',
     campus_id: props.affectation?.campus_id || '',
-    matiere_1_id: props.affectation?.matiere_1_id || '',
-    matiere_2_id: props.affectation?.matiere_2_id || '',
-    matiere_3_id: props.affectation?.matiere_3_id || '',
-    matiere_4_id: props.affectation?.matiere_4_id || '',
-    matiere_5_id: props.affectation?.matiere_5_id || '',
-    matiere_6_id: props.affectation?.matiere_6_id || '',
-    matiere_7_id: props.affectation?.matiere_7_id || '',
-    matiere_8_id: props.affectation?.matiere_8_id || '',
-    matiere_9_id: props.affectation?.matiere_9_id || '',
-    matiere_10_id: props.affectation?.matiere_10_id || '',
-    matiere_11_id: props.affectation?.matiere_11_id || '',
-    matiere_12_id: props.affectation?.matiere_12_id || '',
-    matiere_13_id: props.affectation?.matiere_13_id || '',
-    matiere_14_id: props.affectation?.matiere_14_id || '',
-    matiere_15_id: props.affectation?.matiere_15_id || '',
-    matiere_16_id: props.affectation?.matiere_16_id || '',
-    matiere_17_id: props.affectation?.matiere_17_id || '',
-    matiere_18_id: props.affectation?.matiere_18_id || '',
-    matiere_19_id: props.affectation?.matiere_19_id || '',
-    matiere_20_id: props.affectation?.matiere_20_id || '',
-    matiere_21_id: props.affectation?.matiere_21_id || '',
+    // matieres[] : array d'ids MatiereUnite (pivot affectation_matieres).
+
+    // Remplace les 21 slots hardcodés matiere_1_id..matiere_21_id.
+
+    matieres: props.affectation?.matieres?.map((m) => m.id ?? m) || [],
     etat: props.affectation?.etat || 'actif',
 });
 

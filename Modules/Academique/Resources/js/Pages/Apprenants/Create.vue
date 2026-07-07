@@ -191,7 +191,10 @@ const submitForm = (nextAction = null) => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm()">
+                            <!-- Le bouton "Valider" principal vit dans le FormStepper (dernière étape).
+                                 Les 2 boutons secondaires (Enregistrer et inscrire / dossier) restent
+                                 externes car ils déclenchent des flux post-submit spécifiques. -->
+                            <div>
                                 <ApprenantForm
                                     :form="form"
                                     :classes="classes"
@@ -206,52 +209,44 @@ const submitForm = (nextAction = null) => {
                                     :quartiers="quartiers"
                                     :anneesScolaires="anneesScolaires"
                                     :typesApprenant="typesApprenant"
-                                    :categoriesApprenant="categoriesApprenant"
                                     :genres="genres"
                                     :statutsApprenants="statutsApprenants"
                                     :groupesSanguins="groupesSanguins"
                                     mode="create"
+                                    @submit="submitForm()"
                                 />
-                                <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end d-flex flex-wrap gap-2 justify-content-end">
-                                            <Link :href="route('academique.apprenants.index')" class="btn btn-danger">
+                                        <div class="d-flex flex-wrap gap-2 justify-content-between">
+                                            <Link :href="route('academique.apprenants.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                                :disabled="form.processing"
-                                                title="Enregistrer et retourner à la liste"
-                                            >
-                                                <span v-if="form.processing && form.next_action === null" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                class="btn btn-success"
-                                                :disabled="form.processing"
-                                                title="Enregistrer puis passer directement à l'inscription"
-                                                @click="submitForm('inscription')"
-                                            >
-                                                <span v-if="form.processing && form.next_action === 'inscription'" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-user-check"></i> Enregistrer et inscrire
-                                            </button>
-                                            <button
-                                                type="button"
-                                                class="btn btn-info text-white"
-                                                :disabled="form.processing"
-                                                title="Enregistrer puis remplir le dossier de l'apprenant"
-                                                @click="submitForm('dossier')"
-                                            >
-                                                <span v-if="form.processing && form.next_action === 'dossier'" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-folder-open"></i> Enregistrer et dossier
-                                            </button>
+                                            <div class="d-flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-success"
+                                                    :disabled="form.processing"
+                                                    title="Enregistrer puis passer directement à l'inscription"
+                                                    @click="submitForm('inscription')"
+                                                >
+                                                    <span v-if="form.processing && form.next_action === 'inscription'" class="spinner-border spinner-border-sm me-2"></span>
+                                                    <i class="fa fa-user-check"></i> Enregistrer et inscrire
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-info text-white"
+                                                    :disabled="form.processing"
+                                                    title="Enregistrer puis remplir le dossier de l'apprenant"
+                                                    @click="submitForm('dossier')"
+                                                >
+                                                    <span v-if="form.processing && form.next_action === 'dossier'" class="spinner-border spinner-border-sm me-2"></span>
+                                                    <i class="fa fa-folder-open"></i> Enregistrer et dossier
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

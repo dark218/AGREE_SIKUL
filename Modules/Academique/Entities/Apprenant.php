@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Parametrage\Entities\{Classe, Campus, Commune, Departement, Region, Pays, Section, CycleEnseignement, Ecole, Quartier, AnneeScolaire, TypeApprenant, CategorieApprenant};
+use Modules\Parametrage\Entities\{Classe, Campus, Commune, Departement, Region, Pays, Section, CycleEnseignement, Ecole, Quartier, AnneeScolaire, TypeApprenant};
 
 class Apprenant extends BaseModel
 {
@@ -41,7 +41,7 @@ class Apprenant extends BaseModel
         'campus_id',
         'annee_scolaire_id',
         'type_apprenant_id',
-        'categorie_apprenant_id',
+        // (categorie_apprenant_id retiré du fillable — feature droppée)
         'statut',
         'lieu_naissance',
         'commune_naissance_id',
@@ -158,10 +158,7 @@ class Apprenant extends BaseModel
         return $this->belongsTo(TypeApprenant::class, 'type_apprenant_id');
     }
 
-    public function categorieApprenant(): BelongsTo
-    {
-        return $this->belongsTo(CategorieApprenant::class, 'categorie_apprenant_id');
-    }
+    // (Relation categorieApprenant retirée — feature droppée, doublon TypeApprenant/StatutApprenant.)
 
     // Relations - Birth Location
     public function communeNaissance(): BelongsTo
@@ -226,10 +223,9 @@ class Apprenant extends BaseModel
         return $this->hasMany(Bulletin::class, 'apprenant_id');
     }
 
-    public function absences(): HasMany
-    {
-        return $this->hasMany(AbsenceApprenant::class, 'apprenant_id');
-    }
+    // Relation absences() retirée : Presence est désormais la source unique
+    // des absences apprenant (statut IN ['absent','malade','permis']).
+    // Utiliser $apprenant->presences()->whereIn('statut', ['absent','malade','permis']).
 
     public function presences(): HasMany
     {

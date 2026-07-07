@@ -102,7 +102,7 @@ class HomeController extends Controller
         // Toutes les notes
         $notes = DB::table('notes')
             ->where('apprenant_id', $apprenant->id)
-            ->leftJoin('matieres', 'notes.matiere_id', '=', 'matieres.id')
+            ->leftJoin('matieres_unites', 'notes.matiere_id', '=', 'matieres.id')
             ->select('notes.*', 'matieres.libelle as matiere_libelle')
             ->orderBy('notes.created_at', 'desc')
             ->limit(15)
@@ -122,7 +122,7 @@ class HomeController extends Controller
         // Absences
         $absences = DB::table('absences_apprenants')
             ->where('apprenant_id', $apprenant->id)
-            ->leftJoin('matieres', 'absences_apprenants.matiere_id', '=', 'matieres.id')
+            ->leftJoin('matieres_unites', 'absences_apprenants.matiere_id', '=', 'matieres.id')
             ->select('absences_apprenants.*', 'matieres.libelle as matiere_libelle')
             ->orderBy('absences_apprenants.date_debut', 'desc')
             ->limit(10)
@@ -131,7 +131,7 @@ class HomeController extends Controller
         // Emploi du temps
         $edt = DB::table('emplois_temps')
             ->where('classe_id', $apprenant->classe_id)
-            ->leftJoin('matieres', 'emplois_temps.matiere_id', '=', 'matieres.id')
+            ->leftJoin('matieres_unites', 'emplois_temps.matiere_id', '=', 'matieres.id')
             ->leftJoin('enseignants', 'emplois_temps.enseignant_id', '=', 'enseignants.id')
             ->select('emplois_temps.*', 'matieres.libelle as matiere_libelle', 'enseignants.nom as ens_nom', 'enseignants.prenoms as ens_prenoms')
             ->orderByRaw("FIELD(emplois_temps.jour, 'lundi','mardi','mercredi','jeudi','vendredi','samedi')")
@@ -266,7 +266,7 @@ class HomeController extends Controller
 
         $parMatiere = DB::table('notes')
             ->whereNull('notes.deleted_at')
-            ->join('matieres', 'notes.matiere_id', '=', 'matieres.id')
+            ->join('matieres_unites', 'notes.matiere_id', '=', 'matieres.id')
             ->select('matieres.libelle', DB::raw('COUNT(*) as total'))
             ->groupBy('matieres.libelle')
             ->orderBy('total', 'desc')

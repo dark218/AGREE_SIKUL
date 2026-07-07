@@ -3,17 +3,20 @@
 namespace Modules\Finances\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Finances\Entities\Frais;
+use Modules\Finances\Entities\TypeFrais;
+use Modules\Parametrage\Entities\AnneeScolaire;
 
 class FraisController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission.check:frais-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission.check:frais-list',   ['only' => ['index', 'show']]);
         $this->middleware('permission.check:frais-create', ['only' => ['create', 'store']]);
-        $this->middleware('permission.check:frais-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission.check:frais-edit',   ['only' => ['edit', 'update']]);
         $this->middleware('permission.check:frais-delete', ['only' => ['destroy', 'statut']]);
     }
 
@@ -24,19 +27,32 @@ class FraisController extends Controller
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->where('libelle', 'like', "%$search%")
-                    ->orWhere('code', 'like', "%$search%");
+                // La table `frais` n'a ni `libelle` ni `code` en base — recherche
+                // via relations : typeFrais.libelle/code ou apprenant.nom.
+                $query->whereHas('typeFrais', function ($q) use ($search) {
+                    $q->where('libelle', 'like', "%$search%")
+                      ->orWhere('code', 'like', "%$search%");
+                });
             }
 
             if ($request->filled('statut')) {
                 $query->where('statut', $request->input('statut'));
             }
 
-            $frais = $query->with(['typeFrais', 'classe'])->paginate(10)->withQueryString();
+            if ($request->filled('annee_scolaire_id')) {
+                $query->where('annee_scolaire_id', $request->input('annee_scolaire_id'));
+            }
+
+            $frais = $query
+                ->with(['typeFrais', 'apprenant', 'anneeScolaire'])
+                ->orderByDesc('created_at')
+                ->paginate(10)
+                ->withQueryString();
 
             return Inertia::render('Finances::Frais/Index', [
-                'frais' => $frais,
-                'filters' => $request->only(['search', 'statut']),
+                'frais'           => $frais,
+                'anneesScolaires' => AnneeScolaire::orderByDesc('libelle')->get(['id', 'libelle']),
+                'filters'         => $request->only(['search', 'statut', 'annee_scolaire_id']),
             ]);
         } catch (\Throwable $th) {
             log_error("Finances", "FraisController::index", $th->getMessage());
@@ -47,7 +63,11 @@ class FraisController extends Controller
     public function create()
     {
         try {
-            return Inertia::render('Finances::Frais/Create');
+            return Inertia::render('Finances::Frais/Create', [
+                'typesFrais'      => TypeFrais::orderBy('libelle')->get(['id', 'code', 'libelle', 'montant_cents']),
+                'apprenants'      => User::role('apprenant')->orderBy('nom')->get(['id', 'nom', 'prenoms']),
+                'anneesScolaires' => AnneeScolaire::orderByDesc('libelle')->get(['id', 'libelle']),
+            ]);
         } catch (\Throwable $th) {
             log_error("Finances", "FraisController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -58,31 +78,32 @@ class FraisController extends Controller
     {
         try {
             $validated = $request->validate([
-                'type_frais_id' => 'required|exists:types_frais,id',
-                'classe_id' => 'nullable|exists:classes,id',
-                'code' => 'required|string|max:100|unique:frais',
-                'libelle' => 'required|string|max:255',
-                'montant_cents' => 'required|integer|min:0',
-                'date_debut' => 'required|date',
-                'date_fin' => 'nullable|date',
-                'statut' => 'required|in:actif,inactif',
+                'apprenant_id'       => 'required|exists:users,id',
+                'annee_scolaire_id'  => 'required|exists:annees_scolaires,id',
+                'type_frais_id'      => 'required|exists:types_frais,id',
+                'montant_cents'      => 'required|integer|min:0',
+                'montant_paye_cents' => 'nullable|integer|min:0',
+                'statut'             => 'required|in:non_paye,partiellement_paye,paye',
             ]);
+            $validated['montant_paye_cents'] = $validated['montant_paye_cents'] ?? 0;
 
             Frais::create($validated);
 
             return redirect()->route('finances.frais.index')
                 ->with('success', __('messages.created_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Finances", "FraisController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 
     public function show(Frais $frai)
     {
         try {
-            $frai->load('typeFrais', 'classe', 'paiements', 'echeanciers');
+            $frai->load(['typeFrais', 'apprenant', 'anneeScolaire', 'paiements', 'echeanciers']);
 
             return Inertia::render('Finances::Frais/Show', [
                 'frais' => $frai,
@@ -97,7 +118,10 @@ class FraisController extends Controller
     {
         try {
             return Inertia::render('Finances::Frais/Edit', [
-                'frais' => $frai->load('typeFrais', 'classe'),
+                'frais'           => $frai->load(['typeFrais', 'apprenant', 'anneeScolaire']),
+                'typesFrais'      => TypeFrais::orderBy('libelle')->get(['id', 'code', 'libelle', 'montant_cents']),
+                'apprenants'      => User::role('apprenant')->orderBy('nom')->get(['id', 'nom', 'prenoms']),
+                'anneesScolaires' => AnneeScolaire::orderByDesc('libelle')->get(['id', 'libelle']),
             ]);
         } catch (\Throwable $th) {
             log_error("Finances", "FraisController::edit", $th->getMessage());
@@ -109,24 +133,25 @@ class FraisController extends Controller
     {
         try {
             $validated = $request->validate([
-                'type_frais_id' => 'required|exists:types_frais,id',
-                'classe_id' => 'nullable|exists:classes,id',
-                'code' => 'required|string|max:100|unique:frais,code,' . $frai->id,
-                'libelle' => 'required|string|max:255',
-                'montant_cents' => 'required|integer|min:0',
-                'date_debut' => 'required|date',
-                'date_fin' => 'nullable|date',
-                'statut' => 'required|in:actif,inactif',
+                'apprenant_id'       => 'required|exists:users,id',
+                'annee_scolaire_id'  => 'required|exists:annees_scolaires,id',
+                'type_frais_id'      => 'required|exists:types_frais,id',
+                'montant_cents'      => 'required|integer|min:0',
+                'montant_paye_cents' => 'nullable|integer|min:0',
+                'statut'             => 'required|in:non_paye,partiellement_paye,paye',
             ]);
+            $validated['montant_paye_cents'] = $validated['montant_paye_cents'] ?? $frai->montant_paye_cents;
 
             $frai->update($validated);
 
             return redirect()->route('finances.frais.show', $frai)
                 ->with('success', __('messages.updated_successfully'));
 
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Finances", "FraisController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withErrors(['_error' => $th->getMessage()])->withInput();
         }
     }
 

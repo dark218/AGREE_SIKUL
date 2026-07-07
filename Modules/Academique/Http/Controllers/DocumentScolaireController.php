@@ -5,7 +5,7 @@ namespace Modules\Academique\Http\Controllers;
 use Modules\Academique\Entities\Bulletin;
 use Modules\Academique\Entities\Note;
 use Modules\Academique\Entities\Apprenant;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Parametrage\Entities\Classe;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -125,7 +125,7 @@ class DocumentScolaireController extends Controller
             ->with('matiere')
             ->get();
 
-        $matieresData = Matiere::whereIn('id', $notes->pluck('matiere_id')->unique())
+        $matieresData = MatiereUnite::whereIn('id', $notes->pluck('matiere_id')->unique())
             ->get()
             ->map(function ($matiere) use ($notes) {
                 $notesMatiere = $notes->where('matiere_id', $matiere->id);
@@ -183,7 +183,7 @@ class DocumentScolaireController extends Controller
         $anneeScolaireId = $request->input('annee_scolaire_id');
 
         $classe = Classe::with('ecole')->findOrFail($classeId);
-        $matiere = Matiere::findOrFail($matiereId);
+        $matiere = MatiereUnite::findOrFail($matiereId);
 
         $apprenants = Apprenant::where('classe_id', $classeId)
             ->orderBy('nom')

@@ -5,7 +5,7 @@ namespace Modules\Finances\Entities;
 use App\Models\BaseModel;
 use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\CycleEnseignement;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Section;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Entities\Ecole;
@@ -73,7 +73,7 @@ class FacturationApprenant extends BaseModel
 
     public function niveau()
     {
-        return $this->belongsTo(Niveau::class, 'niveau_id');
+        return $this->belongsTo(NiveauEtude::class, 'niveau_id');
     }
 
     public function scopeActif($query)

@@ -68,24 +68,12 @@ const form = useForm({
     telephone: props.enseignant?.telephone || '',
     photo: props.enseignant?.photo || '',
     statut: props.enseignant?.statut || 'actif',
-    matiere_1_id: props.enseignant?.matieres_ids?.[0] || '',
-    matiere_2_id: props.enseignant?.matieres_ids?.[1] || '',
-    matiere_3_id: props.enseignant?.matieres_ids?.[2] || '',
-    matiere_4_id: props.enseignant?.matieres_ids?.[3] || '',
-    matiere_5_id: props.enseignant?.matieres_ids?.[4] || '',
-    matiere_6_id: props.enseignant?.matieres_ids?.[5] || '',
-    matiere_7_id: props.enseignant?.matieres_ids?.[6] || '',
-    cycle_1_id: props.enseignant?.cycles_ids?.[0] || '',
-    cycle_2_id: props.enseignant?.cycles_ids?.[1] || '',
-    niveau_1_id: props.enseignant?.niveaux_ids?.[0] || '',
-    niveau_2_id: props.enseignant?.niveaux_ids?.[1] || '',
-    niveau_3_id: props.enseignant?.niveaux_ids?.[2] || '',
-    niveau_4_id: props.enseignant?.niveaux_ids?.[3] || '',
-    classe_1_id: props.enseignant?.classes_ids?.[0] || '',
-    classe_2_id: props.enseignant?.classes_ids?.[1] || '',
-    classe_3_id: props.enseignant?.classes_ids?.[2] || '',
-    classe_4_id: props.enseignant?.classes_ids?.[3] || '',
-    classe_5_id: props.enseignant?.classes_ids?.[4] || '',
+    // Multi-select n-n : les IDs sont fournis en tableaux par le controller
+    // (`matieres_ids`, `cycles_ids`, etc. via pluck() sur les relations).
+    matieres_ids: props.enseignant?.matieres_ids || [],
+    cycles_ids:   props.enseignant?.cycles_ids   || [],
+    niveaux_ids:  props.enseignant?.niveaux_ids  || [],
+    classes_ids:  props.enseignant?.classes_ids  || [],
 });
 
 const submitForm = () => {
@@ -126,7 +114,8 @@ const submitForm = () => {
                         </div>
                         <div class="dash-payment-body" :class="{ collapsed: isCollapsed }">
                             <AlertMessage />
-                            <form @submit.prevent="submitForm">
+                            <!-- Bouton "Valider" géré par le FormStepper (dernière étape). -->
+                            <div>
                                 <EnseignantForm
                                     :form="form"
                                     :communes="communes"
@@ -145,26 +134,18 @@ const submitForm = () => {
                                     :statutsEmployes="statutsEmployes"
                                     :fonctions="fonctions"
                                     mode="edit"
+                                    @submit="submitForm"
                                 />
-                                <!-- Boutons -->
                                 <div class="row mt-3">
                                     <div class="col">
-                                        <div class="text-end">
-                                            <Link :href="route('academique.enseignants.index')" class="btn btn-danger">
+                                        <div class="text-start">
+                                            <Link :href="route('academique.enseignants.index')" class="btn btn-outline-secondary">
                                                 <i class="fa fa-arrow-left"></i> {{ t('actions.back') }}
                                             </Link>
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary ms-2"
-                                                :disabled="form.processing"
-                                            >
-                                                <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                                <i class="fa fa-save"></i> {{ t('actions.validate') }}
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>

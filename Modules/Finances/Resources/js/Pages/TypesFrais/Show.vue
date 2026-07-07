@@ -24,7 +24,7 @@ function confirmDelete() {
 }
 function performDelete() {
     isDeleting.value = true;
-    router.put(route('finances.type-frais.statut', props.item.id), {}, {
+    router.put(route('finances.types-frais.statut', props.item.id), {}, {
         onSuccess: () => {
             showDeleteConfirm.value = false;
             isDeleting.value = false;
@@ -41,7 +41,7 @@ function performDelete() {
         <div class="dashboard-header-wrapper">
             <h4 class="title">{{ item.nom || item.name || item.titre }}</h4>
             <div class="actions">
-                <Link v-if="can('type-frais-edit')" :href="route('finances.type-frais.edit', item.id)" class="btn btn-warning">
+                <Link v-if="can('type-frais-edit')" :href="route('finances.types-frais.edit', item.id)" class="btn btn-warning">
                     {{ t('common.edit') }}
                 </Link>
                 <button v-if="can('type-frais-delete')" @click="confirmDelete" class="btn btn-danger">

@@ -8,7 +8,7 @@ use Inertia\Inertia;
 use Modules\Academique\Entities\Note;
 use Modules\Academique\Entities\Apprenant;
 use Modules\Academique\Entities\Evaluation;
-use Modules\Academique\Entities\Matiere;
+use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
 use Modules\Parametrage\Entities\AnneeScolaire;
 use Modules\Parametrage\Entities\Section;
@@ -126,7 +126,7 @@ class NoteController extends Controller
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'natureExamens' => NatureExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'typeExamens' => TypeExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-                'matieres' => Matiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'groupes' => GroupeMatiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::with('user')->whereNull('deleted_at')->select('id', 'user_id')->get()->map(fn($e) => [
                     'id' => $e->id,
@@ -172,10 +172,10 @@ class NoteController extends Controller
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'campus_id' => 'nullable|exists:campuses,id',
                 'periode_id' => 'nullable|exists:periodes_colaires,id',
-                'nature_examen_id' => 'nullable|exists:nature_examens,id',
+                'nature_examen_id' => 'nullable|exists:natures_examens,id',
                 'type_examen_id' => 'nullable|exists:type_examens,id',
                 'date_examen' => 'nullable|date',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
                 'groupe_id' => 'nullable|exists:groupes_matieres,id',
                 'note_originale' => 'required|numeric|min:0',
                 'note_sur' => 'required|numeric|min:0.01',
@@ -281,7 +281,7 @@ class NoteController extends Controller
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'natureExamens' => NatureExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'typeExamens' => TypeExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-                'matieres' => Matiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'groupes' => GroupeMatiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::with('user')->whereNull('deleted_at')->select('id', 'user_id')->get()->map(fn($e) => [
                     'id' => $e->id,
@@ -386,7 +386,7 @@ class NoteController extends Controller
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'natureExamens' => NatureExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'typeExamens' => TypeExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
-                'matieres' => Matiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
+                'matieres' => MatiereUnite::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'groupes' => GroupeMatiere::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'enseignants' => Enseignant::with('user')->whereNull('deleted_at')->select('id', 'user_id')->get()->map(fn($e) => [
                     'id' => $e->id,
@@ -445,10 +445,10 @@ class NoteController extends Controller
                 'ecole_id' => 'nullable|exists:ecoles,id',
                 'campus_id' => 'nullable|exists:campuses,id',
                 'periode_id' => 'nullable|exists:periodes_colaires,id',
-                'nature_examen_id' => 'nullable|exists:nature_examens,id',
+                'nature_examen_id' => 'nullable|exists:natures_examens,id',
                 'type_examen_id' => 'nullable|exists:type_examens,id',
                 'date_examen' => 'nullable|date',
-                'matiere_id' => 'nullable|exists:matieres,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
                 'groupe_id' => 'nullable|exists:groupes_matieres,id',
                 'note_originale' => 'required|numeric|min:0',
                 'note_sur' => 'required|numeric|min:0.01',

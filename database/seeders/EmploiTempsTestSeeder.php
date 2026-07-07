@@ -20,7 +20,7 @@ class EmploiTempsTestSeeder extends Seeder
             return;
         }
 
-        $matieres = \Modules\Parametrage\Entities\Matiere::whereIn('libelle', ['Français', 'Mathématiques', 'Anglais', 'Sciences Naturelles', 'Histoire-Géographie'])
+        $matieres = \Modules\Parametrage\Entities\MatiereUnite::whereIn('libelle', ['Français', 'Mathématiques', 'Anglais', 'Sciences Naturelles', 'Histoire-Géographie'])
             ->get();
 
         if ($matieres->isEmpty()) {

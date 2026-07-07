@@ -3,6 +3,7 @@
 namespace Modules\Communication\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Communication\Entities\Notification;
@@ -20,23 +21,30 @@ class NotificationController extends Controller
     public function index(Request $request)
     {
         try {
+            // Notification::$fillable = user_id, type, titre, message,
+            // data, lu_at, action_url. Pas de colonne `statut` : le
+            // filtre "non lu / lu" se base sur `lu_at` (null vs date).
             $query = Notification::query();
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->where('titre', 'like', "%$search%")
-                    ->orWhere('message', 'like', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('titre', 'like', "%$search%")
+                        ->orWhere('message', 'like', "%$search%");
+                });
             }
 
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+            if ($request->filled('etat_lecture')) {
+                $etat = $request->input('etat_lecture');
+                if ($etat === 'lu')     $query->whereNotNull('lu_at');
+                if ($etat === 'non_lu') $query->whereNull('lu_at');
             }
 
-            $notifications = $query->with(['destinataire'])->paginate(10)->withQueryString();
+            $notifications = $query->with(['user'])->paginate(10)->withQueryString();
 
             return Inertia::render('Communication::Notifications/Index', [
                 'notifications' => $notifications,
-                'filters' => $request->only(['search', 'statut']),
+                'filters' => $request->only(['search', 'etat_lecture']),
             ]);
         } catch (\Throwable $th) {
             log_error("Communication", "NotificationController::index", $th->getMessage());
@@ -47,7 +55,9 @@ class NotificationController extends Controller
     public function create()
     {
         try {
-            return Inertia::render('Communication::Notifications/Create');
+            return Inertia::render('Communication::Notifications/Create', [
+                'users' => User::orderBy('nom')->get(['id', 'nom', 'prenoms', 'email'])->toArray(),
+            ]);
         } catch (\Throwable $th) {
             log_error("Communication", "NotificationController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -57,15 +67,17 @@ class NotificationController extends Controller
     public function store(Request $request)
     {
         try {
+            // Aligné sur Notification::$fillable (user_id, type, titre,
+            // message, data, lu_at, action_url). `date_time` n'existe pas
+            // dans Laravel — utiliser `date`.
             $validated = $request->validate([
-                'destinataire_id' => 'required|exists:users,id',
-                'titre' => 'required|string|max:255',
-                'message' => 'required|string',
-                'type' => 'required|string|max:100',
-                'date_envoi' => 'required|date_time',
-                'date_lecture' => 'nullable|date_time',
-                'lien_action' => 'nullable|string',
-                'statut' => 'required|in:non_lu,lu,archive',
+                'user_id'    => 'required|exists:users,id',
+                'titre'      => 'required|string|max:255',
+                'message'    => 'required|string',
+                'type'       => 'required|string|max:100',
+                'data'       => 'nullable|array',
+                'lu_at'      => 'nullable|date',
+                'action_url' => 'nullable|string',
             ]);
 
             Notification::create($validated);
@@ -82,7 +94,7 @@ class NotificationController extends Controller
     public function show(Notification $notification)
     {
         try {
-            $notification->load('destinataire');
+            $notification->load('user');
 
             return Inertia::render('Communication::Notifications/Show', [
                 'notification' => $notification,
@@ -97,7 +109,8 @@ class NotificationController extends Controller
     {
         try {
             return Inertia::render('Communication::Notifications/Edit', [
-                'notification' => $notification->load('destinataire'),
+                'item'  => $notification->load('user'),
+                'users' => User::orderBy('nom')->get(['id', 'nom', 'prenoms', 'email'])->toArray(),
             ]);
         } catch (\Throwable $th) {
             log_error("Communication", "NotificationController::edit", $th->getMessage());
@@ -108,15 +121,17 @@ class NotificationController extends Controller
     public function update(Request $request, Notification $notification)
     {
         try {
+            // Aligné sur Notification::$fillable (user_id, type, titre,
+            // message, data, lu_at, action_url). `date_time` n'existe pas
+            // dans Laravel — utiliser `date`.
             $validated = $request->validate([
-                'destinataire_id' => 'required|exists:users,id',
-                'titre' => 'required|string|max:255',
-                'message' => 'required|string',
-                'type' => 'required|string|max:100',
-                'date_envoi' => 'required|date_time',
-                'date_lecture' => 'nullable|date_time',
-                'lien_action' => 'nullable|string',
-                'statut' => 'required|in:non_lu,lu,archive',
+                'user_id'    => 'required|exists:users,id',
+                'titre'      => 'required|string|max:255',
+                'message'    => 'required|string',
+                'type'       => 'required|string|max:100',
+                'data'       => 'nullable|array',
+                'lu_at'      => 'nullable|date',
+                'action_url' => 'nullable|string',
             ]);
 
             $notification->update($validated);

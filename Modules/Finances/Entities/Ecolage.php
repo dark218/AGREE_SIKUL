@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Parametrage\Entities\AnneeScolaire;
-use Modules\Parametrage\Entities\Niveau;
+use Modules\Parametrage\Entities\NiveauEtude;
 use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Entities\Section;
@@ -49,7 +49,7 @@ class Ecolage extends BaseModel
 
     public function niveau(): BelongsTo
     {
-        return $this->belongsTo(Niveau::class, 'niveau_id');
+        return $this->belongsTo(NiveauEtude::class, 'niveau_id');
     }
 
     public function ecole(): BelongsTo

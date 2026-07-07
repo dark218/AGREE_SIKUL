@@ -2,11 +2,13 @@
     <Head :title="t('common.edit')" />
     <div class="body-wrapper">
         <div class="dashboard-header-wrapper">
-            <h4 class="title">{{ t('common.edit') }} - {{ item.nom || item.name || item.titre }}</h4>
+            <h4 class="title">{{ t('common.edit') }} — Consultation du {{ consultation?.date_consultation }}</h4>
         </div>
         <ConsultationInfirmerieForm
             ref="formRef"
-            :consultationinfirmerie="item"
+            :consultation="consultation"
+            :apprenants="apprenants"
+            :infirmiers="infirmiers"
             :errors="form.errors"
             :submit-button-label="t('common.update')"
             @submit="submitForm"
@@ -28,7 +30,9 @@ defineOptions({
 const { t } = useI18n();
 const { showStoreLoader, hideLoader } = useLoader();
 const props = defineProps({
-    item: Object,
+    consultation: Object,
+    apprenants:   { type: Array, default: () => [] },
+    infirmiers:   { type: Array, default: () => [] },
 });
 const formRef = ref(null);
 const isSubmitting = ref(false);
@@ -37,7 +41,7 @@ const form = ref({
 });
 function submitForm(formData) {
     isSubmitting.value = true;
-    router.put(route('consultation-infirmerie.update', props.item.id), formData, {
+    router.put(route('consultations-infirmerie.update', props.consultation.id), formData, {
         onSuccess: () => {
             isSubmitting.value = false;
         },

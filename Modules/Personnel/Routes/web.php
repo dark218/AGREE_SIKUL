@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use Modules\Personnel\Http\Controllers\ParentController;
 use Modules\Personnel\Http\Controllers\AccompagnateurController;
 use Modules\Personnel\Http\Controllers\TuteurController;
+use Modules\Personnel\Http\Controllers\PersonnelAdministratifController;
+
+// Route model binding pour {personnel_administratif} → PersonnelAdministratif.
+Route::model('personnel_administratif', \Modules\Personnel\Entities\PersonnelAdministratif::class);
 
 
 // ============================================
@@ -46,4 +50,19 @@ Route::prefix('tuteurs')->name('tuteurs.')->group(function () {
     Route::put('/{tuteur}', [TuteurController::class, 'update'])->name('update');
     Route::put('/{tuteur}/statut', [TuteurController::class, 'statut'])->name('statut');
     Route::delete('/{tuteur}', [TuteurController::class, 'destroy'])->name('destroy');
+});
+
+// ============================================
+// Routes Personnel Administratif
+// Déplacé depuis Modules/Academique (mauvaise localisation métier).
+// ============================================
+Route::prefix('personnels-administratifs')->name('personnels_administratifs.')->group(function () {
+    Route::get('/', [PersonnelAdministratifController::class, 'index'])->name('index');
+    Route::get('/create', [PersonnelAdministratifController::class, 'create'])->name('create');
+    Route::post('/', [PersonnelAdministratifController::class, 'store'])->name('store');
+    Route::get('/{personnel_administratif}', [PersonnelAdministratifController::class, 'show'])->name('show');
+    Route::get('/{personnel_administratif}/edit', [PersonnelAdministratifController::class, 'edit'])->name('edit');
+    Route::match(['put', 'post'], '/{personnel_administratif}', [PersonnelAdministratifController::class, 'update'])->name('update');
+    Route::put('/{personnel_administratif}/statut', [PersonnelAdministratifController::class, 'statut'])->name('statut');
+    Route::delete('/{personnel_administratif}', [PersonnelAdministratifController::class, 'destroy'])->name('destroy');
 });

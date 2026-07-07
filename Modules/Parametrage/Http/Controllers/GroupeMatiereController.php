@@ -50,20 +50,14 @@ class GroupeMatiereController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = GroupeMatiere::with([
-                'niveau', 'section', 'cycle',
-                'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5',
-                'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10',
-            ]);
+            $query = GroupeMatiere::with(['niveau', 'section', 'cycle', 'matieres']);
 
             if ($request->filled('code')) {
                 $query->where('code', 'like', '%' . $request->code . '%');
             }
-
             if ($request->filled('libelle')) {
                 $query->where('libelle', 'like', '%' . $request->libelle . '%');
             }
-
             if ($request->filled('etat')) {
                 $query->where('etat', $request->etat);
             }
@@ -83,41 +77,19 @@ class GroupeMatiereController extends Controller
 
     public function create()
     {
-        try {
-            return Inertia::render('Parametrage::GroupesMatiere/Create', $this->lookups());
-        } catch (\Exception $e) {
-            \Log::error('GroupeMatiere Create Error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors du chargement du formulaire: ' . $e->getMessage());
-        }
+        return Inertia::render('Parametrage::GroupesMatiere/Create', $this->lookups());
     }
 
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:groupes_matieres,code',
-                'libelle' => 'required|string|max:255',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'institution_id' => 'nullable|exists:institutions,id',
-                'niveau_id' => 'required|exists:niveaux_etudes,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'matiere1_id' => 'nullable|exists:matieres_unites,id',
-                'matiere2_id' => 'nullable|exists:matieres_unites,id',
-                'matiere3_id' => 'nullable|exists:matieres_unites,id',
-                'matiere4_id' => 'nullable|exists:matieres_unites,id',
-                'matiere5_id' => 'nullable|exists:matieres_unites,id',
-                'matiere6_id' => 'nullable|exists:matieres_unites,id',
-                'matiere7_id' => 'nullable|exists:matieres_unites,id',
-                'matiere8_id' => 'nullable|exists:matieres_unites,id',
-                'matiere9_id' => 'nullable|exists:matieres_unites,id',
-                'matiere10_id' => 'nullable|exists:matieres_unites,id',
-                'etat' => 'nullable|in:actif,inactif',
-            ]);
+            $validated = $request->validate($this->baseRules());
+            $matiereIds = $this->pluckMatiereIds($request);
 
             $validated['etat'] = $validated['etat'] ?? 'actif';
             $validated['created_by'] = auth()->id();
-            GroupeMatiere::create($validated);
+            $groupe = GroupeMatiere::create($validated);
+            $groupe->matieres()->sync($matiereIds);
 
             return redirect()
                 ->route('parametrage.groupes_matiere.index')
@@ -132,69 +104,32 @@ class GroupeMatiereController extends Controller
 
     public function show(GroupeMatiere $groupeMatiere)
     {
-        try {
-            $groupeMatiere->load([
-                'niveau', 'section', 'cycle',
-                'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5',
-                'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10',
-            ]);
-
-            return Inertia::render('Parametrage::GroupesMatiere/Show', array_merge(
-                $this->lookups(),
-                ['groupeMatiere' => $groupeMatiere]
-            ));
-        } catch (\Exception $e) {
-            \Log::error('GroupeMatiere Show Error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors du chargement: ' . $e->getMessage());
-        }
+        $groupeMatiere->load(['niveau', 'section', 'cycle', 'matieres']);
+        return Inertia::render('Parametrage::GroupesMatiere/Show', array_merge(
+            $this->lookups(),
+            ['groupeMatiere' => $groupeMatiere]
+        ));
     }
 
     public function edit(GroupeMatiere $groupeMatiere)
     {
-        try {
-            $item = $groupeMatiere->load([
-                'niveau', 'section', 'cycle',
-                'matiere1', 'matiere2', 'matiere3', 'matiere4', 'matiere5',
-                'matiere6', 'matiere7', 'matiere8', 'matiere9', 'matiere10',
-            ]);
-
-            return Inertia::render('Parametrage::GroupesMatiere/Edit', array_merge(
-                $this->lookups(),
-                ['item' => $item]
-            ));
-        } catch (\Exception $e) {
-            \Log::error('GroupeMatiere Edit Error: ' . $e->getMessage());
-            return back()->with('error', 'Erreur lors du chargement du formulaire: ' . $e->getMessage());
-        }
+        $item = $groupeMatiere->load(['niveau', 'section', 'cycle', 'matieres']);
+        return Inertia::render('Parametrage::GroupesMatiere/Edit', array_merge(
+            $this->lookups(),
+            ['item' => $item]
+        ));
     }
 
     public function update(Request $request, GroupeMatiere $groupeMatiere)
     {
         try {
-            $validated = $request->validate([
-                'code' => 'required|string|max:100|unique:groupes_matieres,code,' . $groupeMatiere->id,
-                'libelle' => 'required|string|max:255',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'institution_id' => 'nullable|exists:institutions,id',
-                'niveau_id' => 'required|exists:niveaux_etudes,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'matiere1_id' => 'nullable|exists:matieres_unites,id',
-                'matiere2_id' => 'nullable|exists:matieres_unites,id',
-                'matiere3_id' => 'nullable|exists:matieres_unites,id',
-                'matiere4_id' => 'nullable|exists:matieres_unites,id',
-                'matiere5_id' => 'nullable|exists:matieres_unites,id',
-                'matiere6_id' => 'nullable|exists:matieres_unites,id',
-                'matiere7_id' => 'nullable|exists:matieres_unites,id',
-                'matiere8_id' => 'nullable|exists:matieres_unites,id',
-                'matiere9_id' => 'nullable|exists:matieres_unites,id',
-                'matiere10_id' => 'nullable|exists:matieres_unites,id',
-                'etat' => 'nullable|in:actif,inactif',
-            ]);
+            $validated = $request->validate($this->baseRules($groupeMatiere->id));
+            $matiereIds = $this->pluckMatiereIds($request);
 
             $validated['etat'] = $validated['etat'] ?? $groupeMatiere->etat;
             $validated['updated_by'] = auth()->id();
             $groupeMatiere->update($validated);
+            $groupeMatiere->matieres()->sync($matiereIds);
 
             return redirect()
                 ->route('parametrage.groupes_matiere.index')
@@ -212,8 +147,8 @@ class GroupeMatiereController extends Controller
         try {
             $groupeMatiere->deleted_by = auth()->id();
             $groupeMatiere->save();
+            // Cascade on delete de la pivot → nettoyage auto des groupe_matiere_items.
             $groupeMatiere->delete();
-
             return redirect()->route('parametrage.groupes_matiere.index')->with('success', 'Supprimé avec succès');
         } catch (\Exception $e) {
             return redirect()->route('parametrage.groupes_matiere.index')->with('error', 'Erreur lors de la suppression');
@@ -233,5 +168,29 @@ class GroupeMatiereController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('parametrage.groupes_matiere.index')->with('error', 'Erreur lors du changement de statut');
         }
+    }
+
+    private function baseRules(?int $ignoreId = null): array
+    {
+        $codeRule = 'required|string|max:100|unique:groupes_matieres,code' . ($ignoreId ? ',' . $ignoreId : '');
+        return [
+            'code'              => $codeRule,
+            'libelle'           => 'required|string|max:255',
+            'ecole_id'          => 'nullable|exists:ecoles,id',
+            'institution_id'    => 'nullable|exists:institutions,id',
+            'niveau_id'         => 'required|exists:niveaux_etudes,id',
+            'section_id'        => 'nullable|exists:sections,id',
+            'cycle_id'          => 'nullable|exists:cycles_enseignement,id',
+            'matieres'          => 'nullable|array',
+            'matieres.*'        => 'integer|exists:matieres_unites,id',
+            'etat'              => 'nullable|in:actif,inactif',
+        ];
+    }
+
+    private function pluckMatiereIds(Request $request): array
+    {
+        $ids = $request->input('matieres', []);
+        if (!is_array($ids)) return [];
+        return array_values(array_unique(array_filter($ids, fn($v) => is_numeric($v))));
     }
 }

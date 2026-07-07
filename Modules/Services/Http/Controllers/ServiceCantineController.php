@@ -106,7 +106,7 @@ class ServiceCantineController extends Controller
             }
 
             $anneeScolaires = \Modules\Parametrage\Entities\AnneeScolaire::select('id', 'libelle')->orderBy('libelle')->get();
-            $niveaux = \Modules\Parametrage\Entities\Niveau::select('id', 'libelle')->orderBy('libelle')->get();
+            $niveaux = \Modules\Parametrage\Entities\NiveauEtude::select('id', 'libelle')->orderBy('libelle')->get();
             $cycles = \Modules\Parametrage\Entities\CycleEnseignement::select('id', 'libelle')->orderBy('libelle')->get();
             $ecoles = \Modules\Parametrage\Entities\Ecole::select('id', 'nom as libelle')->orderBy('nom')->get();
             $campuses = \Modules\Parametrage\Entities\Campus::select('id', 'nom as libelle')->orderBy('nom')->get();
@@ -188,7 +188,7 @@ class ServiceCantineController extends Controller
     {
         try {
             $anneeScolaires = \Modules\Parametrage\Entities\AnneeScolaire::select('id', 'libelle')->orderBy('libelle')->get();
-            $niveaux = \Modules\Parametrage\Entities\Niveau::select('id', 'libelle')->orderBy('libelle')->get();
+            $niveaux = \Modules\Parametrage\Entities\NiveauEtude::select('id', 'libelle')->orderBy('libelle')->get();
             $cycles = \Modules\Parametrage\Entities\CycleEnseignement::select('id', 'libelle')->orderBy('libelle')->get();
             $ecoles = \Modules\Parametrage\Entities\Ecole::select('id', 'nom as libelle')->orderBy('nom')->get();
             $campuses = \Modules\Parametrage\Entities\Campus::select('id', 'nom as libelle')->orderBy('nom')->get();
@@ -244,7 +244,7 @@ class ServiceCantineController extends Controller
     {
         try {
             $anneeScolaires = \Modules\Parametrage\Entities\AnneeScolaire::select('id', 'libelle')->orderBy('libelle')->get();
-            $niveaux = \Modules\Parametrage\Entities\Niveau::select('id', 'libelle')->orderBy('libelle')->get();
+            $niveaux = \Modules\Parametrage\Entities\NiveauEtude::select('id', 'libelle')->orderBy('libelle')->get();
             $cycles = \Modules\Parametrage\Entities\CycleEnseignement::select('id', 'libelle')->orderBy('libelle')->get();
             $ecoles = \Modules\Parametrage\Entities\Ecole::select('id', 'nom as libelle')->orderBy('nom')->get();
             $campuses = \Modules\Parametrage\Entities\Campus::select('id', 'nom as libelle')->orderBy('nom')->get();
