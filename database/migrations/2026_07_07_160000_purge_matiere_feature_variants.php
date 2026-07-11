@@ -74,6 +74,10 @@ return new class extends Migration
         'consultations-infirmerie', 'consultations_infirmerie',
         // Types Établissements Spé (fusion)
         'types-etablissements-spe', 'types_etablissements_spe',
+        // §UX Phase 2 : "Menu AUTRES" retiré — Devises Pays fait maintenant
+        //   partie des Devises standard, Types Établissement Spé fusionné.
+        'devises_pays', 'devises-pays', 'devise-pays', 'devise_pays',
+        'types_etablissement_spe', 'type-etablissement-spe',
     ];
 
     /**

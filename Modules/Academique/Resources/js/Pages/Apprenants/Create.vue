@@ -136,6 +136,8 @@ const form = useForm({
     date_entree_ecole: '',
     date_depart_ecole: '',
     motif_depart_ecole: '',
+    // §UX : commentaire libre sur le suivi (avant statut).
+    commentaire: '',
     // Section 8: Statut
     statut: 'actif',
     // Action après save : null | 'inscription' | 'dossier'
@@ -209,6 +211,7 @@ const submitForm = (nextAction = null) => {
                                     :quartiers="quartiers"
                                     :anneesScolaires="anneesScolaires"
                                     :typesApprenant="typesApprenant"
+                                    :categoriesApprenant="categoriesApprenant"
                                     :genres="genres"
                                     :statutsApprenants="statutsApprenants"
                                     :groupesSanguins="groupesSanguins"

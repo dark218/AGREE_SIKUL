@@ -66,7 +66,7 @@ class TFeatureSeeder extends Seeder
             ['id' => 33, 'libelle' => 'Type Événement Agenda', 'libelle_en' => 'Event Types', 'module_id' => 23, 'menu_url' => 'types-evenements', 'icone' => 'fas fa-calendar-alt', 'ordre' => 32, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 34, 'libelle' => 'Nature Contrat', 'libelle_en' => 'Contract Types', 'module_id' => 23, 'menu_url' => 'natures-contrats', 'icone' => 'fas fa-file-contract', 'ordre' => 33, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 35, 'libelle' => 'Année Scolaire', 'libelle_en' => 'Academic Years', 'module_id' => 23, 'menu_url' => 'annees-scolaires', 'icone' => 'fas fa-calendar-year', 'ordre' => 34, 'created_at' => now(), 'updated_at' => now()],
-            ['id' => 36, 'libelle' => 'Période Colaire', 'libelle_en' => 'School Periods', 'module_id' => 23, 'menu_url' => 'periodes-colaires', 'icone' => 'fas fa-calendar-week', 'ordre' => 35, 'created_at' => now(), 'updated_at' => now()],
+            ['id' => 36, 'libelle' => 'Période Scolaire', 'libelle_en' => 'School Periods', 'module_id' => 23, 'menu_url' => 'periodes-colaires', 'icone' => 'fas fa-calendar-week', 'ordre' => 35, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 37, 'libelle' => 'Catégorie Enseignant', 'libelle_en' => 'Teacher Categories', 'module_id' => 23, 'menu_url' => 'categories-enseignants', 'icone' => 'fas fa-id-card', 'ordre' => 36, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 38, 'libelle' => 'Nature Examen', 'libelle_en' => 'Exam Natures', 'module_id' => 23, 'menu_url' => 'natures-examens', 'icone' => 'fas fa-clipboard', 'ordre' => 37, 'created_at' => now(), 'updated_at' => now()],
 

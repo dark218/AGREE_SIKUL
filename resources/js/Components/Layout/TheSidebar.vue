@@ -178,7 +178,7 @@ const DEFAULT_MENU_CONFIG = [
         feature: [
             // Academic Organization
             { menu_url: 'annees_scolaires', libelle: 'Années Scolaires', libelle_en: 'School Years', icone: 'fas fa-calendar-alt' },
-            { menu_url: 'periodes_colaires', libelle: 'Périodes Colaires', libelle_en: 'School Periods', icone: 'fas fa-hourglass' },
+            { menu_url: 'periodes_colaires', libelle: 'Périodes Scolaires', libelle_en: 'School Periods', icone: 'fas fa-hourglass' },
             // (Niveaux retiré : doublon de Niveaux d'Étude, unique source de vérité.)
             { menu_url: 'niveaux_etude', libelle: 'Niveaux Études', libelle_en: 'Study Levels', icone: 'fas fa-graduation-cap' },
             { menu_url: 'cycles_enseignement', libelle: 'Cycles Enseignement', libelle_en: 'Teaching Cycles', icone: 'fas fa-circle' },
@@ -238,6 +238,9 @@ const DEFAULT_MENU_CONFIG = [
             // (Types de contrat retiré : fusionné dans Natures de contrat.)
             { menu_url: 'statuts_employes', libelle: 'Statuts employé', libelle_en: 'Employee statuses', icone: 'fas fa-user-check' },
             { menu_url: 'statuts_apprenants', libelle: 'Statuts apprenant', libelle_en: 'Student statuses', icone: 'fas fa-user-graduate' },
+            // §UX Phase 2 : Catégorie Apprenant recréée (concept distinct de
+            //   Statut/Type Apprenant — régulier, irrégulier, libre, ...).
+            { menu_url: 'categorie_apprenants', libelle: 'Catégorie apprenant', libelle_en: 'Student categories', icone: 'fas fa-users-line' },
             { menu_url: 'types_inscriptions', libelle: 'Types d\'inscription', libelle_en: 'Enrollment types', icone: 'fas fa-clipboard-list' },
             { menu_url: 'types_evenement', libelle: 'Types Événement', libelle_en: 'Event Types', icone: 'fas fa-calendar-alt' }
         ]
@@ -286,7 +289,7 @@ const PARAMETRAGE_GROUPS = [
     { id: 'geographie', libelle: 'Géographie & Calendrier', libelle_en: 'Geography & Calendar', icone: 'fas fa-earth-africa',
       items: ['pays', 'regions', 'departements', 'communes', 'quartiers', 'jours_feries'] },
     { id: 'personnes', libelle: 'Personnes & Événements', libelle_en: 'People & Events', icone: 'fas fa-user-tie',
-      items: ['titres_civilites', 'genres', 'liens_parente', 'situations_matrimoniales', 'groupes_sanguins', 'statuts_employes', 'statuts_apprenants', 'types_inscriptions', 'types_evenement'] },
+      items: ['titres_civilites', 'genres', 'liens_parente', 'situations_matrimoniales', 'groupes_sanguins', 'statuts_employes', 'statuts_apprenants', 'categorie_apprenants', 'types_inscriptions', 'types_evenement'] },
 ];
 
 /**
@@ -630,18 +633,12 @@ function getMenuGroups(menu) {
         return { ...group, features: groupFeatures };
     }).filter(group => group.features.length > 0);
 
-    // Features non classées -> groupe "Autres"
-    const leftovers = features.filter(feature => !used.has(feature.menu_url));
-    if (leftovers.length > 0) {
-        groups.push({
-            id: '__autres__',
-            libelle: 'Autres',
-            libelle_en: 'Others',
-            icone: 'fas fa-ellipsis',
-            features: leftovers,
-        });
-    }
-
+    // §UX : le groupe "Autres" (catch-all) est retiré volontairement (demande
+    //   user). Les features orphelines (Devises Pays, Types Établissement Spé,
+    //   etc.) sont éliminées par la migration
+    //   `2026_07_07_160000_purge_matiere_feature_variants` (variants ajoutés).
+    //   Toute feature qui n'est pas dans les groupes déclarés est masquée du
+    //   sidebar — le user peut y accéder par URL directe si vraiment nécessaire.
     return groups;
 }
 

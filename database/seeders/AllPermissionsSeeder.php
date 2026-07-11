@@ -39,7 +39,7 @@ class AllPermissionsSeeder extends Seeder
             'parametrage-niveau' => 'Niveaux',
             'parametrage-niveauetude' => 'Niveaux Études',
             'parametrage-pays' => 'Pays',
-            'parametrage-periodescolaire' => 'Périodes Colaires',
+            'parametrage-periodescolaire' => 'Périodes Scolaires',
             'parametrage-quartier' => 'Quartiers',
             'parametrage-region' => 'Régions',
             'parametrage-section' => 'Sections',

@@ -20,6 +20,7 @@ class Ouvrage extends BaseModel
         'auteur',
         'isbn',
         'editeur',
+        'langue',
         'annee_publication',
         'categorie',
         'nombre_exemplaires',

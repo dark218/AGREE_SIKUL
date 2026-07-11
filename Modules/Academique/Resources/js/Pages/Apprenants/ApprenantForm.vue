@@ -54,6 +54,7 @@ const props = defineProps({
     quartiers:         { type: Array, default: () => [] },
     anneesScolaires:   { type: Array, default: () => [] },
     typesApprenant:    { type: Array, default: () => [] },
+    categoriesApprenant: { type: Array, default: () => [] },
     genres:            { type: Array, default: () => [] },
     statutsApprenants: { type: Array, default: () => [] },
     groupesSanguins:   { type: Array, default: () => [] },
@@ -148,12 +149,12 @@ const yesNoOptions = [
     { id: false, libelle: 'Non' },
 ];
 
-// Steps déclaratifs
+// Steps déclaratifs — §UX renommage "Sanitaire" → "Santé & Médecine".
 const steps = [
-    { key: 'identite',  label: 'Identité',         icon: 'fas fa-id-badge',       requiredFields: ['nom', 'prenoms'] },
-    { key: 'sante',     label: 'Sanitaire',        icon: 'fas fa-heartbeat' },
-    { key: 'scolarite', label: 'Scolarité',        icon: 'fas fa-graduation-cap', requiredFields: ['matricule', 'classe_id'] },
-    { key: 'famille',   label: 'Famille & Contact', icon: 'fas fa-users' },
+    { key: 'identite',  label: 'Identité',           icon: 'fas fa-id-badge',       requiredFields: ['nom', 'prenoms'] },
+    { key: 'sante',     label: 'Santé & Médecine',   icon: 'fas fa-heartbeat' },
+    { key: 'scolarite', label: 'Scolarité',          icon: 'fas fa-graduation-cap', requiredFields: ['matricule', 'classe_id'] },
+    { key: 'famille',   label: 'Famille & Contact',  icon: 'fas fa-users' },
     { key: 'suivi',     label: 'Hébergement & Suivi', icon: 'fas fa-clipboard-list' },
 ];
 </script>
@@ -226,9 +227,21 @@ const steps = [
             </div>
         </template>
 
-        <!-- STEP 2 : SANITAIRE -->
+        <!-- STEP 2 : SANTÉ & MÉDECINE -->
         <template #sante>
             <div class="row g-3">
+                <!-- §UX ordre demandé : Catégorie apprenant / Groupe sanguin / Apte au sport -->
+                <div class="col-md-4">
+                    <label>Catégorie apprenant</label>
+                    <SearchableSelect
+                        v-model.number="form.categorie_apprenant_id"
+                        :options="categoriesApprenant || []"
+                        option-value="id"
+                        option-label="libelle"
+                        :disabled="isReadOnly"
+                        placeholder="Sélectionner"
+                    />
+                </div>
                 <div class="col-md-4">
                     <label>Groupe sanguin</label>
                     <SearchableSelect v-model.number="form.groupe_sanguin_id" :options="groupesSanguins" option-value="id" option-label="libelle" :disabled="isReadOnly" placeholder="Sélectionner" />
@@ -372,15 +385,20 @@ const steps = [
                     <input v-model="form.adresse" type="text" class="form-control" :disabled="isReadOnly" placeholder="Rue, immeuble, etc." />
                 </div>
 
-                <div class="col-md-4">
-                    <label>Téléphone</label>
+                <!-- §UX : ajout Téléphone 2 demandé — 2 lignes de contact -->
+                <div class="col-md-3">
+                    <label>Téléphone 1</label>
                     <input v-model="form.telephone" type="tel" class="form-control" :disabled="isReadOnly" />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label>Téléphone 2</label>
+                    <input v-model="form.telephone2" type="tel" class="form-control" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-3">
                     <label>WhatsApp</label>
                     <input v-model="form.whatsapp1" type="tel" class="form-control" :disabled="isReadOnly" />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label>Email</label>
                     <input v-model="form.email" type="email" class="form-control" :disabled="isReadOnly" />
                 </div>
@@ -431,6 +449,19 @@ const steps = [
                 <div class="col-md-4">
                     <label>Motif de départ</label>
                     <input v-model="form.motif_depart_ecole" type="text" class="form-control" :disabled="isReadOnly" />
+                </div>
+
+                <!-- §UX : Commentaire ajouté AVANT le Statut (demande user).
+                     Utile pour tracer des remarques libres liées au suivi. -->
+                <div class="col-12">
+                    <label>Commentaire</label>
+                    <textarea
+                        v-model="form.commentaire"
+                        class="form-control"
+                        rows="3"
+                        :disabled="isReadOnly"
+                        placeholder="Remarques libres sur le suivi de l'apprenant..."
+                    ></textarea>
                 </div>
 
                 <div class="col-md-4">

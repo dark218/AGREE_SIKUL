@@ -50,6 +50,7 @@ const props = defineProps({
     langues: { type: Array, default: () => [] },
     statutsEmployes: { type: Array, default: () => [] },
     fonctions: { type: Array, default: () => [] },
+    titresCivilite: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits(['submit']);
@@ -195,12 +196,24 @@ const steps = [
         <!-- STEP 1 : IDENTITÉ -->
         <template #identite>
             <div class="row g-3">
-                <div class="col-md-6">
+                <!-- §UX : Titre de civilité en 1ère ligne comme demandé. -->
+                <div class="col-md-4">
+                    <label>Titre de civilité</label>
+                    <SearchableSelect
+                        v-model.number="form.titre_civilite_id"
+                        :options="titresCivilite || []"
+                        optionValue="id"
+                        optionLabel="libelle"
+                        placeholder="Ex : M., Mme, Dr, Pr"
+                        :disabled="isReadOnly"
+                    />
+                </div>
+                <div class="col-md-4">
                     <label>{{ t('fields.nom') }} *</label>
                     <input v-model="form.nom" :disabled="isReadOnly" type="text" class="form-control" />
                     <span v-if="form.errors?.nom" class="text-danger small">{{ form.errors.nom }}</span>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label>{{ t('fields.prenoms') }} *</label>
                     <input v-model="form.prenoms" :disabled="isReadOnly" type="text" class="form-control" />
                     <span v-if="form.errors?.prenoms" class="text-danger small">{{ form.errors.prenoms }}</span>
@@ -415,13 +428,18 @@ const steps = [
         <!-- STEP 5 : CONTACT & PHOTO -->
         <template #contact>
             <div class="row g-3">
-                <div class="col-md-6">
+                <!-- §UX : 2 lignes de téléphone (demande user) -->
+                <div class="col-md-4">
+                    <label>Téléphone 1</label>
+                    <input v-model="form.telephone" :disabled="isReadOnly" type="tel" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label>Téléphone 2</label>
+                    <input v-model="form.telephone2" :disabled="isReadOnly" type="tel" class="form-control" />
+                </div>
+                <div class="col-md-4">
                     <label>{{ t('fields.email') }}</label>
                     <input v-model="form.email" :disabled="isReadOnly" type="email" class="form-control" />
-                </div>
-                <div class="col-md-6">
-                    <label>{{ t('fields.telephone') }}</label>
-                    <input v-model="form.telephone" :disabled="isReadOnly" type="text" class="form-control" />
                 </div>
                 <div class="col-md-6">
                     <label>Photo</label>

@@ -67,21 +67,23 @@ class CategorieFournitureController extends Controller
 
     public function store(Request $request)
     {
+        // §BUG-FIX : validate() jette une ValidationException qui DOIT remonter
+        //   à Inertia pour peupler form.errors. Ne PAS l'attraper dans le
+        //   catch générique qui affichait "Une erreur est survenue" au lieu
+        //   des messages de champ précis (ex: "Le libellé existe déjà").
+        $validated = $request->validate([
+            'libelle'     => 'required|string|max:125|unique:categories_fournitures,libelle',
+            'code'        => 'nullable|string|max:50|unique:categories_fournitures,code',
+            'description' => 'nullable|string|max:500',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'libelle' => 'required|string|max:125|unique:categories_fournitures',
-                'code' => 'nullable|string|max:50|unique:categories_fournitures',
-                'description' => 'nullable|string|max:500',
-            ]);
-
             CategorieFourniture::create($validated);
-
             return redirect()->route('categories-fournitures.index')
                 ->with('success', __('messages.created_successfully'));
-
         } catch (\Throwable $th) {
             log_error("Logistique", "CategorieFournitureController::store", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withInput()->with('error', 'Erreur: ' . $th->getMessage());
         }
     }
 
@@ -114,21 +116,19 @@ class CategorieFournitureController extends Controller
 
     public function update(Request $request, CategorieFourniture $categorieFourniture)
     {
+        $validated = $request->validate([
+            'libelle'     => 'required|string|max:125|unique:categories_fournitures,libelle,' . $categorieFourniture->id,
+            'code'        => 'nullable|string|max:50|unique:categories_fournitures,code,' . $categorieFourniture->id,
+            'description' => 'nullable|string|max:500',
+        ]);
+
         try {
-            $validated = $request->validate([
-                'libelle' => 'required|string|max:125|unique:categories_fournitures,libelle,' . $categorieFourniture->id,
-                'code' => 'nullable|string|max:50|unique:categories_fournitures,code,' . $categorieFourniture->id,
-                'description' => 'nullable|string|max:500',
-            ]);
-
             $categorieFourniture->update($validated);
-
             return redirect()->route('categories-fournitures.show', $categorieFourniture)
                 ->with('success', __('messages.updated_successfully'));
-
         } catch (\Throwable $th) {
             log_error("Logistique", "CategorieFournitureController::update", $th->getMessage());
-            return back()->with('error', __('messages.error_occurred'));
+            return back()->withInput()->with('error', 'Erreur: ' . $th->getMessage());
         }
     }
 

@@ -129,6 +129,10 @@ class ApprenantController extends Controller
             'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom')->get(),
             'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->select('id', 'libelle')->get(),
             'typesApprenant' => TypeApprenant::whereNull('deleted_at')->select('id', 'libelle')->get(),
+            // §UX : nouveau référentiel Catégorie Apprenant (recréé Phase 2).
+            'categoriesApprenant' => \Schema::hasTable('categorie_apprenants')
+                ? \DB::table('categorie_apprenants')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                : collect(),
             'genres' => \Modules\Parametrage\Entities\Genre::actif()->orderBy('ordre')->get(['id', 'libelle', 'code', 'symbole', 'couleur'])->toArray(),
             'statutsApprenants' => \Modules\Parametrage\Entities\StatutApprenant::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'groupesSanguins' => \Modules\Parametrage\Entities\GroupeSanguin::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
@@ -223,6 +227,8 @@ class ApprenantController extends Controller
                 'campus_id' => 'nullable|exists:campuses,id',
                 'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
                 'type_apprenant_id' => 'nullable|exists:type_apprenants,id',
+                'categorie_apprenant_id' => 'nullable',
+                'commentaire' => 'nullable|string|max:2000',
                 'commune_naissance_id' => 'nullable|exists:communes,id',
                 'departement_naissance_id' => 'nullable|exists:departements,id',
                 'region_naissance_id' => 'nullable|exists:regions,id',
@@ -408,6 +414,8 @@ class ApprenantController extends Controller
                 'campus_id' => 'nullable|exists:campuses,id',
                 'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
                 'type_apprenant_id' => 'nullable|exists:type_apprenants,id',
+                'categorie_apprenant_id' => 'nullable',
+                'commentaire' => 'nullable|string|max:2000',
                 'commune_naissance_id' => 'nullable|exists:communes,id',
                 'departement_naissance_id' => 'nullable|exists:departements,id',
                 'region_naissance_id' => 'nullable|exists:regions,id',

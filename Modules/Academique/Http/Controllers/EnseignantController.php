@@ -102,6 +102,10 @@ class EnseignantController extends Controller
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+            // §UX : titres de civilité (M., Mme, Dr, Pr, …) — nouveau champ enseignant.
+            'titresCivilite' => \Schema::hasTable('titres_civilites')
+                ? \DB::table('titres_civilites')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                : collect(),
         ]);
     }
 
@@ -265,6 +269,10 @@ class EnseignantController extends Controller
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+            // §UX : titres de civilité (M., Mme, Dr, Pr, …) — nouveau champ enseignant.
+            'titresCivilite' => \Schema::hasTable('titres_civilites')
+                ? \DB::table('titres_civilites')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                : collect(),
         ]);
     }
 
@@ -297,6 +305,10 @@ class EnseignantController extends Controller
             'situationsMatrimoniales' => \Modules\Parametrage\Entities\SituationMatrimoniale::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'statutsEmployes' => \Modules\Parametrage\Entities\StatutEmploye::actif()->orderBy('ordre')->get(['id', 'code', 'libelle'])->toArray(),
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
+            // §UX : titres de civilité (M., Mme, Dr, Pr, …) — nouveau champ enseignant.
+            'titresCivilite' => \Schema::hasTable('titres_civilites')
+                ? \DB::table('titres_civilites')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                : collect(),
         ]);
     }
 

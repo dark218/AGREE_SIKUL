@@ -313,6 +313,8 @@ Route::prefix('parametrage')->name('parametrage.')->middleware(["auth:web"])->gr
         'liens-parente'             => ['lien_parente',            LienParenteController::class,          'liens_parente'],
         // (Civilites retiré — doublon de TitreCivilite ci-dessus.)
         'statuts-apprenants'        => ['statut_apprenant',        StatutApprenantController::class,      'statuts_apprenants'],
+        // §UX Phase 2 : Catégorie apprenant (recréée — concept participation).
+        'categorie-apprenants'      => ['categorie_apprenant',     \Modules\Parametrage\Http\Controllers\CategorieApprenantController::class, 'categorie_apprenants'],
         'types-inscriptions'        => ['type_inscription',        TypeInscriptionController::class,      'types_inscriptions'],
         'groupes-sanguins'          => ['groupe_sanguin',          GroupeSanguinController::class,        'groupes_sanguins'],
         // (Langues retiré — référentiel dormant sans FK ; les enseignants stockent leurs langues dans le JSON `languages`.)

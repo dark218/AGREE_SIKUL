@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\RessourcesLogistique\Http\Controllers\BibliothequeController;
+use Modules\RessourcesLogistique\Http\Controllers\BibliothequeStructureController;
+use Modules\RessourcesLogistique\Http\Controllers\EntreeLivreController;
 use Modules\RessourcesLogistique\Http\Controllers\OuvrageController;
 use Modules\RessourcesLogistique\Http\Controllers\ExemplaireController;
 use Modules\RessourcesLogistique\Http\Controllers\PersonnelLogistiqueController;
@@ -29,6 +31,29 @@ Route::middleware(['auth:web'])->group(function () {
         Route::match(['put', 'post'], '/{bibliotheque}', [BibliothequeController::class, 'update'])->name('update');
         Route::delete('/{bibliotheque}', [BibliothequeController::class, 'destroy'])->name('destroy');
         Route::put('/{bibliotheque}/statut', [BibliothequeController::class, 'statut'])->name('statut');
+    });
+
+    // Bibliothèque › Liste (lieux) — bibliotheque_structures
+    Route::prefix('bibliotheque-structures')->name('bibliotheque-structures.')->group(function () {
+        Route::get('/', [BibliothequeStructureController::class, 'index'])->name('index');
+        Route::get('/create', [BibliothequeStructureController::class, 'create'])->name('create');
+        Route::post('/', [BibliothequeStructureController::class, 'store'])->name('store');
+        Route::get('/{bibliotheque_structure}', [BibliothequeStructureController::class, 'show'])->name('show');
+        Route::get('/{bibliotheque_structure}/edit', [BibliothequeStructureController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{bibliotheque_structure}', [BibliothequeStructureController::class, 'update'])->name('update');
+        Route::delete('/{bibliotheque_structure}', [BibliothequeStructureController::class, 'destroy'])->name('destroy');
+        Route::put('/{bibliotheque_structure}/statut', [BibliothequeStructureController::class, 'statut'])->name('statut');
+    });
+
+    // Bibliothèque › Entrée de livres
+    Route::prefix('entrees-livres')->name('entrees-livres.')->group(function () {
+        Route::get('/', [EntreeLivreController::class, 'index'])->name('index');
+        Route::get('/create', [EntreeLivreController::class, 'create'])->name('create');
+        Route::post('/', [EntreeLivreController::class, 'store'])->name('store');
+        Route::get('/{entrees_livre}', [EntreeLivreController::class, 'show'])->name('show');
+        Route::get('/{entrees_livre}/edit', [EntreeLivreController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{entrees_livre}', [EntreeLivreController::class, 'update'])->name('update');
+        Route::delete('/{entrees_livre}', [EntreeLivreController::class, 'destroy'])->name('destroy');
     });
 
     // Ouvrages

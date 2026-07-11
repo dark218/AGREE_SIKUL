@@ -155,24 +155,43 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
-        <!-- Matières du groupe (multi-select via pivot groupe_matiere_items).
-             Remplace les 10 slots hardcodés matiere1_id..matiere10_id. -->
+        <!-- §UX : Matières du groupe en GRILLE DE CHECKBOXES (demande user).
+             Plus intuitif qu'un multi-select pour cocher plusieurs matières
+             d'un coup d'œil. Layout responsive : 4 colonnes desktop → 2 → 1. -->
         <div class="col-12">
             <div class="mb-3">
                 <label class="mb-2">
+                    <i class="fa fa-book me-1 text-primary"></i>
                     Matières du groupe
-                    <small class="text-muted">— sélectionne autant de matières que nécessaire</small>
+                    <small class="text-muted">— coche autant de matières que nécessaire</small>
                 </label>
-                <SearchableSelect
-                    v-model="form.matieres"
-                    :options="matieres"
-                    optionValue="id"
-                    optionLabel="libelle"
-                    :multiple="true"
-                    :placeholder="t('actions.select') || 'Cliquer pour ajouter…'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matieres" class="text-danger"><strong>{{ form.errors.matieres }}</strong></span>
+                <div v-if="matieres.length === 0" class="alert alert-info">
+                    Aucune matière disponible. Créez d'abord des matières unités dans Paramétrage.
+                </div>
+                <div v-else class="matieres-checkbox-grid">
+                    <label
+                        v-for="m in matieres"
+                        :key="m.id"
+                        class="matiere-checkbox-item"
+                        :class="{ 'is-checked': form.matieres?.includes(m.id) }"
+                    >
+                        <input
+                            type="checkbox"
+                            :value="m.id"
+                            v-model="form.matieres"
+                            :disabled="isReadOnly"
+                            class="form-check-input"
+                        />
+                        <span class="matiere-label">{{ m.libelle }}</span>
+                    </label>
+                </div>
+                <div v-if="form.matieres?.length" class="text-muted small mt-2">
+                    <i class="fa fa-check-circle text-success"></i>
+                    {{ form.matieres.length }} matière{{ form.matieres.length > 1 ? 's' : '' }} sélectionnée{{ form.matieres.length > 1 ? 's' : '' }}
+                </div>
+                <span v-if="form.errors?.matieres" class="text-danger d-block mt-2">
+                    <strong>{{ form.errors.matieres }}</strong>
+                </span>
             </div>
         </div>
 
@@ -193,3 +212,57 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         </div>
     </div>
 </template>
+
+<style scoped>
+.matieres-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+@media (max-width: 992px) { .matieres-checkbox-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .matieres-checkbox-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .matieres-checkbox-grid { grid-template-columns: 1fr; } }
+
+.matiere-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin: 0;
+    font-weight: 500;
+}
+.matiere-checkbox-item:hover {
+    border-color: #0b5697;
+    background: #f0f7ff;
+}
+.matiere-checkbox-item.is-checked {
+    border-color: #0b5697;
+    background: #eff6ff;
+    color: #1e40af;
+    box-shadow: 0 1px 3px rgba(30, 64, 175, 0.15);
+}
+.matiere-checkbox-item .form-check-input {
+    margin: 0;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.matiere-label {
+    flex: 1;
+    line-height: 1.4;
+    word-break: break-word;
+    font-size: 14px;
+}
+</style>
