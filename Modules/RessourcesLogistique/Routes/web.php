@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use Modules\RessourcesLogistique\Http\Controllers\BibliothequeController;
 use Modules\RessourcesLogistique\Http\Controllers\BibliothequeStructureController;
 use Modules\RessourcesLogistique\Http\Controllers\EntreeLivreController;
+use Modules\RessourcesLogistique\Http\Controllers\SortieLivreController;
+use Modules\RessourcesLogistique\Http\Controllers\InventaireLivresController;
 use Modules\RessourcesLogistique\Http\Controllers\OuvrageController;
 use Modules\RessourcesLogistique\Http\Controllers\ExemplaireController;
 use Modules\RessourcesLogistique\Http\Controllers\PersonnelLogistiqueController;
@@ -55,6 +57,20 @@ Route::middleware(['auth:web'])->group(function () {
         Route::match(['put', 'post'], '/{entrees_livre}', [EntreeLivreController::class, 'update'])->name('update');
         Route::delete('/{entrees_livre}', [EntreeLivreController::class, 'destroy'])->name('destroy');
     });
+
+    // Bibliothèque › Sortie de livres
+    Route::prefix('sorties-livres')->name('sorties-livres.')->group(function () {
+        Route::get('/', [SortieLivreController::class, 'index'])->name('index');
+        Route::get('/create', [SortieLivreController::class, 'create'])->name('create');
+        Route::post('/', [SortieLivreController::class, 'store'])->name('store');
+        Route::get('/{sorties_livre}', [SortieLivreController::class, 'show'])->name('show');
+        Route::get('/{sorties_livre}/edit', [SortieLivreController::class, 'edit'])->name('edit');
+        Route::match(['put', 'post'], '/{sorties_livre}', [SortieLivreController::class, 'update'])->name('update');
+        Route::delete('/{sorties_livre}', [SortieLivreController::class, 'destroy'])->name('destroy');
+    });
+
+    // Bibliothèque › Inventaire (lecture seule, calculé)
+    Route::get('inventaire-livres', [InventaireLivresController::class, 'index'])->name('inventaire-livres.index');
 
     // Ouvrages
     Route::prefix('ouvrages')->name('ouvrages.')->group(function () {

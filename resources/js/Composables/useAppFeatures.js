@@ -87,6 +87,11 @@ const specialRoutes = {
     'rapport/statistiques-classes': 'rapport.statistiques-classes.index',
     'parametrage-generaux': 'parametrage-generaux.index',
     'admin-chat': 'admin-chat.index',
+    // Bibliothèque (module RessourcesLogistique — routes à la racine)
+    'bibliotheque-structures': 'bibliotheque-structures.index',
+    'entrees-livres': 'entrees-livres.index',
+    'sorties-livres': 'sorties-livres.index',
+    'inventaire-livres': 'inventaire-livres.index',
 };
 
 /**

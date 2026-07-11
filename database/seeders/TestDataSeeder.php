@@ -278,18 +278,18 @@ class TestDataSeeder extends Seeder
         }
         echo "✅ Enseignants créés\n";
 
-        // Catégories apprenant — table `categorie_apprenants` supprimée en
-        // Phase 1 (§10.2 : doublon de TypeApprenant + StatutApprenant).
-        // Skip silencieux si absente.
+        // Catégories apprenant — table recréée en Phase 2 §10.2. Les catégories
+        // sont GLOBALES (pas de discriminant ecole_id) : Régulier / Irrégulier
+        // / Libre s'appliquent à toutes les écoles.
+        // NB : la migration `2026_07_07_200000_restore_categorie_apprenants`
+        // seed déjà 3 lignes par défaut ; ce bloc est donc idempotent.
         if (\Schema::hasTable('categorie_apprenants')) {
             \DB::table('categorie_apprenants')->insertOrIgnore([
-                ['code' => 'REG',   'libelle' => 'Régulier',   'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-                ['code' => 'IRRE',  'libelle' => 'Irrégulier', 'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
-                ['code' => 'LIBRE', 'libelle' => 'Libre',      'ecole_id' => $ecoleId, 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'REG',   'libelle' => 'Régulier',   'etat' => 'actif', 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'IRREG', 'libelle' => 'Irrégulier', 'etat' => 'actif', 'created_at' => now(), 'updated_at' => now()],
+                ['code' => 'LIBRE', 'libelle' => 'Libre',      'etat' => 'actif', 'created_at' => now(), 'updated_at' => now()],
             ]);
             echo "✅ Catégories apprenant créées\n";
-        } else {
-            echo "⚠️  Table categorie_apprenants supprimée (Phase 1) — skip\n";
         }
 
         // Catégories enseignant
