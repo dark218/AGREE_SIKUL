@@ -134,6 +134,7 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
     Route::prefix('notes')->name('notes.')->group(function () {
         Route::get('/', [NoteController::class, 'index'])->name('index');
         Route::get('/create', [NoteController::class, 'create'])->name('create');
+        Route::get('/apprenants-classe/{classe}', [NoteController::class, 'apprenantsByClasse'])->name('apprenants_classe');
         Route::post('/', [NoteController::class, 'store'])->name('store');
         Route::get('/{note}', [NoteController::class, 'show'])->name('show');
         Route::get('/{note}/edit', [NoteController::class, 'edit'])->name('edit');

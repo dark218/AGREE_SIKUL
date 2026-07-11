@@ -133,7 +133,7 @@ class BibliothequeTest extends TestCase
         // Quantité initiale = 5 + 3 = 8 ; Sorties = 2 ; Stock = 6
         $this->get(route('inventaire-livres.index'))
             ->assertInertia(fn (Assert $page) => $page
-                ->component('RessourcesLogistique::InventaireLivres/Index')
+                ->component('RessourcesLogistique::InventaireLivres/Index', false)
                 ->where('inventaire.data.0.quantite_initiale', 8)
                 ->where('inventaire.data.0.sorties', 2)
                 ->where('inventaire.data.0.stock_disponible', 6)

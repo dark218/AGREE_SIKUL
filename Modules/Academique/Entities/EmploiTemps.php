@@ -5,6 +5,9 @@ namespace Modules\Academique\Entities;
 use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Parametrage\Entities\NiveauEtude;
+use Modules\Parametrage\Entities\PeriodeColaire;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Parametrage\Entities\Classe;
 use Modules\Parametrage\Entities\AnneeScolaire;
@@ -23,7 +26,9 @@ class EmploiTemps extends BaseModel
 
     protected $fillable = [
         'classe_id',
+        'niveau_id',
         'annee_scolaire_id',
+        'periode_id',
         'week_start_date',
         'week_end_date',
         'week_number',
@@ -36,11 +41,14 @@ class EmploiTemps extends BaseModel
         'jour',
         'matiere_id',
         'enseignant_id',
+        'libelle',
+        'titre',
         'duree',
         'date_debut',
         'date_fin',
         'est_valide',
         'statut',
+        'etat',
         'creation_username',
         'modification_username',
         'deletion_username',
@@ -126,6 +134,22 @@ class EmploiTemps extends BaseModel
     public function enseignant(): BelongsTo
     {
         return $this->belongsTo(Enseignant::class, 'enseignant_id');
+    }
+
+    public function niveau(): BelongsTo
+    {
+        return $this->belongsTo(NiveauEtude::class, 'niveau_id');
+    }
+
+    public function periode(): BelongsTo
+    {
+        return $this->belongsTo(PeriodeColaire::class, 'periode_id');
+    }
+
+    /** Les créneaux (grille jour × heure) de ce cadre. */
+    public function creneaux(): HasMany
+    {
+        return $this->hasMany(EmploiTempsCreneau::class, 'emploi_temps_id')->orderBy('ordre');
     }
 
     // Scopes

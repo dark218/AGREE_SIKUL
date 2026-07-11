@@ -122,7 +122,7 @@ class NoteController extends Controller
                         'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                     ])->toArray(),
                 'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
-                'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
+                'campuses' => Campus::whereNull('deleted_at')->get(['id', 'nom', 'institution_id'])->map(fn($c) => ['id' => $c->id, 'libelle' => $c->nom, 'institution_id' => $c->institution_id])->toArray(),
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'natureExamens' => NatureExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'typeExamens' => TypeExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
@@ -132,6 +132,7 @@ class NoteController extends Controller
                     'id' => $e->id,
                     'libelle' => $e->user?->prenoms . ' ' . $e->user?->nom
                 ])->toArray(),
+                'institutions' => \Modules\Parametrage\Entities\Institution::orderBy('nom')->get(['id', 'nom'])->map(fn($i) => ['id' => $i->id, 'libelle' => $i->nom])->toArray(),
             ];
 
             \Log::info('✅ Notes data loaded successfully', [
@@ -157,73 +158,124 @@ class NoteController extends Controller
         }
     }
 
+    /** Mention automatique dérivée d'une note ramenée sur 20. */
+    public static function mentionFor(float $note20): string
+    {
+        return match (true) {
+            $note20 >= 16 => 'Très bien',
+            $note20 >= 14 => 'Bien',
+            $note20 >= 12 => 'Assez bien',
+            $note20 >= 10 => 'Passable',
+            default       => 'Insuffisant',
+        };
+    }
+
+    /** API : apprenants d'une classe (pour remplir le tableau Résultat). */
+    public function apprenantsByClasse(Classe $classe)
+    {
+        $apprenants = Apprenant::with('user')->whereNull('deleted_at')
+            ->where('classe_id', $classe->id)
+            ->get(['id', 'matricule', 'user_id', 'nom', 'prenoms'])
+            ->map(fn ($a) => [
+                'id'        => $a->id,
+                'matricule' => $a->matricule,
+                'nom'       => $a->user ? trim(($a->user->prenoms ?? '') . ' ' . ($a->user->nom ?? '')) : trim(($a->prenoms ?? '') . ' ' . ($a->nom ?? '')),
+            ])->values();
+
+        return response()->json(['apprenants' => $apprenants]);
+    }
+
+    /**
+     * Saisie EN LOT : un contexte d'évaluation + une note par apprenant.
+     * Crée une Évaluation (le contexte) puis une Note par ligne du tableau.
+     */
     public function store(Request $request)
     {
         try {
-            \Log::info('🔍 [DEBUG] NoteController::store - Request data:', $request->all());
-
             $validated = $request->validate([
-                'apprenant_id' => 'required|exists:apprenants,id',
-                'evaluation_id' => 'required|exists:evaluations,id',
+                'classe_id'        => 'required|exists:classes,id',
                 'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'classe_id' => 'nullable|exists:classes,id',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'campus_id' => 'nullable|exists:campuses,id',
-                'periode_id' => 'nullable|exists:periodes_colaires,id',
+                'section_id'       => 'nullable|exists:sections,id',
+                'cycle_id'         => 'nullable|exists:cycles_enseignement,id',
+                'ecole_id'         => 'nullable|exists:ecoles,id',
+                'campus_id'        => 'nullable|exists:campuses,id',
+                'periode_id'       => 'nullable|exists:periodes_colaires,id',
                 'nature_examen_id' => 'nullable|exists:natures_examens,id',
-                'type_examen_id' => 'nullable|exists:type_examens,id',
-                'date_examen' => 'nullable|date',
-                'matiere_id' => 'nullable|exists:matieres_unites,id',
-                'groupe_id' => 'nullable|exists:groupes_matieres,id',
-                'note_originale' => 'required|numeric|min:0',
-                'note_sur' => 'required|numeric|min:0.01',
-                'enseignant_id' => 'nullable|exists:enseignants,id',
-                'statut' => 'required|in:en_attente,validee,rejetee,suspendue',
-                'remarques' => 'nullable|string',
+                'type_examen_id'   => 'nullable|exists:type_examens,id',
+                'date_examen'      => 'nullable|date',
+                'matiere_id'       => 'nullable|exists:matieres_unites,id',
+                'groupe_id'        => 'nullable|exists:groupes_matieres,id',
+                'enseignant_id'    => 'nullable|exists:enseignants,id',
+                'note_sur'         => 'required|numeric|min:0.01',
+                'titre'            => 'nullable|string|max:125',
+                'lignes'                  => 'required|array|min:1',
+                'lignes.*.apprenant_id'   => 'required|exists:apprenants,id',
+                'lignes.*.note_originale' => 'nullable|numeric|min:0',
+                'lignes.*.mention'        => 'nullable|string|max:50',
+                'lignes.*.observation'    => 'nullable|string',
             ]);
 
-            \Log::info('✅ [DEBUG] NoteController::store - Validation passed:', $validated);
-
-            // 🔄 Normaliser la note à /20
-            $noteOriginale = (float) $validated['note_originale'];
             $noteSur = (float) $validated['note_sur'];
-            $noteNormalisee = ($noteOriginale / $noteSur) * 20;
 
-            \Log::info('📊 Note normalization', [
-                'original' => $noteOriginale,
-                'sur' => $noteSur,
-                'normalized' => $noteNormalisee
-            ]);
+            \DB::transaction(function () use ($validated, $request, $noteSur) {
+                // 1) Le contexte = une Évaluation (notes.evaluation_id est requis).
+                $evaluation = Evaluation::create([
+                    'classe_id'   => $validated['classe_id'],
+                    'matiere_id'  => $validated['matiere_id'] ?? null,
+                    'titre'       => ($validated['titre'] ?? null) ?: ('Évaluation ' . ($validated['date_examen'] ?? now()->format('Y-m-d'))),
+                    'type'        => 'examen',
+                    'date'        => $validated['date_examen'] ?? null,
+                    'coefficient' => 1,
+                    'sur'         => $noteSur,
+                    'statut'      => 'actif',
+                ]);
 
-            // Ajouter les valeurs normalisées
-            $validated['note'] = round($noteNormalisee, 2);
+                // 2) Une Note par apprenant du tableau.
+                foreach ($request->input('lignes', []) as $ligne) {
+                    if (empty($ligne['apprenant_id'])) continue;
 
-            $note = Note::create($validated);
+                    $note20 = null;
+                    if (isset($ligne['note_originale']) && $ligne['note_originale'] !== '' && $noteSur > 0) {
+                        $note20 = round(((float) $ligne['note_originale'] / $noteSur) * 20, 2);
+                    }
+                    $mention = $ligne['mention'] ?? null;
+                    if (!$mention && $note20 !== null) {
+                        $mention = self::mentionFor($note20);
+                    }
 
-            \Log::info('✅ [DEBUG] NoteController::store - Note created:', [
-                'id' => $note->id,
-                'note_originale' => $note->note_originale,
-                'note_sur' => $note->note_sur,
-                'note_normalized' => $note->note
-            ]);
+                    Note::create([
+                        'evaluation_id'    => $evaluation->id,
+                        'apprenant_id'     => $ligne['apprenant_id'],
+                        'annee_scolaire_id' => $validated['annee_scolaire_id'] ?? null,
+                        'section_id'       => $validated['section_id'] ?? null,
+                        'cycle_id'         => $validated['cycle_id'] ?? null,
+                        'classe_id'        => $validated['classe_id'],
+                        'ecole_id'         => $validated['ecole_id'] ?? null,
+                        'campus_id'        => $validated['campus_id'] ?? null,
+                        'periode_id'       => $validated['periode_id'] ?? null,
+                        'nature_examen_id' => $validated['nature_examen_id'] ?? null,
+                        'type_examen_id'   => $validated['type_examen_id'] ?? null,
+                        'date_examen'      => $validated['date_examen'] ?? null,
+                        'matiere_id'       => $validated['matiere_id'] ?? null,
+                        'groupe_id'        => $validated['groupe_id'] ?? null,
+                        'enseignant_id'    => $validated['enseignant_id'] ?? null,
+                        'note_originale'   => $ligne['note_originale'] ?? null,
+                        'note_sur'         => $noteSur,
+                        'note'             => $note20,
+                        'mention'          => $mention,
+                        'appreciation'     => $ligne['observation'] ?? null,
+                        'statut'           => 'validee',
+                    ]);
+                }
+            });
 
             return redirect()->route('academique.notes.index')
                 ->with('success', __('messages.created_successfully'));
-
         } catch (\Illuminate\Validation\ValidationException $ve) {
-            \Log::error('❌ [VALIDATION ERROR] NoteController::store:', $ve->errors());
             return back()->withInput()->withErrors($ve->errors());
         } catch (\Throwable $th) {
-            \Log::error('❌ [ERROR] NoteController::store:', [
-                'message' => $th->getMessage(),
-                'file' => $th->getFile(),
-                'line' => $th->getLine(),
-                'class' => get_class($th)
-            ]);
             log_error("Academique", "NoteController::store", $th->getMessage());
-            return back()->withInput()->withErrors(['_error' => $th->getMessage()]);
+            return back()->withInput()->with('error', 'Erreur : ' . $th->getMessage());
         }
     }
 
@@ -277,7 +329,7 @@ class NoteController extends Controller
                         'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                     ])->toArray(),
                 'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
-                'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
+                'campuses' => Campus::whereNull('deleted_at')->get(['id', 'nom', 'institution_id'])->map(fn($c) => ['id' => $c->id, 'libelle' => $c->nom, 'institution_id' => $c->institution_id])->toArray(),
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'natureExamens' => NatureExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'typeExamens' => TypeExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
@@ -382,7 +434,7 @@ class NoteController extends Controller
                         'annee_scolaire_libelle' => $c->anneeScolaire?->libelle,
                     ])->toArray(),
                 'ecoles' => Ecole::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
-                'campuses' => Campus::whereNull('deleted_at')->select('id', 'nom as libelle')->get()->toArray(),
+                'campuses' => Campus::whereNull('deleted_at')->get(['id', 'nom', 'institution_id'])->map(fn($c) => ['id' => $c->id, 'libelle' => $c->nom, 'institution_id' => $c->institution_id])->toArray(),
                 'periodes' => PeriodeColaire::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'natureExamens' => NatureExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),
                 'typeExamens' => TypeExamen::whereNull('deleted_at')->select('id', 'libelle')->get()->toArray(),

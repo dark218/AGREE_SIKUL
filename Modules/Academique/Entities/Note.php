@@ -32,9 +32,11 @@ class Note extends BaseModel
         'note',
         'note_originale',
         'note_sur',
+        'mention',
         'enseignant_id',
         'statut',
         'remarques',
+        'appreciation',
     ];
 
     protected $casts = [

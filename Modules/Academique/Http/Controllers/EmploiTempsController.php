@@ -14,6 +14,7 @@ use Modules\Parametrage\Entities\Ecole;
 use Modules\Parametrage\Entities\Campus;
 use Modules\Parametrage\Entities\MatiereUnite;
 use Modules\Academique\Entities\Enseignant;
+use Modules\Academique\Entities\EmploiTempsCreneau;
 
 class EmploiTempsController extends Controller
 {
@@ -48,72 +49,37 @@ class EmploiTempsController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = EmploiTemps::query();
+            $query = EmploiTemps::query()->with(['classe', 'anneeScolaire', 'periode'])
+                ->withCount('creneaux');
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
-                $query->whereHas('classe', function ($q) use ($search) {
-                    $q->where('nom', 'like', "%$search%");
-                })->orWhereHas('anneeScolaire', function ($q) use ($search) {
-                    $q->where('libelle', 'like', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('libelle', 'like', "%$search%")
+                      ->orWhereHas('classe', fn ($c) => $c->where('nom', 'like', "%$search%"));
                 });
             }
-
-            if ($request->filled('statut')) {
-                $query->where('statut', $request->input('statut'));
+            if ($request->filled('etat')) {
+                $query->where('etat', $request->input('etat'));
             }
 
-            if ($request->filled('week_number')) {
-                $weekParts = explode('-W', $request->input('week_number'));
-                if (count($weekParts) === 2) {
-                    $year = (int)$weekParts[0];
-                    $week = (int)$weekParts[1];
-                    $query->where('week_number', $week)->where('year', $year);
-                }
-            }
-
-            // Get all matching emplois du temps
-            $allEmplois = $query->with(['classe', 'anneeScolaire'])->get();
-
-            // Group by week (week_start_date + classe_id + week_name) to show one row per week
-            $grouped = $allEmplois->groupBy(function ($item) {
-                return $item->week_start_date . '|' . $item->classe_id . '|' . $item->week_name;
-            })->map(function ($group) {
-                $first = $group->first();
-                return (object)[
-                    'id' => $first->id,
-                    'classe_id' => $first->classe_id,
-                    'classe' => $first->classe ? ['id' => $first->classe->id, 'nom' => $first->classe->nom] : null,
-                    'annee_scolaire_id' => $first->annee_scolaire_id,
-                    'anneeScolaire' => $first->anneeScolaire ? ['id' => $first->anneeScolaire->id, 'libelle' => $first->anneeScolaire->libelle] : null,
-                    'week_name' => $first->week_name,
-                    'week_start_date' => $first->week_start_date,
-                    'week_end_date' => $first->week_end_date,
-                    'week_number' => $first->week_number,
-                    'year' => $first->year,
-                    'statut' => $first->statut,
-                    'deleted_at' => $first->deleted_at,
-                    'total_courses' => $group->count(),
-                    'courses' => $group->toArray(),
-                ];
-            })->values();
-
-            // Create proper Laravel pagination
-            $page = \Illuminate\Pagination\Paginator::resolveCurrentPage();
-            $perPage = 25;
-            $items = $grouped->slice(($page - 1) * $perPage, $perPage)->values();
-            $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
-                $items,
-                $grouped->count(),
-                $perPage,
-                $page,
-                ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(), 'query' => $request->query()]
-            );
+            $emploisTemps = $query->orderByDesc('id')->paginate(10)->withQueryString()
+                ->through(fn ($e) => [
+                    'id'            => $e->id,
+                    'libelle'       => $e->libelle,
+                    'classe'        => $e->classe ? $e->classe->libelle_affichage ?? ($e->classe->libelle ?? $e->classe->nom) : '-',
+                    'annee'         => $e->anneeScolaire?->libelle,
+                    'periode'       => $e->periode?->libelle,
+                    'date_debut'    => $e->date_debut ? \Carbon\Carbon::parse($e->date_debut)->format('d/m/Y') : '-',
+                    'date_fin'      => $e->date_fin ? \Carbon\Carbon::parse($e->date_fin)->format('d/m/Y') : '-',
+                    'nb_creneaux'   => $e->creneaux_count,
+                    'etat'          => $e->etat ?? 'actif',
+                ]);
 
             return Inertia::render('Academique::EmploisTemps/Index', [
                 'title' => __('common.emplois_du_temps'),
-                'emploisTemps' => $paginated,
-                'filters' => $request->only(['search', 'statut', 'week_number']),
+                'emploisTemps' => $emploisTemps,
+                'filters' => $request->only(['search', 'etat']),
             ]);
         } catch (\Throwable $th) {
             log_error("Academique", "EmploiTempsController::index", $th->getMessage());
@@ -121,27 +87,180 @@ class EmploiTempsController extends Controller
         }
     }
 
+    /**
+     * Options communes des formulaires (cadre + créneaux).
+     * Les classes portent leurs FK (école/campus/section/cycle/niveau/année)
+     * pour l'auto-remplissage en cascade côté front — zéro re-saisie.
+     */
+    private function formOptions(): array
+    {
+        return [
+            'classes' => Classe::whereNull('deleted_at')->orderBy('nom')
+                ->get(['id', 'nom', 'libelle', 'libelle_affichage', 'ecole_id', 'campus_id', 'section_id', 'cycle_id', 'niveau_id', 'annee_scolaire_id'])
+                ->map(fn ($c) => [
+                    'id'                => $c->id,
+                    'libelle'           => $c->libelle_affichage ?: ($c->libelle ?: $c->nom),
+                    'ecole_id'          => $c->ecole_id,
+                    'campus_id'         => $c->campus_id,
+                    'section_id'        => $c->section_id,
+                    'cycle_id'          => $c->cycle_id,
+                    'niveau_id'         => $c->niveau_id,
+                    'annee_scolaire_id' => $c->annee_scolaire_id,
+                ]),
+            'ecoles'      => Ecole::whereNull('deleted_at')->orderBy('nom')->get(['id', 'nom'])->map(fn ($e) => ['id' => $e->id, 'libelle' => $e->nom]),
+            'campuses'    => Campus::whereNull('deleted_at')->orderBy('nom')->get(['id', 'nom', 'institution_id'])->map(fn ($c) => ['id' => $c->id, 'libelle' => $c->nom, 'institution_id' => $c->institution_id]),
+            'institutions' => \Modules\Parametrage\Entities\Institution::orderBy('nom')->get(['id', 'nom'])->map(fn ($i) => ['id' => $i->id, 'libelle' => $i->nom]),
+            'sections'    => Section::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'cycles'      => CycleEnseignement::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'niveaux'     => \Modules\Parametrage\Entities\NiveauEtude::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'anneesScolaires' => AnneeScolaire::whereNull('deleted_at')->orderBy('libelle', 'desc')->get(['id', 'libelle']),
+            'periodes'    => \Modules\Parametrage\Entities\PeriodeColaire::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'matieres'    => MatiereUnite::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
+            'enseignants' => Enseignant::whereNull('deleted_at')->get(['id', 'nom', 'prenoms'])
+                ->map(fn ($e) => ['id' => $e->id, 'libelle' => trim(($e->prenoms ?? '') . ' ' . ($e->nom ?? ''))]),
+        ];
+    }
+
+    /** Contexte académique dérivé de la classe (source de vérité unique). */
+    private function classeContext($classeId): array
+    {
+        $c = Classe::find($classeId);
+        if (!$c) return [];
+        return [
+            'ecole_id'          => $c->ecole_id,
+            'campus_id'         => $c->campus_id,
+            'section_id'        => $c->section_id,
+            'cycle_id'          => $c->cycle_id,
+            'niveau_id'         => $c->niveau_id,
+            'annee_scolaire_id' => $c->annee_scolaire_id,
+        ];
+    }
+
+    /**
+     * Détection de conflits d'horaires (expertise planning) :
+     *  - dans le même emploi du temps : deux créneaux du même jour ne peuvent pas
+     *    se chevaucher (la classe ne peut pas être à 2 endroits) ;
+     *  - inter-emplois : un enseignant ne peut pas être sur deux créneaux qui se
+     *    chevauchent le même jour (double réservation).
+     * Retourne la liste des messages d'erreur (vide = pas de conflit).
+     */
+    private function detectConflicts(array $creneaux, $excludeEmploiId = null): array
+    {
+        $errors = [];
+        $overlap = fn ($a1, $a2, $b1, $b2) => $a1 && $a2 && $b1 && $b2 && $a1 < $b2 && $b1 < $a2;
+
+        // 1) Chevauchements internes (même classe = ce cadre)
+        foreach ($creneaux as $i => $c1) {
+            for ($j = $i + 1; $j < count($creneaux); $j++) {
+                $c2 = $creneaux[$j];
+                if (($c1['jour'] ?? null) && ($c1['jour'] ?? null) === ($c2['jour'] ?? null)
+                    && $overlap($c1['heure_debut'] ?? null, $c1['heure_fin'] ?? null, $c2['heure_debut'] ?? null, $c2['heure_fin'] ?? null)) {
+                    $errors[] = "Chevauchement le {$c1['jour']} entre deux créneaux (" . ($c1['heure_debut'] ?? '?') . " et " . ($c2['heure_debut'] ?? '?') . ").";
+                }
+            }
+        }
+
+        // 2) Enseignant déjà occupé sur un autre emploi du temps
+        foreach ($creneaux as $c) {
+            $ens = $c['enseignant_id'] ?? null;
+            $jour = $c['jour'] ?? null;
+            $hd = $c['heure_debut'] ?? null;
+            $hf = $c['heure_fin'] ?? null;
+            if (!$ens || !$jour || !$hd || !$hf) continue;
+
+            $query = EmploiTempsCreneau::query()
+                ->where('enseignant_id', $ens)
+                ->where('jour', $jour)
+                ->whereNull('deleted_at')
+                ->where('heure_debut', '<', $hf)
+                ->where('heure_fin', '>', $hd);
+            if ($excludeEmploiId) {
+                $query->where('emploi_temps_id', '!=', $excludeEmploiId);
+            }
+            if ($query->exists()) {
+                $errors[] = "L'enseignant sélectionné est déjà occupé le {$jour} sur ce créneau ({$hd}–{$hf}).";
+            }
+        }
+
+        return array_values(array_unique($errors));
+    }
+
+    private function cadreRules(): array
+    {
+        return [
+            'classe_id'   => 'required|exists:classes,id',
+            'periode_id'  => 'nullable|exists:periodes_colaires,id',
+            'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
+            'libelle'     => 'nullable|string|max:255',
+            'date_debut'  => 'nullable|date',
+            'date_fin'    => 'nullable|date|after_or_equal:date_debut',
+            'etat'        => 'nullable|in:actif,inactif',
+            'creneaux'                 => 'nullable|array',
+            'creneaux.*.jour'          => 'nullable|string|max:20',
+            'creneaux.*.heure_debut'   => 'nullable|string|max:8',
+            'creneaux.*.heure_fin'     => 'nullable|string|max:8',
+            'creneaux.*.matiere_id'    => 'nullable|exists:matieres_unites,id',
+            'creneaux.*.enseignant_id' => 'nullable|exists:enseignants,id',
+            'creneaux.*.salle'         => 'nullable|string|max:125',
+        ];
+    }
+
+    /** Durée (en jours) entre deux dates de validité du cadre. */
+    private function computeDuree($debut, $fin)
+    {
+        if (!$debut || !$fin) return null;
+        try {
+            return \Carbon\Carbon::parse($debut)->diffInDays(\Carbon\Carbon::parse($fin));
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function persistCadre(array $validated, array $creneaux, ?EmploiTemps $emploi = null): EmploiTemps
+    {
+        return \DB::transaction(function () use ($validated, $creneaux, $emploi) {
+            $context = $this->classeContext($validated['classe_id']);
+            $payload = array_merge($validated, $context, [
+                'annee_scolaire_id' => $validated['annee_scolaire_id'] ?? ($context['annee_scolaire_id'] ?? null),
+                'duree'             => $this->computeDuree($validated['date_debut'] ?? null, $validated['date_fin'] ?? null),
+                'etat'              => $validated['etat'] ?? 'actif',
+            ]);
+            unset($payload['creneaux']);
+
+            if ($emploi) {
+                $emploi->update($payload);
+            } else {
+                $emploi = EmploiTemps::create($payload);
+            }
+
+            // Sync créneaux : on remplace intégralement (simple et sûr).
+            $emploi->creneaux()->forceDelete();
+            foreach (array_values($creneaux) as $i => $c) {
+                if (empty($c['jour']) && empty($c['matiere_id']) && empty($c['enseignant_id'])) {
+                    continue; // ligne vide ignorée
+                }
+                $emploi->creneaux()->create([
+                    'jour'          => $c['jour'] ?? null,
+                    'heure_debut'   => $c['heure_debut'] ?? null,
+                    'heure_fin'     => $c['heure_fin'] ?? null,
+                    'matiere_id'    => $c['matiere_id'] ?? null,
+                    'enseignant_id' => $c['enseignant_id'] ?? null,
+                    'salle'         => $c['salle'] ?? null,
+                    'ordre'         => $i,
+                ]);
+            }
+
+            return $emploi;
+        });
+    }
+
     public function create()
     {
         try {
-            return Inertia::render('Academique::EmploisTemps/Create', [
-                'title' => __('actions.create'),
-                'classes' => Classe::select('id', 'nom')->get()->toArray(),
-                'anneesScolaires' => AnneeScolaire::select('id', 'libelle')->get()->toArray(),
-                'sections' => Section::select('id', 'libelle')->get()->toArray(),
-                'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
-                'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
-                'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
-                'enseignants' => Enseignant::select('id', 'nom', 'prenoms')->get()->map(fn($e) => [
-                    'id' => $e->id,
-                    'libelle' => trim(($e->prenoms ?? '') . ' ' . $e->nom)
-                ])->toArray(),
-                'enseignantMatieres' => \DB::table('enseignant_matieres')
-                    ->select('enseignant_id', 'matiere_id')
-                    ->get()
-                    ->toArray(),
-            ]);
+            return Inertia::render('Academique::EmploisTemps/Create', array_merge(
+                $this->formOptions(),
+                ['title' => __('actions.create')]
+            ));
         } catch (\Throwable $th) {
             log_error("Academique", "EmploiTempsController::create", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -151,117 +270,37 @@ class EmploiTempsController extends Controller
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate([
-                'classe_id' => 'required|exists:classes,id',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'week_name' => 'required|string|max:100',
-                'week_start_date' => 'required|date_format:Y-m-d',
-                'week_end_date' => 'nullable|date_format:Y-m-d',
-                'week_number' => 'nullable|integer|min:1|max:52',
-                'year' => 'nullable|integer|min:2000|max:2100',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'campus_id' => 'nullable|exists:campuses,id',
-                'jour' => 'nullable|string|max:100',
-                'matiere_id' => 'nullable|exists:matieres_unites,id',
-                'enseignant_id' => 'nullable|exists:enseignants,id',
-                'duree' => 'nullable|numeric|min:0',
-                'date_debut' => 'required|date_format:Y-m-d\TH:i',
-                'date_fin' => 'required|date_format:Y-m-d\TH:i',
-                'est_valide' => 'nullable|boolean',
-                'statut' => 'required|in:brouillon,valide,publie,archive',
-            ]);
+            $validated = $request->validate($this->cadreRules());
+            $creneaux = $request->input('creneaux', []);
 
-            EmploiTemps::create($validated);
+            $conflicts = $this->detectConflicts($creneaux, null);
+            if (!empty($conflicts)) {
+                return back()->withErrors(['creneaux' => implode(' ', $conflicts)])->withInput();
+            }
+
+            $this->persistCadre($validated, $creneaux);
 
             return redirect()->route('academique.emplois_du_temps.index')
                 ->with('success', __('messages.created_successfully'));
-
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Academique", "EmploiTempsController::store", $th->getMessage());
-            return back()->withErrors(['_error' => $th->getMessage()]);
+            return back()->with('error', 'Erreur : ' . $th->getMessage())->withInput();
         }
     }
 
     public function show(EmploiTemps $emploi_temps)
     {
         try {
-            // Load all courses for this week (same week_start_date + classe_id)
-            $weekCourses = EmploiTemps::where('week_start_date', $emploi_temps->week_start_date)
-                ->where('classe_id', $emploi_temps->classe_id)
-                ->with(['matiere', 'enseignant'])
-                ->get()
-                ->groupBy('jour');
-
-            // Transform week courses to array of day => courses
-            $coursesGroupedByDay = [];
-            foreach (['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'] as $jour) {
-                $coursesGroupedByDay[$jour] = collect($weekCourses->get($jour, []))
-                    ->map(function ($course) {
-                        return [
-                            'id' => $course->id,
-                            'matiere_id' => $course->matiere_id,
-                            'matiere' => $course->matiere ? ['id' => $course->matiere->id, 'libelle' => $course->matiere->libelle] : null,
-                            'enseignant_id' => $course->enseignant_id,
-                            'enseignant' => $course->enseignant ? ['id' => $course->enseignant->id, 'prenoms' => $course->enseignant->user->prenoms ?? '', 'nom' => $course->enseignant->user->nom ?? ''] : null,
-                            'date_debut' => $course->date_debut,
-                            'date_fin' => $course->date_fin,
-                            'duree' => $course->duree,
-                        ];
-                    })->toArray();
-            }
-
-            $emploi_temps->load('classe', 'anneeScolaire', 'section', 'cycle', 'ecole', 'campus', 'matiere', 'enseignant');
-
-            // Transform data to flatten Inertia serialization issues
-            $emploiTempsData = [
-                'id' => $emploi_temps->id,
-                'classe_id' => $emploi_temps->classe_id,
-                'annee_scolaire_id' => $emploi_temps->annee_scolaire_id,
-                'section_id' => $emploi_temps->section_id,
-                'cycle_id' => $emploi_temps->cycle_id,
-                'ecole_id' => $emploi_temps->ecole_id,
-                'campus_id' => $emploi_temps->campus_id,
-                'week_name' => $emploi_temps->week_name,
-                'week_start_date' => $emploi_temps->week_start_date,
-                'week_end_date' => $emploi_temps->week_end_date,
-                'week_number' => $emploi_temps->week_number,
-                'year' => $emploi_temps->year,
-                'jour' => $emploi_temps->jour,
-                'matiere_id' => $emploi_temps->matiere_id,
-                'enseignant_id' => $emploi_temps->enseignant_id,
-                'duree' => $emploi_temps->duree,
-                'date_debut' => $emploi_temps->date_debut,
-                'date_fin' => $emploi_temps->date_fin,
-                'est_valide' => $emploi_temps->est_valide,
-                'statut' => $emploi_temps->statut,
-                'coursesGroupedByDay' => $coursesGroupedByDay,
-                'classe' => $emploi_temps->classe ? ['id' => $emploi_temps->classe->id, 'nom' => $emploi_temps->classe->nom] : null,
-                'anneeScolaire' => $emploi_temps->anneeScolaire ? ['id' => $emploi_temps->anneeScolaire->id, 'libelle' => $emploi_temps->anneeScolaire->libelle] : null,
-                'section' => $emploi_temps->section ? ['id' => $emploi_temps->section->id, 'libelle' => $emploi_temps->section->libelle] : null,
-                'cycle' => $emploi_temps->cycle ? ['id' => $emploi_temps->cycle->id, 'libelle' => $emploi_temps->cycle->libelle] : null,
-                'ecole' => $emploi_temps->ecole ? ['id' => $emploi_temps->ecole->id, 'nom' => $emploi_temps->ecole->nom] : null,
-                'campus' => $emploi_temps->campus ? ['id' => $emploi_temps->campus->id, 'nom' => $emploi_temps->campus->nom] : null,
-                'matiere' => $emploi_temps->matiere ? ['id' => $emploi_temps->matiere->id, 'libelle' => $emploi_temps->matiere->libelle] : null,
-                'enseignant' => $emploi_temps->enseignant ? ['id' => $emploi_temps->enseignant->id, 'user_id' => $emploi_temps->enseignant->user_id] : null,
-            ];
-
-            return Inertia::render('Academique::EmploisTemps/Show', [
-                'title' => __('actions.view'),
-                'emploiTemps' => $emploiTempsData,
-                'classes' => Classe::select('id', 'nom')->get()->toArray(),
-                'anneesScolaires' => AnneeScolaire::select('id', 'libelle')->get()->toArray(),
-                'sections' => Section::select('id', 'libelle')->get()->toArray(),
-                'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
-                'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
-                'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
-                'enseignants' => Enseignant::with('user')->select('id', 'user_id')->get()->map(fn($e) => [
-                    'id' => $e->id,
-                    'libelle' => $e->user->prenoms . ' ' . $e->user->nom
-                ])->toArray(),
-            ]);
+            $emploi_temps->load('creneaux');
+            return Inertia::render('Academique::EmploisTemps/Show', array_merge(
+                $this->formOptions(),
+                [
+                    'title'       => __('actions.view'),
+                    'emploiTemps' => $this->cadrePayload($emploi_temps),
+                ]
+            ));
         } catch (\Throwable $th) {
             log_error("Academique", "EmploiTempsController::show", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -271,55 +310,14 @@ class EmploiTempsController extends Controller
     public function edit(EmploiTemps $emploi_temps)
     {
         try {
-            $emploi_temps->load('classe', 'anneeScolaire', 'section', 'cycle', 'ecole', 'campus', 'matiere', 'enseignant');
-
-            // Transform data to flatten Inertia serialization issues
-            $emploiTempsData = [
-                'id' => $emploi_temps->id,
-                'classe_id' => $emploi_temps->classe_id,
-                'annee_scolaire_id' => $emploi_temps->annee_scolaire_id,
-                'section_id' => $emploi_temps->section_id,
-                'cycle_id' => $emploi_temps->cycle_id,
-                'ecole_id' => $emploi_temps->ecole_id,
-                'campus_id' => $emploi_temps->campus_id,
-                'week_name' => $emploi_temps->week_name,
-                'week_start_date' => $emploi_temps->week_start_date,
-                'week_end_date' => $emploi_temps->week_end_date,
-                'week_number' => $emploi_temps->week_number,
-                'year' => $emploi_temps->year,
-                'jour' => $emploi_temps->jour,
-                'matiere_id' => $emploi_temps->matiere_id,
-                'enseignant_id' => $emploi_temps->enseignant_id,
-                'duree' => $emploi_temps->duree,
-                'date_debut' => $emploi_temps->date_debut,
-                'date_fin' => $emploi_temps->date_fin,
-                'est_valide' => $emploi_temps->est_valide,
-                'statut' => $emploi_temps->statut,
-                'classe' => $emploi_temps->classe ? ['id' => $emploi_temps->classe->id, 'nom' => $emploi_temps->classe->nom] : null,
-                'anneeScolaire' => $emploi_temps->anneeScolaire ? ['id' => $emploi_temps->anneeScolaire->id, 'libelle' => $emploi_temps->anneeScolaire->libelle] : null,
-                'section' => $emploi_temps->section ? ['id' => $emploi_temps->section->id, 'libelle' => $emploi_temps->section->libelle] : null,
-                'cycle' => $emploi_temps->cycle ? ['id' => $emploi_temps->cycle->id, 'libelle' => $emploi_temps->cycle->libelle] : null,
-                'ecole' => $emploi_temps->ecole ? ['id' => $emploi_temps->ecole->id, 'nom' => $emploi_temps->ecole->nom] : null,
-                'campus' => $emploi_temps->campus ? ['id' => $emploi_temps->campus->id, 'nom' => $emploi_temps->campus->nom] : null,
-                'matiere' => $emploi_temps->matiere ? ['id' => $emploi_temps->matiere->id, 'libelle' => $emploi_temps->matiere->libelle] : null,
-                'enseignant' => $emploi_temps->enseignant ? ['id' => $emploi_temps->enseignant->id, 'user_id' => $emploi_temps->enseignant->user_id] : null,
-            ];
-
-            return Inertia::render('Academique::EmploisTemps/Edit', [
-                'title' => __('actions.edit'),
-                'emploiTemps' => $emploiTempsData,
-                'classes' => Classe::select('id', 'nom')->get()->toArray(),
-                'anneesScolaires' => AnneeScolaire::select('id', 'libelle')->get()->toArray(),
-                'sections' => Section::select('id', 'libelle')->get()->toArray(),
-                'cycles' => CycleEnseignement::select('id', 'libelle')->get()->toArray(),
-                'ecoles' => Ecole::select('id', 'nom')->get()->toArray(),
-                'campuses' => Campus::select('id', 'nom')->get()->toArray(),
-                'matieres' => MatiereUnite::select('id', 'libelle')->get()->toArray(),
-                'enseignants' => Enseignant::with('user')->select('id', 'user_id')->get()->map(fn($e) => [
-                    'id' => $e->id,
-                    'libelle' => $e->user->prenoms . ' ' . $e->user->nom
-                ])->toArray(),
-            ]);
+            $emploi_temps->load('creneaux');
+            return Inertia::render('Academique::EmploisTemps/Edit', array_merge(
+                $this->formOptions(),
+                [
+                    'title'       => __('actions.edit'),
+                    'emploiTemps' => $this->cadrePayload($emploi_temps),
+                ]
+            ));
         } catch (\Throwable $th) {
             log_error("Academique", "EmploiTempsController::edit", $th->getMessage());
             return back()->with('error', __('messages.error_occurred'));
@@ -329,37 +327,54 @@ class EmploiTempsController extends Controller
     public function update(Request $request, EmploiTemps $emploi_temps)
     {
         try {
-            $validated = $request->validate([
-                'classe_id' => 'required|exists:classes,id',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'week_name' => 'required|string|max:100',
-                'week_start_date' => 'required|date_format:Y-m-d',
-                'week_end_date' => 'nullable|date_format:Y-m-d',
-                'week_number' => 'nullable|integer|min:1|max:52',
-                'year' => 'nullable|integer|min:2000|max:2100',
-                'section_id' => 'nullable|exists:sections,id',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'campus_id' => 'nullable|exists:campuses,id',
-                'jour' => 'nullable|string|max:100',
-                'matiere_id' => 'nullable|exists:matieres_unites,id',
-                'enseignant_id' => 'nullable|exists:enseignants,id',
-                'duree' => 'nullable|numeric|min:0',
-                'date_debut' => 'required|date_format:Y-m-d\TH:i',
-                'date_fin' => 'required|date_format:Y-m-d\TH:i',
-                'est_valide' => 'nullable|boolean',
-                'statut' => 'required|in:brouillon,valide,publie,archive',
-            ]);
+            $validated = $request->validate($this->cadreRules());
+            $creneaux = $request->input('creneaux', []);
 
-            $emploi_temps->update($validated);
+            $conflicts = $this->detectConflicts($creneaux, $emploi_temps->id);
+            if (!empty($conflicts)) {
+                return back()->withErrors(['creneaux' => implode(' ', $conflicts)])->withInput();
+            }
 
-            return redirect()->route('academique.emplois_du_temps.show', $emploi_temps)
+            $this->persistCadre($validated, $creneaux, $emploi_temps);
+
+            return redirect()->route('academique.emplois_du_temps.index')
                 ->with('success', __('messages.updated_successfully'));
-
+        } catch (\Illuminate\Validation\ValidationException $ve) {
+            throw $ve;
         } catch (\Throwable $th) {
             log_error("Academique", "EmploiTempsController::update", $th->getMessage());
-            return back()->withErrors(['_error' => $th->getMessage()]);
+            return back()->with('error', 'Erreur : ' . $th->getMessage())->withInput();
         }
+    }
+
+    /** Données du cadre + ses créneaux pour les formulaires Edit/Show. */
+    private function cadrePayload(EmploiTemps $e): array
+    {
+        $fmtDate = fn ($d) => $d ? \Carbon\Carbon::parse($d)->format('Y-m-d') : null;
+        return [
+            'id'                => $e->id,
+            'classe_id'         => $e->classe_id,
+            'niveau_id'         => $e->niveau_id,
+            'section_id'        => $e->section_id,
+            'cycle_id'          => $e->cycle_id,
+            'ecole_id'          => $e->ecole_id,
+            'campus_id'         => $e->campus_id,
+            'annee_scolaire_id' => $e->annee_scolaire_id,
+            'periode_id'        => $e->periode_id,
+            'libelle'           => $e->libelle,
+            'date_debut'        => $fmtDate($e->date_debut),
+            'date_fin'          => $fmtDate($e->date_fin),
+            'duree'             => $e->duree,
+            'etat'              => $e->etat ?? 'actif',
+            'creneaux'          => $e->creneaux->map(fn ($c) => [
+                'jour'          => $c->jour,
+                'heure_debut'   => $c->heure_debut ? substr($c->heure_debut, 0, 5) : null,
+                'heure_fin'     => $c->heure_fin ? substr($c->heure_fin, 0, 5) : null,
+                'matiere_id'    => $c->matiere_id,
+                'enseignant_id' => $c->enseignant_id,
+                'salle'         => $c->salle,
+            ])->values(),
+        ];
     }
 
     public function destroy(EmploiTemps $emploi_temps)
