@@ -232,46 +232,7 @@ watch(() => props.form.enseignant_id, () => {
 </script>
 <template>
     <div class="row g-3 custom-input">
-        <!-- Classe -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.classe') || 'Classe' }}</label>
-                <SearchableSelect
-                    v-model="form.classe_id"
-                    @update:modelValue="handleClasseChange"
-                    :options="classes"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.classe_id" class="text-danger">
-                    <strong>{{ form.errors.classe_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <HierarchyContextBar v-if="classeSelected" :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
-
-        <!-- Matière -->
-        <div class="col-sm-6">
-            <div class="mb-3">
-                <label>{{ t('fields.matiere') || 'Matière' }}</label>
-                <SearchableSelect
-                    v-model="form.matiere_id"
-                    :options="matieres"
-                    optionValue="id"
-                    optionLabel="nom"
-                    :placeholder="t('common.select') || '-- Sélectionner --'"
-                    :disabled="isReadOnly"
-                />
-                <span v-if="form.errors?.matiere_id" class="text-danger">
-                    <strong>{{ form.errors.matiere_id }}</strong>
-                </span>
-            </div>
-        </div>
-
-        <!-- Enseignant -->
+        <!-- Enseignant (ANCRE : l'absence concerne un enseignant → charge ses créneaux) -->
         <div class="col-sm-6">
             <div class="mb-3">
                 <label>{{ t('fields.enseignant') || 'Enseignant' }} <span class="text-danger">*</span></label>
@@ -283,6 +244,7 @@ watch(() => props.form.enseignant_id, () => {
                     :placeholder="t('common.select') || '-- Sélectionner --'"
                     :disabled="isReadOnly"
                 />
+                <small class="text-muted">Sélectionnez l'enseignant : ses créneaux d'emploi du temps s'affichent ci-dessous.</small>
                 <span v-if="form.errors?.enseignant_id" class="text-danger">
                     <strong>{{ form.errors.enseignant_id }}</strong>
                 </span>
@@ -328,6 +290,45 @@ watch(() => props.form.enseignant_id, () => {
                         </div>
                     </div>
                 </template>
+            </div>
+        </div>
+
+        <!-- Classe (pré-remplie par le créneau, modifiable) -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.classe') || 'Classe' }}</label>
+                <SearchableSelect
+                    v-model="form.classe_id"
+                    @update:modelValue="handleClasseChange"
+                    :options="classes"
+                    optionValue="id"
+                    optionLabel="nom"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.classe_id" class="text-danger">
+                    <strong>{{ form.errors.classe_id }}</strong>
+                </span>
+            </div>
+        </div>
+
+        <HierarchyContextBar v-if="classeSelected" :form="form" :ecoles="ecoles" :campuses="campuses" :sections="sections" :cycles="cycles" />
+
+        <!-- Matière (pré-remplie par le créneau, modifiable) -->
+        <div class="col-sm-6">
+            <div class="mb-3">
+                <label>{{ t('fields.matiere') || 'Matière' }}</label>
+                <SearchableSelect
+                    v-model="form.matiere_id"
+                    :options="matieres"
+                    optionValue="id"
+                    optionLabel="nom"
+                    :placeholder="t('common.select') || '-- Sélectionner --'"
+                    :disabled="isReadOnly"
+                />
+                <span v-if="form.errors?.matiere_id" class="text-danger">
+                    <strong>{{ form.errors.matiere_id }}</strong>
+                </span>
             </div>
         </div>
 

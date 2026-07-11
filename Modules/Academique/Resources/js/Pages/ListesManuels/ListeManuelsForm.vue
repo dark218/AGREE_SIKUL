@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 
@@ -35,10 +35,47 @@ const opt = (list, labelKeys = ['libelle', 'nom']) =>
 
 const anneesOptions = computed(() => opt(props.anneesScolaires));
 const ecolesOptions = computed(() => opt(props.ecoles, ['libelle', 'nom']));
-const sectionsOptions = computed(() => opt(props.sections, ['libelle', 'nom']));
+// Section = ancre pédagogique : filtrée par l'école si celle-ci est choisie.
+const filteredSections = computed(() => {
+    if (!props.form.ecole_id) return props.sections;
+    return props.sections.filter(s => String(s.ecole_id) === String(props.form.ecole_id));
+});
+const sectionsOptions = computed(() => opt(filteredSections.value, ['libelle', 'nom']));
 const niveauxOptions = computed(() => opt(props.niveaux, ['libelle', 'nom']));
 const cyclesOptions = computed(() => opt(props.cycles));
 const paysOptions = computed(() => opt(props.pays));
+
+// Libellés du bloc « contexte remonté automatiquement ».
+const findLabel = (list, id, keys = ['libelle', 'nom']) => {
+    const f = (list || []).find(x => String(x.id) === String(id));
+    return f ? (keys.map(k => f[k]).find(Boolean) || '—') : '—';
+};
+const niveauLabel = computed(() => findLabel(props.niveaux, props.form.niveau_id));
+const cycleLabel = computed(() => findLabel(props.cycles, props.form.cycle_id));
+const paysLabel = computed(() => findLabel(props.pays, props.form.pays_id));
+
+// Cascade : choisir une SECTION remonte École / Niveau, puis Cycle + Pays via le niveau.
+watch(() => props.form.section_id, (id) => {
+    const s = props.sections.find(x => String(x.id) === String(id));
+    if (!s) return;
+    if (!props.form.ecole_id && s.ecole_id) props.form.ecole_id = s.ecole_id;
+    if (s.niveau_etude_id) props.form.niveau_id = s.niveau_etude_id;
+});
+
+// Choisir un NIVEAU remonte automatiquement son Cycle et son Pays.
+watch(() => props.form.niveau_id, (id) => {
+    const n = props.niveaux.find(x => String(x.id) === String(id));
+    if (!n) return;
+    if (n.cycle_id) props.form.cycle_id = n.cycle_id;
+    if (n.pays_id) props.form.pays_id = n.pays_id;
+});
+
+// Si on change d'école, on invalide la section qui n'appartient plus à l'école.
+watch(() => props.form.ecole_id, (id) => {
+    if (!id || !props.form.section_id) return;
+    const s = props.sections.find(x => String(x.id) === String(props.form.section_id));
+    if (s && String(s.ecole_id) !== String(id)) props.form.section_id = null;
+});
 
 // ===== Blocs répétables =====
 const ensureArray = (key) => {
@@ -73,7 +110,8 @@ const removeFourniture = (i) => props.form.fournitures.splice(i, 1);
         <div class="col-sm-4">
             <div class="mb-3">
                 <label>{{ t('fields.school') || 'École' }}</label>
-                <SearchableSelect v-model="form.ecole_id" :options="ecolesOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                <SearchableSelect v-model="form.ecole_id" :options="ecolesOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Toutes les écoles --'" :disabled="isReadOnly" />
+                <small class="text-muted">Filtre les sections (facultatif).</small>
                 <span v-if="form.errors?.ecole_id" class="text-danger"><strong>{{ form.errors.ecole_id }}</strong></span>
             </div>
         </div>
@@ -81,28 +119,35 @@ const removeFourniture = (i) => props.form.fournitures.splice(i, 1);
             <div class="mb-3">
                 <label>{{ t('fields.section') || 'Section' }}</label>
                 <SearchableSelect v-model="form.section_id" :options="sectionsOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                <small class="text-muted">Remonte l'école, le niveau, le cycle et le pays.</small>
                 <span v-if="form.errors?.section_id" class="text-danger"><strong>{{ form.errors.section_id }}</strong></span>
             </div>
         </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.level') || 'Niveau' }}</label>
-                <SearchableSelect v-model="form.niveau_id" :options="niveauxOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
-                <span v-if="form.errors?.niveau_id" class="text-danger"><strong>{{ form.errors.niveau_id }}</strong></span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.cycle') || 'Cycle' }}</label>
-                <SearchableSelect v-model="form.cycle_id" :options="cyclesOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
-                <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
-            </div>
-        </div>
-        <div class="col-sm-4">
-            <div class="mb-3">
-                <label>{{ t('fields.country') || 'Pays' }}</label>
-                <SearchableSelect v-model="form.pays_id" :options="paysOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
-                <span v-if="form.errors?.pays_id" class="text-danger"><strong>{{ form.errors.pays_id }}</strong></span>
+
+        <!-- Contexte remonté automatiquement depuis la section / le niveau -->
+        <div class="col-12">
+            <div class="auto-block">
+                <div class="auto-title"><i class="fa fa-sitemap"></i> Contexte pédagogique <span class="badge bg-secondary">auto</span></div>
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <label>{{ t('fields.level') || 'Niveau' }}</label>
+                        <SearchableSelect v-model="form.niveau_id" :options="niveauxOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                        <small class="text-muted">{{ niveauLabel }}</small>
+                        <span v-if="form.errors?.niveau_id" class="text-danger d-block"><strong>{{ form.errors.niveau_id }}</strong></span>
+                    </div>
+                    <div class="col-sm-4">
+                        <label>{{ t('fields.cycle') || 'Cycle' }}</label>
+                        <SearchableSelect v-model="form.cycle_id" :options="cyclesOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                        <small class="text-muted">{{ cycleLabel }}</small>
+                        <span v-if="form.errors?.cycle_id" class="text-danger d-block"><strong>{{ form.errors.cycle_id }}</strong></span>
+                    </div>
+                    <div class="col-sm-4">
+                        <label>{{ t('fields.country') || 'Pays' }}</label>
+                        <SearchableSelect v-model="form.pays_id" :options="paysOptions" optionValue="id" optionLabel="libelle" :placeholder="t('actions.select') || '-- Sélectionner --'" :disabled="isReadOnly" />
+                        <small class="text-muted">{{ paysLabel }}</small>
+                        <span v-if="form.errors?.pays_id" class="text-danger d-block"><strong>{{ form.errors.pays_id }}</strong></span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -224,4 +269,6 @@ const removeFourniture = (i) => props.form.fournitures.splice(i, 1);
     padding-bottom: 5px;
     border-bottom: 2px solid #f0f0f0;
 }
+.auto-block { background:#f8fafc; border:1px solid #e9eef5; border-radius:10px; padding:14px 16px; }
+.auto-title { font-weight:600; color:#0B5697; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
 </style>

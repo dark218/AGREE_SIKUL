@@ -201,8 +201,10 @@ class ListeManuelsController extends Controller
         return [
             'anneesScolaires' => AnneeScolaire::select('id', 'libelle')->where('etat', 'actif')->orderBy('libelle', 'desc')->get(),
             'ecoles' => Ecole::select('id', 'nom as libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
-            'sections' => Section::select('id', 'nom as libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
-            'niveaux' => NiveauEtude::where('etat', 'actif')->get(),
+            // ecole_id + niveau_etude_id : permettent la cascade École → Section → Niveau côté formulaire.
+            'sections' => Section::select('id', 'libelle', 'ecole_id', 'niveau_etude_id')->where('etat', 'actif')->orderBy('libelle')->get(),
+            // cycle_id + pays_id : remontés automatiquement quand on choisit le niveau (via la section).
+            'niveaux' => NiveauEtude::select('id', 'libelle', 'cycle_id', 'pays_id')->where('etat', 'actif')->get(),
             'cycles' => CycleEnseignement::whereNull('deleted_at')->orderBy('libelle')->get(['id', 'libelle']),
             'pays' => Pays::select('id', 'libelle')->where('etat', 'actif')->orderBy('libelle')->get(),
         ];
@@ -217,7 +219,7 @@ class ListeManuelsController extends Controller
             'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
             'ecole_id' => 'nullable|exists:ecoles,id',
             'section_id' => 'nullable|exists:sections,id',
-            'niveau_id' => 'nullable|exists:niveaux,id',
+            'niveau_id' => 'nullable|exists:niveaux_etudes,id',
             'cycle_id' => 'nullable|exists:cycles_enseignement,id',
             'pays_id' => 'nullable|exists:pays,id',
             'etat' => 'required|in:actif,inactif',
