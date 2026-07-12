@@ -180,6 +180,16 @@ Route::middleware(['auth:web'])->prefix('finances')->name('finances.')->group(fu
         Route::put('/{groupeCompte}/statut', [GroupeCompteController::class, 'statut'])->name('statut');
     });
 
+    // Plan comptable OHADA
+    Route::prefix('plan-comptes')->name('plan-comptes.')->group(function () {
+        Route::get('/', [\Modules\Finances\Http\Controllers\PlanCompteController::class, 'index'])->name('index');
+        Route::get('/create', [\Modules\Finances\Http\Controllers\PlanCompteController::class, 'create'])->name('create');
+        Route::post('/', [\Modules\Finances\Http\Controllers\PlanCompteController::class, 'store'])->name('store');
+        Route::get('/{planCompte}/edit', [\Modules\Finances\Http\Controllers\PlanCompteController::class, 'edit'])->name('edit');
+        Route::put('/{planCompte}', [\Modules\Finances\Http\Controllers\PlanCompteController::class, 'update'])->name('update');
+        Route::delete('/{planCompte}', [\Modules\Finances\Http\Controllers\PlanCompteController::class, 'destroy'])->name('destroy');
+    });
+
     // Lignes de Recettes
     Route::prefix('lignes-recettes')->name('lignes-recettes.')->group(function () {
         Route::get('/', [LigneRecetteController::class, 'index'])->name('index');

@@ -73,6 +73,7 @@ const specialRoutes = {
     'inscriptions-transport': 'inscriptions-transport.index',
     'consultations-infirmerie': 'consultations-infirmerie.index',
     // Finances module
+    'plan-comptes': 'finances.plan-comptes.index',
     'ecolage': 'finances.ecolage.index',
     'autres-revenus': 'finances.autres-revenus.index',
     'versements': 'finances.versements.index',
