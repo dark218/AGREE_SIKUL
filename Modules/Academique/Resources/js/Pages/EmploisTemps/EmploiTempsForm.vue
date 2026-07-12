@@ -96,15 +96,29 @@ const removeCreneau = (i) => props.form.creneaux.splice(i, 1);
         <!-- ÉTAPE 1 : DÉFINITION DES PÉRIODES -->
         <template #contexte>
             <div class="row g-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <label class="fw-medium">Année scolaire</label>
+                    <SearchableSelect v-model="form.annee_scolaire_id" :options="anneesScolaires" option-value="id" option-label="libelle" placeholder="--" :disabled="isReadOnly" />
+                </div>
+                <div class="col-md-4">
                     <label class="fw-medium">Classe <span class="text-danger">*</span></label>
                     <SearchableSelect v-model="form.classe_id" :options="classes" option-value="id" option-label="libelle" placeholder="-- Choisir la classe --" :disabled="isReadOnly" />
-                    <small class="text-muted">École, campus, niveau, section, cycle et année se remplissent automatiquement.</small>
+                    <small class="text-muted">Niveau, section, cycle et année se remplissent automatiquement.</small>
                     <span v-if="form.errors?.classe_id" class="text-danger small d-block">{{ form.errors.classe_id }}</span>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <label class="fw-medium">Période</label>
                     <SearchableSelect v-model="form.periode_id" :options="periodes" option-value="id" option-label="libelle" placeholder="-- Trimestre / Semestre --" :disabled="isReadOnly" />
+                </div>
+                <!-- École / Campus sortis du bloc auto (une institution peut avoir 2 écoles dans 2 campus). -->
+                <div class="col-md-6">
+                    <label class="fw-medium">École</label>
+                    <SearchableSelect v-model="form.ecole_id" :options="ecoles" option-value="id" option-label="libelle" placeholder="--" :disabled="isReadOnly" />
+                    <small class="text-muted">Pré-remplie par la classe, modifiable.</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="fw-medium">Campus</label>
+                    <SearchableSelect v-model="form.campus_id" :options="campuses" option-value="id" option-label="libelle" placeholder="--" :disabled="isReadOnly" />
                 </div>
 
                 <!-- Contexte hérité (auto, lecture seule) -->
@@ -112,10 +126,7 @@ const removeCreneau = (i) => props.form.creneaux.splice(i, 1);
                     <div class="auto-block">
                         <div class="auto-title"><i class="fa fa-sitemap"></i> Contexte académique <span class="badge bg-secondary">auto</span></div>
                         <div class="row g-2">
-                            <div class="col-md-3"><span class="lbl">Année scolaire</span><span class="val">{{ anneeLabel }}</span></div>
                             <div class="col-md-3"><span class="lbl">Institution</span><span class="val">{{ institutionLabel }}</span></div>
-                            <div class="col-md-3"><span class="lbl">École</span><span class="val">{{ ecoleLabel }}</span></div>
-                            <div class="col-md-3"><span class="lbl">Campus</span><span class="val">{{ campusLabel }}</span></div>
                             <div class="col-md-3"><span class="lbl">Cycle</span><span class="val">{{ cycleLabel }}</span></div>
                             <div class="col-md-3"><span class="lbl">Niveau</span><span class="val">{{ niveauLabel }}</span></div>
                             <div class="col-md-3"><span class="lbl">Section</span><span class="val">{{ sectionLabel }}</span></div>
