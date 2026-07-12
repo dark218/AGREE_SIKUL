@@ -147,6 +147,9 @@ const DEFAULT_MENU_CONFIG = [
             { menu_url: 'facturations-apprenants', libelle: 'Facturations apprenants', libelle_en: 'Student Invoices', icone: 'fas fa-file-invoice-dollar' },
             { menu_url: 'achats-depenses', libelle: 'Achats et dépenses', libelle_en: 'Purchases & Expenses', icone: 'fas fa-shopping-cart' },
             { menu_url: 'salaires', libelle: 'Salaires', libelle_en: 'Salaries', icone: 'fas fa-money-check-alt' },
+            // Plan comptable (feature créée par migration 2026_07_08_120000).
+            // Placé avant Groupes de comptes — logique métier : Plan → Groupes → Lignes → Postes.
+            { menu_url: 'plan-comptes', libelle: 'Plan comptable', libelle_en: 'Chart of Accounts', icone: 'fas fa-book' },
             { menu_url: 'groupes-comptes', libelle: 'Groupes de comptes', libelle_en: 'Account Groups', icone: 'fas fa-folder-open' },
             { menu_url: 'lignes-recettes', libelle: 'Lignes de recettes', libelle_en: 'Revenue Lines', icone: 'fas fa-arrow-trending-up' },
             { menu_url: 'lignes-depenses', libelle: 'Lignes de dépenses', libelle_en: 'Expense Lines', icone: 'fas fa-arrow-trending-down' },
