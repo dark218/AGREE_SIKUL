@@ -84,7 +84,17 @@ watch(() => props.form.classe_id, async (id) => {
 });
 
 // Mention automatique par ligne (dérivée de la note ramenée sur 20)
-const mentionFor = (n20) => n20 >= 16 ? 'Très bien' : n20 >= 14 ? 'Bien' : n20 >= 12 ? 'Assez bien' : n20 >= 10 ? 'Passable' : 'Insuffisant';
+// Barème francophone à 9 niveaux (section francophone).
+const mentionFor = (n20) =>
+    n20 >= 16 ? 'Très Bien'
+    : n20 >= 14 ? 'Bien'
+    : n20 >= 12 ? 'Assez Bien'
+    : n20 >= 10 ? 'Passable'
+    : n20 >= 8 ? 'Médiocre'
+    : n20 >= 6 ? 'Insuffisant'
+    : n20 >= 4 ? 'Faible'
+    : n20 >= 2 ? 'Très faible'
+    : 'Nul';
 const recomputeMention = (ligne) => {
     const sur = parseFloat(props.form.note_sur);
     const n = parseFloat(ligne.note_originale);

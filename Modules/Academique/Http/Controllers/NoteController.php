@@ -158,15 +158,22 @@ class NoteController extends Controller
         }
     }
 
-    /** Mention automatique dérivée d'une note ramenée sur 20. */
+    /**
+     * Mention automatique dérivée d'une note ramenée sur 20 — barème
+     * francophone à 9 niveaux (section francophone).
+     */
     public static function mentionFor(float $note20): string
     {
         return match (true) {
-            $note20 >= 16 => 'Très bien',
+            $note20 >= 16 => 'Très Bien',
             $note20 >= 14 => 'Bien',
-            $note20 >= 12 => 'Assez bien',
+            $note20 >= 12 => 'Assez Bien',
             $note20 >= 10 => 'Passable',
-            default       => 'Insuffisant',
+            $note20 >= 8  => 'Médiocre',
+            $note20 >= 6  => 'Insuffisant',
+            $note20 >= 4  => 'Faible',
+            $note20 >= 2  => 'Très faible',
+            default       => 'Nul',
         };
     }
 

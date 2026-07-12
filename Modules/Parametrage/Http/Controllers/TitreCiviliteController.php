@@ -77,9 +77,11 @@ class TitreCiviliteController extends Controller
             return redirect()
                 ->route('parametrage.titres_civilites.index')
                 ->with('success', 'Créé avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Laisse remonter les erreurs de champ (ex : code déjà utilisé) au formulaire.
+            throw $e;
         } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors de la création');
+            return back()->withInput()->with('error', 'Erreur lors de la création');
         }
     }
 
@@ -124,9 +126,10 @@ class TitreCiviliteController extends Controller
             return redirect()
                 ->route('parametrage.titres_civilites.index')
                 ->with('success', 'Modifié avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
-            // Logging handled by exception handler
-            return back()->with('error', 'Erreur lors de la modification');
+            return back()->withInput()->with('error', 'Erreur lors de la modification');
         }
     }
 

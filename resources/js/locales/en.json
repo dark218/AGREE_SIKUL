@@ -89,10 +89,13 @@
         "import": "Import",
         "refresh": "Refresh",
         "reset": "Reset",
-        "reset_filters": "Reset filters"
+        "reset_filters": "Reset filters",
+        "previous": "Previous",
+        "next": "Next"
     },
 
     "common": {
+        "step": "Step",
         "status": "Status",
         "statut": "Status",
         "actions": "Actions",

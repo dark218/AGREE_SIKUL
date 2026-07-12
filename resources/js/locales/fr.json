@@ -105,9 +105,12 @@
         "preview": "Aperçu",
         "reply": "Répondre",
         "send": "Envoyer",
+        "previous": "Précédent",
+        "next": "Suivant",
         "actions": "Actions"
     },
     "common": {
+        "step": "Étape",
         "status": "État",
         "statut": "Statut",
         "etat": "État",

@@ -58,8 +58,8 @@ class NoteBatchTest extends TestCase
 
         // 1 évaluation (le contexte) + 2 notes
         $this->assertDatabaseCount('evaluations', 1);
-        $this->assertDatabaseHas('notes', ['apprenant_id' => $a1->id, 'note' => 16, 'mention' => 'Très bien', 'appreciation' => 'Excellent']);
-        $this->assertDatabaseHas('notes', ['apprenant_id' => $a2->id, 'note' => 8, 'mention' => 'Insuffisant']);
+        $this->assertDatabaseHas('notes', ['apprenant_id' => $a1->id, 'note' => 16, 'mention' => 'Très Bien', 'appreciation' => 'Excellent']);
+        $this->assertDatabaseHas('notes', ['apprenant_id' => $a2->id, 'note' => 8, 'mention' => 'Médiocre']);
     }
 
     /** @test */

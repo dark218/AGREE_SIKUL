@@ -87,36 +87,23 @@ class PeriodesColairesController extends Controller
     public function store(Request $request)
     {
         try {
+            // Période Scolaire = 3 champs seulement : Code, Libellé, Statut.
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:periodes_colaires,code',
                 'libelle' => 'required|string|max:255',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'date_debut' => 'required|date|date_format:Y-m-d',
-                'date_fin' => 'required|date|date_format:Y-m-d|after:date_debut',
-                'duree' => 'nullable|integer|min:0',
-                'type_periode' => 'nullable|in:trimestre,semestre,quadrimestre,annuel',
-                'numero_ordre' => 'nullable|integer|min:1',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'est_periode_evaluation' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
             $validated['etat'] = $validated['etat'] ?? 'actif';
-            $validated['est_periode_evaluation'] = $validated['est_periode_evaluation'] ?? false;
             $validated['created_by'] = auth()->id();
-
-            // Auto-calcul de la durée en jours si non fournie
-            if (empty($validated['duree']) && !empty($validated['date_debut']) && !empty($validated['date_fin'])) {
-                $validated['duree'] = \Carbon\Carbon::parse($validated['date_debut'])
-                    ->diffInDays(\Carbon\Carbon::parse($validated['date_fin']));
-            }
 
             PeriodeColaire::create($validated);
 
             return redirect()
                 ->route('parametrage.periodes_colaires.index')
                 ->with('success', 'Période créée avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             // Logging handled by exception handler
             \Log::error('PeriodeColaire Store Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -191,33 +178,19 @@ class PeriodesColairesController extends Controller
             $validated = $request->validate([
                 'code' => 'required|string|max:100|unique:periodes_colaires,code,' . $periodeColaire->id,
                 'libelle' => 'required|string|max:255',
-                'cycle_id' => 'nullable|exists:cycles_enseignement,id',
-                'annee_scolaire_id' => 'required|exists:annees_scolaires,id',
-                'duree' => 'nullable|integer|min:0',
-                'type_periode' => 'nullable|in:trimestre,semestre,quadrimestre,annuel',
-                'numero_ordre' => 'nullable|integer|min:1',
-                'ecole_id' => 'nullable|exists:ecoles,id',
-                'date_debut' => 'required|date|date_format:Y-m-d',
-                'date_fin' => 'required|date|date_format:Y-m-d|after:date_debut',
-                'est_periode_evaluation' => 'nullable|boolean',
                 'etat' => 'nullable|in:actif,inactif',
             ]);
 
             $validated['etat'] = $validated['etat'] ?? $periodeColaire->etat;
-            $validated['est_periode_evaluation'] = $validated['est_periode_evaluation'] ?? false;
             $validated['updated_by'] = auth()->id();
-
-            // Auto-recalcul durée si dates changent
-            if (empty($validated['duree']) && !empty($validated['date_debut']) && !empty($validated['date_fin'])) {
-                $validated['duree'] = \Carbon\Carbon::parse($validated['date_debut'])
-                    ->diffInDays(\Carbon\Carbon::parse($validated['date_fin']));
-            }
 
             $periodeColaire->update($validated);
 
             return redirect()
                 ->route('parametrage.periodes_colaires.index')
                 ->with('success', 'Période modifiée avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             // Logging handled by exception handler
             \Log::error('PeriodeColaire Update Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);

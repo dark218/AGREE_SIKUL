@@ -166,10 +166,6 @@ watch(
                                     <tr>
                                         <th>{{ t('fields.code') || 'Code' }}</th>
                                         <th>{{ t('fields.label') || 'Libellé' }}</th>
-                                        <th>{{ t('common.annee_scolaire') || 'Année scolaire' }}</th>
-                                        <th>Date début</th>
-                                        <th>Date fin</th>
-                                        <th>Durée</th>
                                         <th>{{ t('fields.status') || 'Statut' }}</th>
                                         <th class="fit">{{ t('common.actions') }}</th>
                                     </tr>
@@ -179,10 +175,6 @@ watch(
                                         <tr v-for="periode in periodesColaires?.data" :key="periode.id">
                                             <td><small>{{ periode.code || '-' }}</small></td>
                                             <td>{{ periode.libelle || '-' }}</td>
-                                            <td><small>{{ periode.annee_scolaire?.libelle || '-' }}</small></td>
-                                            <td><small>{{ formatDate(periode.date_debut) }}</small></td>
-                                            <td><small>{{ formatDate(periode.date_fin) }}</small></td>
-                                            <td><small>{{ dureeJours(periode) }}</small></td>
                                             <td><span class="badge" :class="periode.etat === 'actif' ? 'bg-success' : 'bg-danger'">{{ periode.etat === 'actif' ? 'Actif' : 'Inactif' }}</span></td>
                                             <td class="fit">
                                                 <div class="action-buttons">
@@ -206,7 +198,7 @@ watch(
                                         </tr>
                                     </template>
                                     <tr v-else>
-                                        <td colspan="8" class="text-center">{{ t('common.emptyList') }}</td>
+                                        <td colspan="4" class="text-center">{{ t('common.emptyList') }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -223,22 +215,6 @@ watch(
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.label') || 'Libellé' }}</span>
                                             <span class="mobile-card-value">{{ periode.libelle || '-' }}</span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">{{ t('common.annee_scolaire') || 'Année scolaire' }}</span>
-                                            <span class="mobile-card-value"><small>{{ periode.annee_scolaire?.libelle || '-' }}</small></span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">Date début</span>
-                                            <span class="mobile-card-value"><small>{{ formatDate(periode.date_debut) }}</small></span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">Date fin</span>
-                                            <span class="mobile-card-value"><small>{{ formatDate(periode.date_fin) }}</small></span>
-                                        </div>
-                                        <div class="mobile-card-row">
-                                            <span class="mobile-card-label">Durée</span>
-                                            <span class="mobile-card-value"><small>{{ dureeJours(periode) }}</small></span>
                                         </div>
                                         <div class="mobile-card-row">
                                             <span class="mobile-card-label">{{ t('fields.status') || 'Statut' }}</span>
