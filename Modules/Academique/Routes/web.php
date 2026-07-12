@@ -11,6 +11,7 @@ use Modules\Academique\Http\Controllers\BulletinController;
 use Modules\Academique\Http\Controllers\InscriptionController;
 use Modules\Academique\Http\Controllers\DossierApprenantController;
 use Modules\Academique\Http\Controllers\AbsenceEnseignantController;
+use Modules\Academique\Http\Controllers\AbsenceApprenantController;
 use Modules\Academique\Http\Controllers\AffectationEnseignantController;
 use Modules\Academique\Http\Controllers\PresencesController;
 use Modules\Academique\Http\Controllers\DevoirController;
@@ -193,9 +194,17 @@ Route::prefix('academique')->name('academique.')->middleware(["auth:web"])->grou
 
     // PHASE 4: Absences, Presences, Justifications
 
-    // (Bloc "Absences Apprenants" retiré : Presence est la source unique
-    // désormais. `absences apprenants` = `presences` avec statut in
-    // ('absent', 'malade', 'permis').)
+    // Absences Apprenants
+    Route::prefix('absences-apprenants')->name('absences_apprenants.')->group(function () {
+        Route::get('/', [AbsenceApprenantController::class, 'index'])->name('index');
+        Route::get('/create', [AbsenceApprenantController::class, 'create'])->name('create');
+        Route::post('/', [AbsenceApprenantController::class, 'store'])->name('store');
+        Route::get('/{absenceApprenant}', [AbsenceApprenantController::class, 'show'])->name('show');
+        Route::get('/{absenceApprenant}/edit', [AbsenceApprenantController::class, 'edit'])->name('edit');
+        Route::put('/{absenceApprenant}', [AbsenceApprenantController::class, 'update'])->name('update');
+        Route::put('/{absenceApprenant}/statut', [AbsenceApprenantController::class, 'activate'])->name('statut');
+        Route::delete('/{absenceApprenant}', [AbsenceApprenantController::class, 'destroy'])->name('destroy');
+    });
 
     // Absences Enseignants
     Route::prefix('absences-enseignants')->name('absences_enseignants.')->group(function () {

@@ -309,7 +309,7 @@ const ACADEMIQUE_GROUPS = [
     { id: 'inscriptions', libelle: 'Inscriptions & Dossiers', libelle_en: 'Enrollments & Files', icone: 'fas fa-clipboard-check',
       items: ['inscriptions', 'dossiers-apprenants'] },
     { id: 'absences', libelle: 'Absences & Présences', libelle_en: 'Absences & Attendance', icone: 'fas fa-user-check',
-      items: ['presences', 'absences-enseignants'] },
+      items: ['presences', 'absences-apprenants', 'absences-enseignants'] },
     { id: 'examens', libelle: 'Examens', libelle_en: 'Exams', icone: 'fas fa-file-pen',
       items: ['planification-examens', 'examens-en-ligne', 'mes-examens', 'exam-finance'] },
     // (Group 'bibliotheque' retiré — voir RessourcesLogistique pour la gestion des livres.)
