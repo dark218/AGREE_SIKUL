@@ -15,12 +15,17 @@ class AbsenceApprenant extends BaseModel
 
     protected $fillable = [
         'apprenant_id',
+        'annee_scolaire_id',
         'classe_id',
+        'ecole_id',
+        'campus_id',
         'matiere_id',
+        'enseignant_id',
         'date_debut',
         'date_fin',
         'nombre_heures',
         'motif',
+        'commentaire',
         'justificatif_path',
         'statut',
         'etat',
@@ -46,6 +51,11 @@ class AbsenceApprenant extends BaseModel
     public function matiere(): BelongsTo
     {
         return $this->belongsTo(\Modules\Parametrage\Entities\MatiereUnite::class, 'matiere_id');
+    }
+
+    public function enseignant(): BelongsTo
+    {
+        return $this->belongsTo(Enseignant::class, 'enseignant_id');
     }
 
     public function scopeActif($query)

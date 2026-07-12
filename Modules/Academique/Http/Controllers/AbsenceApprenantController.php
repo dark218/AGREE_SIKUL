@@ -83,8 +83,15 @@ class AbsenceApprenantController extends Controller
                     'matricule' => $a->matricule ?? '',
                     'classe_id' => $a->classe_id,
                 ])->toArray(),
-            'classes' => Classe::orderBy('nom')->get(['id', 'nom']),
-            'matieres' => MatiereUnite::orderBy('libelle')->get(['id', 'libelle as nom']),
+            // Classes portent le contexte (école/campus/année) pour la cascade.
+            'classes' => Classe::orderBy('nom')->get(['id', 'nom', 'ecole_id', 'campus_id', 'annee_scolaire_id'])
+                ->map(fn ($c) => ['id' => $c->id, 'libelle' => $c->nom, 'ecole_id' => $c->ecole_id, 'campus_id' => $c->campus_id, 'annee_scolaire_id' => $c->annee_scolaire_id])->toArray(),
+            'matieres' => MatiereUnite::orderBy('libelle')->get(['id', 'libelle'])->map(fn ($m) => ['id' => $m->id, 'libelle' => $m->libelle])->toArray(),
+            'ecoles' => \Modules\Parametrage\Entities\Ecole::orderBy('nom')->get(['id', 'nom'])->map(fn ($e) => ['id' => $e->id, 'libelle' => $e->nom])->toArray(),
+            'campuses' => \Modules\Parametrage\Entities\Campus::orderBy('nom')->get(['id', 'nom'])->map(fn ($c) => ['id' => $c->id, 'libelle' => $c->nom])->toArray(),
+            'anneesScolaires' => \Modules\Parametrage\Entities\AnneeScolaire::orderBy('libelle', 'desc')->get(['id', 'libelle'])->toArray(),
+            'enseignants' => \Modules\Academique\Entities\Enseignant::orderBy('nom')->get(['id', 'nom', 'prenoms'])
+                ->map(fn ($e) => ['id' => $e->id, 'libelle' => trim(($e->nom ?? '') . ' ' . ($e->prenoms ?? ''))])->toArray(),
         ];
     }
 
@@ -100,16 +107,22 @@ class AbsenceApprenantController extends Controller
         }
     }
 
+    /** Règles pour l'édition d'UNE absence (formulaire single). */
     private function rules(): array
     {
         return [
             'apprenant_id' => 'required|exists:apprenants,id',
+            'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
             'classe_id' => 'nullable|exists:classes,id',
+            'ecole_id' => 'nullable|exists:ecoles,id',
+            'campus_id' => 'nullable|exists:campuses,id',
             'matiere_id' => 'nullable|exists:matieres_unites,id',
+            'enseignant_id' => 'nullable|exists:enseignants,id',
             'date_debut' => 'required|date_format:Y-m-d\TH:i',
             'date_fin' => 'required|date_format:Y-m-d\TH:i|after_or_equal:date_debut',
             'nombre_heures' => 'nullable|numeric|min:0',
             'motif' => 'nullable|string',
+            'commentaire' => 'nullable|string',
             'statut' => 'required|in:en_attente,validee,rejetee',
             'justificatif_path' => 'nullable|array',
             'justificatif_path.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif|max:5120',
@@ -117,32 +130,76 @@ class AbsenceApprenantController extends Controller
         ];
     }
 
-    private function storeFiles(Request $request): array
+    private function storeFilesFor($files): array
     {
         $paths = [];
-        if ($request->hasFile('justificatif_path')) {
-            $files = $request->file('justificatif_path');
-            if (!is_array($files)) {
-                $files = [$files];
+        if (!$files) {
+            return $paths;
+        }
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+        foreach ($files as $file) {
+            if (!$file) {
+                continue;
             }
-            foreach ($files as $file) {
-                $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
-                $paths[] = $file->storeAs('absences_apprenants', $filename, 'public');
-            }
+            $filename = time() . '_' . uniqid() . '_' . $file->getClientOriginalName();
+            $paths[] = $file->storeAs('absences_apprenants', $filename, 'public');
         }
         return $paths;
     }
 
+    /**
+     * Saisie EN LOT : un contexte commun (année/classe/école/campus/matière/
+     * enseignant + dates/statut) appliqué à plusieurs apprenants. L'onglet
+     * Justificatifs fournit, par apprenant, un commentaire + des fichiers + état.
+     */
     public function store(Request $request)
     {
         try {
-            $validated = $request->validate($this->rules());
-            $files = $this->storeFiles($request);
-            if (!empty($files)) {
-                $validated['justificatif_path'] = $files;
-            }
+            $validated = $request->validate([
+                'annee_scolaire_id' => 'nullable|exists:annees_scolaires,id',
+                'classe_id' => 'nullable|exists:classes,id',
+                'ecole_id' => 'nullable|exists:ecoles,id',
+                'campus_id' => 'nullable|exists:campuses,id',
+                'matiere_id' => 'nullable|exists:matieres_unites,id',
+                'enseignant_id' => 'nullable|exists:enseignants,id',
+                'date_debut' => 'required|date_format:Y-m-d\TH:i',
+                'date_fin' => 'required|date_format:Y-m-d\TH:i|after_or_equal:date_debut',
+                'nombre_heures' => 'nullable|numeric|min:0',
+                'statut' => 'required|in:en_attente,validee,rejetee',
+                'apprenants' => 'required|array|min:1',
+                'apprenants.*' => 'exists:apprenants,id',
+                'justificatifs' => 'nullable|array',
+            ]);
 
-            AbsenceApprenant::create($validated);
+            $contexte = [
+                'annee_scolaire_id' => $validated['annee_scolaire_id'] ?? null,
+                'classe_id' => $validated['classe_id'] ?? null,
+                'ecole_id' => $validated['ecole_id'] ?? null,
+                'campus_id' => $validated['campus_id'] ?? null,
+                'matiere_id' => $validated['matiere_id'] ?? null,
+                'enseignant_id' => $validated['enseignant_id'] ?? null,
+                'date_debut' => $validated['date_debut'],
+                'date_fin' => $validated['date_fin'],
+                'nombre_heures' => $validated['nombre_heures'] ?? null,
+                'statut' => $validated['statut'],
+            ];
+
+            $justificatifs = $request->input('justificatifs', []);
+
+            \DB::transaction(function () use ($request, $validated, $contexte, $justificatifs) {
+                foreach ($validated['apprenants'] as $apprenantId) {
+                    $j = $justificatifs[$apprenantId] ?? [];
+                    $files = $request->file("justificatifs.$apprenantId.files");
+                    AbsenceApprenant::create(array_merge($contexte, [
+                        'apprenant_id' => $apprenantId,
+                        'commentaire' => $j['commentaire'] ?? null,
+                        'etat' => ($j['etat'] ?? 'actif') === 'inactif' ? 'inactif' : 'actif',
+                        'justificatif_path' => $this->storeFilesFor($files) ?: null,
+                    ]));
+                }
+            });
 
             return redirect()->route('academique.absences_apprenants.index')
                 ->with('success', __('messages.created_successfully'));
@@ -201,7 +258,7 @@ class AbsenceApprenantController extends Controller
                         }
                     }
                 }
-                $validated['justificatif_path'] = $this->storeFiles($request);
+                $validated['justificatif_path'] = $this->storeFilesFor($request->file('justificatif_path'));
             }
 
             $absenceApprenant->update($validated);
