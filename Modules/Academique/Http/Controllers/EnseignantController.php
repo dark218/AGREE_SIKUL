@@ -104,7 +104,7 @@ class EnseignantController extends Controller
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
             // §UX : titres de civilité (M., Mme, Dr, Pr, …) — nouveau champ enseignant.
             'titresCivilite' => \Schema::hasTable('titres_civilites')
-                ? \DB::table('titres_civilites')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                ? \DB::table('titres_civilites')->whereNull('deleted_at')->selectRaw('id, COALESCE(NULLIF(sigle, \'\'), libelle) as libelle')->orderBy('libelle')->get()
                 : collect(),
         ]);
     }
@@ -273,7 +273,7 @@ class EnseignantController extends Controller
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
             // §UX : titres de civilité (M., Mme, Dr, Pr, …) — nouveau champ enseignant.
             'titresCivilite' => \Schema::hasTable('titres_civilites')
-                ? \DB::table('titres_civilites')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                ? \DB::table('titres_civilites')->whereNull('deleted_at')->selectRaw('id, COALESCE(NULLIF(sigle, \'\'), libelle) as libelle')->orderBy('libelle')->get()
                 : collect(),
         ]);
     }
@@ -309,7 +309,7 @@ class EnseignantController extends Controller
             'fonctions' => \Modules\Parametrage\Entities\Fonction::actif()->orderBy('libelle')->get(['id', 'libelle', 'code'])->toArray(),
             // §UX : titres de civilité (M., Mme, Dr, Pr, …) — nouveau champ enseignant.
             'titresCivilite' => \Schema::hasTable('titres_civilites')
-                ? \DB::table('titres_civilites')->whereNull('deleted_at')->select('id', 'libelle')->orderBy('libelle')->get()
+                ? \DB::table('titres_civilites')->whereNull('deleted_at')->selectRaw('id, COALESCE(NULLIF(sigle, \'\'), libelle) as libelle')->orderBy('libelle')->get()
                 : collect(),
         ]);
     }
