@@ -39,12 +39,32 @@ return new class extends Migration
             });
         }
 
+        // Garantit la présence de la fonctionnalité (ligne feature) dans le menu
+        // Académique — les features vivent en base et ne sont pas rejouées par
+        // migrate au déploiement. On la crée si elle manque (idempotent).
+        $featureId = null;
+        if (Schema::hasTable('feature') && Schema::hasTable('module')) {
+            $featureId = DB::table('feature')->where('menu_url', 'absences-apprenants')->value('id');
+            if (!$featureId) {
+                $moduleId = DB::table('module')->where('libelle', 'Académique')->value('id');
+                if ($moduleId) {
+                    $featureId = DB::table('feature')->insertGetId([
+                        'libelle'    => 'Absence Apprenant',
+                        'libelle_en' => 'Student Absence',
+                        'module_id'  => $moduleId,
+                        'menu_url'   => 'absences-apprenants',
+                        'icone'      => 'fas fa-calendar-xmark',
+                        'ordre'      => 60,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
+
         // Permissions + attribution au super_admin.
         if (Schema::hasTable('permissions') && Schema::hasTable('roles')) {
             $superAdminId = DB::table('roles')->where('name', 'super_admin')->value('id');
-            $featureId = Schema::hasTable('feature')
-                ? DB::table('feature')->where('menu_url', 'absences-apprenants')->value('id')
-                : null;
 
             foreach (['list', 'create', 'edit', 'delete', 'activate'] as $action) {
                 $name = 'absences_apprenants-' . $action;
