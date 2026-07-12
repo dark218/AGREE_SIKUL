@@ -56,6 +56,7 @@ const form = useForm({
     prenoms: props.enseignant?.prenoms || '',
     nom_restituer: props.enseignant?.nom_restituer || '',
     nom_jeune_fille: props.enseignant?.nom_jeune_fille || '',
+    titre_civilite_id: props.enseignant?.titre_civilite_id || '',
     gender: props.enseignant?.gender || '',
     genre_id: props.enseignant?.genre_id || '',
     nature_contrat_id: props.enseignant?.nature_contrat_id || '',

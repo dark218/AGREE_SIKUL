@@ -21,7 +21,7 @@ class Enseignant extends BaseModel
         // Identifiant
         'user_id', 'num_enseignant', 'matricule',
         // Identité personnelle
-        'nom', 'prenoms', 'nom_restituer', 'nom_jeune_fille',
+        'nom', 'prenoms', 'nom_restituer', 'nom_jeune_fille', 'titre_civilite_id',
         'gender', 'genre_id', 'marital_status', 'date_of_birth', 'place_of_birth',
         'commune_id', 'department_id', 'region_id', 'country_id', 'nationalite',
         // Formation
@@ -43,6 +43,11 @@ class Enseignant extends BaseModel
     public function genre(): BelongsTo
     {
         return $this->belongsTo(\Modules\Parametrage\Entities\Genre::class, 'genre_id');
+    }
+
+    public function titreCivilite(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Parametrage\Entities\TitreCivilite::class, 'titre_civilite_id');
     }
 
     public function fonction(): BelongsTo

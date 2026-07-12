@@ -44,6 +44,7 @@ const form = useForm({
     prenoms: '',
     nom_restituer: '',
     nom_jeune_fille: '',
+    titre_civilite_id: '',
     gender: '',
     genre_id: '',
     nature_contrat_id: '',

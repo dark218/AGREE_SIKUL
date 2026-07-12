@@ -132,6 +132,7 @@ class EnseignantController extends Controller
             'region_id'     => 'regions',
             'country_id'    => 'pays',
             'genre_id'      => 'genres',
+            'titre_civilite_id' => 'titres_civilites',
         ];
         foreach ($optional as $field => $table) {
             $val = $request->input($field);
@@ -157,6 +158,7 @@ class EnseignantController extends Controller
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
                 'genre_id' => 'nullable|exists:genres,id',
+                'titre_civilite_id' => 'nullable|exists:titres_civilites,id',
                 // Accepte à la fois les codes majuscules du référentiel (CELIBATAIRE, MARIE, ...)
                 // et les valeurs legacy en minuscules (celibataire, marie, ...) pour rétro-compat.
                 'marital_status' => 'nullable|string|max:50',
@@ -346,6 +348,7 @@ class EnseignantController extends Controller
                 'nom_jeune_fille' => 'nullable|string|max:100',
                 'gender' => 'nullable|in:M,F,Autre',
                 'genre_id' => 'nullable|exists:genres,id',
+                'titre_civilite_id' => 'nullable|exists:titres_civilites,id',
                 // Accepte à la fois les codes majuscules du référentiel (CELIBATAIRE, MARIE, ...)
                 // et les valeurs legacy en minuscules (celibataire, marie, ...) pour rétro-compat.
                 'marital_status' => 'nullable|string|max:50',
