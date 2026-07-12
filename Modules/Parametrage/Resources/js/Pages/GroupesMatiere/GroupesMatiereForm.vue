@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch } from 'vue';
+import { computed, watch, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SearchableSelect from '@/Components/Common/SearchableSelect.vue';
 
@@ -56,6 +56,29 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
         props.form.cycle_id = niveau.cycle_id ?? null;
     }
 });
+
+// ── Multi-select recherchable « Matières du groupe » ──────────────────────
+if (!Array.isArray(props.form.matieres)) props.form.matieres = [];
+const matieresOpen = ref(false);
+const matieresQuery = ref('');
+const filteredMatieres = computed(() => {
+    const q = matieresQuery.value.trim().toLowerCase();
+    if (!q) return props.matieres;
+    return props.matieres.filter((m) => (m.libelle || '').toLowerCase().includes(q));
+});
+const isMatiereSelected = (id) => (props.form.matieres || []).map(String).includes(String(id));
+const toggleMatiere = (id) => {
+    if (isReadOnly.value) return;
+    if (!Array.isArray(props.form.matieres)) props.form.matieres = [];
+    const idx = props.form.matieres.findIndex((x) => String(x) === String(id));
+    if (idx === -1) props.form.matieres.push(id);
+    else props.form.matieres.splice(idx, 1);
+};
+const selectedMatieresLabels = computed(() =>
+    (props.form.matieres || [])
+        .map((id) => props.matieres.find((m) => String(m.id) === String(id))?.libelle)
+        .filter(Boolean)
+);
 </script>
 
 <template>
@@ -155,35 +178,41 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
                 <span v-if="form.errors?.cycle_id" class="text-danger"><strong>{{ form.errors.cycle_id }}</strong></span>
             </div>
         </div>
-        <!-- §UX : Matières du groupe en GRILLE DE CHECKBOXES (demande user).
-             Plus intuitif qu'un multi-select pour cocher plusieurs matières
-             d'un coup d'œil. Layout responsive : 4 colonnes desktop → 2 → 1. -->
+        <!-- §UX : Matières du groupe en LISTE DÉROULANTE multi-sélection
+             recherchable (demande user). -->
         <div class="col-12">
             <div class="mb-3">
                 <label class="mb-2">
                     <i class="fa fa-book me-1 text-primary"></i>
-                    Matières du groupe
-                    <small class="text-muted">— coche autant de matières que nécessaire</small>
+                    Matières enseignées
                 </label>
                 <div v-if="matieres.length === 0" class="alert alert-info">
                     Aucune matière disponible. Créez d'abord des matières unités dans Paramétrage.
                 </div>
-                <div v-else class="matieres-checkbox-grid">
-                    <label
-                        v-for="m in matieres"
-                        :key="m.id"
-                        class="matiere-checkbox-item"
-                        :class="{ 'is-checked': form.matieres?.includes(m.id) }"
-                    >
-                        <input
-                            type="checkbox"
-                            :value="m.id"
-                            v-model="form.matieres"
-                            :disabled="isReadOnly"
-                            class="form-check-input"
-                        />
-                        <span class="matiere-label">{{ m.libelle }}</span>
-                    </label>
+                <div v-else class="ms-multiselect" :class="{ 'is-open': matieresOpen }">
+                    <!-- Zone de contrôle : tags des matières choisies -->
+                    <div class="ms-control" @click="!isReadOnly && (matieresOpen = !matieresOpen)">
+                        <template v-if="selectedMatieresLabels.length">
+                            <span v-for="(lbl, i) in selectedMatieresLabels" :key="i" class="ms-tag">{{ lbl }}</span>
+                        </template>
+                        <span v-else class="ms-placeholder">Sélectionner une ou plusieurs matières…</span>
+                        <i class="fa fa-chevron-down ms-caret"></i>
+                    </div>
+                    <!-- Panneau déroulant -->
+                    <div v-if="matieresOpen" class="ms-panel">
+                        <div class="ms-search">
+                            <input v-model="matieresQuery" type="text" class="form-control" placeholder="Rechercher…" @keydown.stop />
+                        </div>
+                        <div class="ms-options">
+                            <label v-for="m in filteredMatieres" :key="m.id" class="ms-option">
+                                <input type="checkbox" :checked="isMatiereSelected(m.id)" @change="toggleMatiere(m.id)" :disabled="isReadOnly" />
+                                <span>{{ m.libelle }}</span>
+                            </label>
+                            <div v-if="filteredMatieres.length === 0" class="ms-empty">Aucune matière trouvée.</div>
+                        </div>
+                    </div>
+                    <!-- Ferme le panneau au clic extérieur -->
+                    <div v-if="matieresOpen" class="ms-backdrop" @click="matieresOpen = false"></div>
                 </div>
                 <div v-if="form.matieres?.length" class="text-muted small mt-2">
                     <i class="fa fa-check-circle text-success"></i>
@@ -214,55 +243,38 @@ watch(() => props.form.niveau_id, (newNiveauId) => {
 </template>
 
 <style scoped>
-.matieres-checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 12px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-}
-@media (max-width: 992px) { .matieres-checkbox-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 768px) { .matieres-checkbox-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 480px) { .matieres-checkbox-grid { grid-template-columns: 1fr; } }
-
-.matiere-checkbox-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
+/* ── Multi-select recherchable ────────────────────────────────────────── */
+.ms-multiselect { position: relative; }
+.ms-control {
+    min-height: 44px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    padding: 6px 34px 6px 10px;
     background: #fff;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 6px;
+    border: 1.5px solid #d0d7e2;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.15s;
-    margin: 0;
-    font-weight: 500;
+    position: relative;
 }
-.matiere-checkbox-item:hover {
-    border-color: #0b5697;
-    background: #f0f7ff;
+.ms-multiselect.is-open .ms-control { border-color: #0b5697; box-shadow: 0 0 0 2px rgba(11,86,151,.12); }
+.ms-placeholder { color: #9aa5b5; font-size: 14px; }
+.ms-tag {
+    background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+    border-radius: 6px; padding: 2px 8px; font-size: 13px; font-weight: 500;
 }
-.matiere-checkbox-item.is-checked {
-    border-color: #0b5697;
-    background: #eff6ff;
-    color: #1e40af;
-    box-shadow: 0 1px 3px rgba(30, 64, 175, 0.15);
+.ms-caret { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px; }
+.ms-panel {
+    position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12); overflow: hidden;
 }
-.matiere-checkbox-item .form-check-input {
-    margin: 0;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-    cursor: pointer;
+.ms-search { padding: 10px; border-bottom: 1px solid #eef2f7; }
+.ms-options { max-height: 260px; overflow-y: auto; padding: 6px; }
+.ms-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 6px; cursor: pointer; margin: 0; font-weight: 500;
 }
-.matiere-label {
-    flex: 1;
-    line-height: 1.4;
-    word-break: break-word;
-    font-size: 14px;
-}
+.ms-option:hover { background: #f0f7ff; }
+.ms-option input { width: 17px; height: 17px; cursor: pointer; }
+.ms-empty { padding: 12px; color: #94a3b8; text-align: center; font-size: 14px; }
+.ms-backdrop { position: fixed; inset: 0; z-index: 20; }
 </style>

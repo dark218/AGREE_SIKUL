@@ -248,17 +248,21 @@ const steps = [
                         :disabled="isReadOnly"
                     />
                 </div>
-                <div class="col-md-4">
-                    <label>{{ t('fields.date_of_birth') }}</label>
-                    <input v-model="form.date_of_birth" :disabled="isReadOnly" type="date" class="form-control" />
-                    <small v-if="age !== null" class="text-muted">{{ age }} ans</small>
-                </div>
             </div>
         </template>
 
         <!-- STEP 2 : NAISSANCE & GÉO -->
         <template #naissance>
             <div class="row g-3">
+                <!-- §UX : Date de naissance + Âge en tête de l'onglet Naissance. -->
+                <div class="col-md-4">
+                    <label>{{ t('fields.date_of_birth') || 'Date de naissance' }}</label>
+                    <input v-model="form.date_of_birth" :disabled="isReadOnly" type="date" class="form-control" />
+                </div>
+                <div class="col-md-2">
+                    <label>{{ t('fields.age') || 'Âge' }}</label>
+                    <input :value="age !== null ? age + ' ans' : ''" type="text" class="form-control" readonly disabled placeholder="—" />
+                </div>
                 <div class="col-md-6">
                     <label>{{ t('fields.place_of_birth') }}</label>
                     <input v-model="form.place_of_birth" :disabled="isReadOnly" type="text" class="form-control" placeholder="Ville / village de naissance" />
