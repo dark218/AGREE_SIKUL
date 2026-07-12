@@ -104,7 +104,7 @@ const handleConfirm = () => {
                 <div class="col-12">
                     <div class="page-title-area d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="page-title">{{ t('modules.academique.listes_manuels') || 'Listes des manuels' }}</h3>
+                            <h3 class="page-title">Listes des manuels et fournitures</h3>
                         </div>
                         <div v-if="can('listes-manuels-create')">
                             <!-- §BUG-FIX : <router-link> n'existe pas dans une app Inertia

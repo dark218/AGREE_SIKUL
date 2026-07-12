@@ -277,7 +277,7 @@ const PARAMETRAGE_GROUPS = [
     { id: 'examens', libelle: 'Examens & Évaluations', libelle_en: 'Exams & Assessments', icone: 'fas fa-pen-to-square',
       items: ['natures_examens', 'types_examens'] },
     { id: 'acteurs', libelle: 'Apprenants & Enseignants', libelle_en: 'Students & Teachers', icone: 'fas fa-users',
-      items: ['types_apprenants', 'categories_enseignant'] },
+      items: ['types_apprenants', 'categorie_apprenants', 'categories_enseignant'] },
     { id: 'institutions', libelle: 'Institutions', libelle_en: 'Institutions', icone: 'fas fa-school',
       items: ['campuses', 'ecoles', 'institution', 'types_etablissements'] },
     { id: 'structure', libelle: 'Structure Organisationnelle', libelle_en: 'Organizational Structure', icone: 'fas fa-object-group',
@@ -289,7 +289,7 @@ const PARAMETRAGE_GROUPS = [
     { id: 'geographie', libelle: 'Géographie & Calendrier', libelle_en: 'Geography & Calendar', icone: 'fas fa-earth-africa',
       items: ['pays', 'regions', 'departements', 'communes', 'quartiers', 'jours_feries'] },
     { id: 'personnes', libelle: 'Personnes & Événements', libelle_en: 'People & Events', icone: 'fas fa-user-tie',
-      items: ['titres_civilites', 'genres', 'liens_parente', 'situations_matrimoniales', 'groupes_sanguins', 'statuts_employes', 'statuts_apprenants', 'categorie_apprenants', 'types_inscriptions', 'types_evenement'] },
+      items: ['titres_civilites', 'genres', 'liens_parente', 'situations_matrimoniales', 'groupes_sanguins', 'statuts_employes', 'statuts_apprenants', 'types_inscriptions', 'types_evenement'] },
 ];
 
 /**

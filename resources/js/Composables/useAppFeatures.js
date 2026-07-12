@@ -49,6 +49,9 @@ const specialRoutes = {
     'fonctionnalites': 'administration.features.index',
     'permissions': 'administration.permissions.index',
     'error-logs': 'administration.errorlog.index',
+    // Referentiel Catégorie Apprenant (route singulière côté back)
+    'categories-apprenants': 'parametrage.categorie_apprenants.index',
+    'categorie-apprenants': 'parametrage.categorie_apprenants.index',
     // Academique module
     'personnels-administratifs': 'personnels_administratifs.index',
     'emplois-du-temps': 'academique.emplois_du_temps.index',
