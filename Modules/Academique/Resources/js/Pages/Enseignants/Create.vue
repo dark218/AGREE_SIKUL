@@ -34,6 +34,7 @@ const props = defineProps({
     langues: { type: Array, default: () => [] },
     statutsEmployes: { type: Array, default: () => [] },
     fonctions: { type: Array, default: () => [] },
+    titresCivilite: { type: Array, default: () => [] },
 });
 
 const form = useForm({
@@ -123,6 +124,7 @@ const submitForm = () => {
                                     :langues="langues"
                                     :statutsEmployes="statutsEmployes"
                                     :fonctions="fonctions"
+                                    :titresCivilite="titresCivilite"
                                     mode="create"
                                     @submit="submitForm"
                                 />

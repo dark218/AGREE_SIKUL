@@ -34,6 +34,7 @@ const props = defineProps({
     langues: { type: Array, default: () => [] },
     statutsEmployes: { type: Array, default: () => [] },
     fonctions: { type: Array, default: () => [] },
+    titresCivilite: { type: Array, default: () => [] },
 });
 
 // §UI : <input type="date"> exige le format `YYYY-MM-DD` strict. Or Laravel
@@ -145,6 +146,7 @@ const submitForm = () => {
                                     :langues="langues"
                                     :statutsEmployes="statutsEmployes"
                                     :fonctions="fonctions"
+                                    :titresCivilite="titresCivilite"
                                     mode="edit"
                                     @submit="submitForm"
                                 />
