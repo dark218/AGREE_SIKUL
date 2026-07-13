@@ -135,7 +135,7 @@ const removeCreneau = (i) => props.form.creneaux.splice(i, 1);
                 </div>
 
                 <div class="col-md-6">
-                    <label class="fw-medium">Libellé</label>
+                    <label class="fw-medium">Libellé période</label>
                     <input v-model="form.libelle" type="text" class="form-control" maxlength="255" :disabled="isReadOnly" placeholder="Ex : EDT 6ème A — Trimestre 1" />
                 </div>
                 <div class="col-md-2">

@@ -58,9 +58,13 @@ class PlanCompteController extends Controller
 
     private function options(): array
     {
+        // §BUG-FIX : la colonne réelle sur `groupes_comptes` est `libelle_groupes`
+        // (voir migration 2026_03_19_create_finances_modules_table.php). Le
+        // controller demandait `libelle` inexistant → SQLSTATE[42S22] → 500 sur
+        // /finances/plan-comptes/create et /edit.
         return [
-            'groupes' => GroupeCompte::orderBy('libelle')->get(['id', 'libelle'])
-                ->map(fn ($g) => ['id' => $g->id, 'libelle' => $g->libelle])->toArray(),
+            'groupes' => GroupeCompte::orderBy('libelle_groupes')->get(['id', 'libelle_groupes'])
+                ->map(fn ($g) => ['id' => $g->id, 'libelle' => $g->libelle_groupes])->toArray(),
             'comptesParents' => PlanCompte::orderBy('numero_compte')->get(['id', 'numero_compte', 'libelle_compte'])
                 ->map(fn ($c) => ['id' => $c->id, 'libelle' => $c->numero_compte . ' — ' . $c->libelle_compte])->toArray(),
         ];

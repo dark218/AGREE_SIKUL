@@ -73,7 +73,7 @@ watch(() => searchFilters.value, () => { clearTimeout(searchTimeout); searchTime
                                         <th>Libellé</th>
                                         <th>Classe</th>
                                         <th>Année</th>
-                                        <th>Période</th>
+                                        <th>Libellé période</th>
                                         <th>Date début</th>
                                         <th>Date fin</th>
                                         <th>Créneaux</th>
